@@ -244,6 +244,8 @@ All values except `database.url` are predefined. Specify any value in `app.conf.
 | api.oauth2.default.client | To create a default client at startup, provide client attributes: <li>`name`</li><li>`description`</li><li>`id`</li><li>`secret`</li><li> `grantTypes` - valid values are `password` and `refresh_token`</li> 
 | api.oauth2.rules          | Array of tab separated values in the order: <li> `AuthType` - valid values are `None`, `Basic` and `Bearer`</li><li>`Roles` - coma separated values without space. eg: `ADMIN,USER`</li><li>`Methods` - coma separated values without space. eg: `GET,POST,PUT`</li><li> `Url Pattern` - eg: `/api/user/**/*`</li>
 | api.environment           | `development` or `production`  
+| logger.level              | Valid values are `OFF`, `FATAL`, `ERROR`, `WARN`, `LOG`, `INFO`, `DEBUG`, `TRACE` and `ALL`
+| logger.log4js             | [Log4j configuration](https://www.npmjs.com/package/log4js#configuration) 
 
 ## Configuration File
 
