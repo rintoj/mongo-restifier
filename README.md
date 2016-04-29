@@ -395,8 +395,7 @@ Contributions are very welcome! Just send a pull request. Feel free to contact m
 
 **Rinto Jose** (rintoj) 
 
-Follow me: 
-
+Follow me:
   [Github](https://github.com/rintoj)
 | [Facebook](https://www.facebook.com/rinto.jose)
 | [Twitter](https://twitter.com/rintoj)
