@@ -27,12 +27,12 @@
 var objectPath = require("object-path");
 var PropertiesReader = require('properties-reader');
 
-function processValue (value) {
-  
-  if(/^{.+}$/.test((value + "").trim())) {
+function processValue(value) {
+
+  if (/^{.+}$/.test((value + "").trim())) {
     return JSON.parse(value);
   }
-  
+
   return value;
 }
 
@@ -42,19 +42,33 @@ function processValue (value) {
  * @param propertiesFile Location to the properties file
  * @returns An object with nested properties
  */
-module.exports = function readProperties(propertiesFile) {
+module.exports = function propertiesReader(propertiesFile) {
 
   // application properites
-  var properties = {};
+  var properties = {
 
-  // read properties
-  var reader = PropertiesReader(propertiesFile)
-  
-  // parse and create object structure
-  reader.each(function(key, value) {
-    objectPath.set(properties, key, processValue(reader.get(key)));
-  });
+    load: function(file) {
+
+      // if file not specified simply return
+      if (!file) {
+        return this;
+      }
+
+      // read properties
+      var reader = PropertiesReader(file)
+
+      // parse and create object structure
+      reader.each(function(key, value) {
+        if (key === "load") {
+          throw "Configuration can not have a key 'load'!";
+        }
+        objectPath.set(this, key, processValue(reader.get(key)));
+      });
+
+      return this;
+    }
+  };
 
   // return the object structure
-  return properties;
+  return properties.load(propertiesFile);
 };
