@@ -8,7 +8,7 @@ Easy to use [RESTful API](http://www.restapitutorial.com/lessons/whatisrest.html
   * Strict implementation of **[RESTful API](http://www.restapitutorial.com/lessons/whatisrest.html#)**
   * Bulk upload and updates supported
   * Schema based collections
-  * Angular2 client-side library will be available (Come back later)
+  * Angular2 client-side library will be available soon (Come back later)
 
 ## Installation
 This module is installed via npm:
@@ -300,6 +300,17 @@ You may setup configuration in either of the two formats:
                 "Bearer      ADMIN           *                   /api/oauth2/client"
             ]
         }
+    },
+    "logger": {
+        "level": "DEBUG",
+        "log4j": {
+            "appenders": [
+                {
+                    "type": "console",
+                    "makers": {}
+                }
+            ]
+        }
     }
 }
 ```
@@ -349,13 +360,21 @@ grantTypes.1 = refresh_token
       4 = Bearer      ADMIN           *                   /api/oauth2/user
       5 = Bearer      ADMIN           *                   /api/oauth2/client
 # ----- - ----------- --------------- ------------------- ------------------------
+
+[logger] 
+level = DEBUG
+log4j.appenders.0.type = console
+
+# For logging into a file comment the line above and uncomment two lines after this line
+# log4j.appenders.0.type = file
+# log4j.appenders.0.filename = logs/api.log
 ```
 
 ABOUT
 ===
 
 ## Angular2 Integration
-This software was built with [Angular](https://angularjs.org/) in mind. Client-side library is being build. Come back later.
+This software was built with [Angular 2](https://angular.io/) in mind. Client-side library is being build. Come back later.
 
 ## Sample Apps
 Come back later for sample apps

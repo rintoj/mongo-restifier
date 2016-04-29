@@ -28,6 +28,7 @@ var User = require('./user');
 var Token = require('./token');
 var Client = require('./client');
 var Base64 = require('../util/Base64');
+var logger = require('../util/logger');
 var express = require('express');
 var oauthserver = require('oauth2-server');
 var ServiceEndpoint = require('../core/generic-service');
@@ -80,8 +81,8 @@ var OAuth2Server = function OAuth2Server(app, baseUrl, properties) {
         roles: properties.default.user.roles,
         active: true
       }, function(error, item) {
-        if (error) return console.error(error);
-        console.log('Created default user: "' + properties.default.user.userId + '"');
+        if (error) return logger.debug('oauth2server:ERROR', error);
+        logger.info('Created default user: "' + properties.default.user.userId + '"');
       });
     });
   }
@@ -101,7 +102,7 @@ var OAuth2Server = function OAuth2Server(app, baseUrl, properties) {
         },
         function(error, item) {
           if (error) return callback(error);
-          console.log('Created default client: "' + properties.default.client.name + '"');
+          logger.info('Created default client: "' + properties.default.client.name + '"');
         });
     });
   }
@@ -278,7 +279,7 @@ var OAuth2Server = function OAuth2Server(app, baseUrl, properties) {
      * @param callback function(error, status)
      */
     saveToken: function saveToken(token, clientId, expires, user, type, callback) {
-      console.log('Save Token => ', 'token: ', token, 'clientId: ', clientId, 'expires: ', expires, 'user: ', user, 'type: ', type);
+      logger.debug('Save Token => ', 'token: ', token, 'clientId: ', clientId, 'expires: ', expires, 'user: ', user, 'type: ', type);
       Token.remove({
         userId: user && user.userId,
         clientId: clientId,
@@ -344,7 +345,7 @@ var OAuth2Server = function OAuth2Server(app, baseUrl, properties) {
      * @param callback function(error, status)
      */
     revokeToken: function revokeToken(token, type, callback) {
-      console.log('revoke token: ', type, token);
+      logger.debug('revokeToken: ', type, token);
       Token.remove({
         token: token,
         type: type
@@ -451,7 +452,7 @@ var OAuth2Server = function OAuth2Server(app, baseUrl, properties) {
         (rule.methods.indexOf(request.method) >= 0 || rule.methods.indexOf('*') >= 0)
 
       ) {
-        console.log('Applying rule: ', rule.type, rule.methods, rule.patternDef, "for", headerType, request.method, request.path)
+        logger.debug('Applying rule: ', rule.type, rule.methods, rule.patternDef, "for", headerType, request.method, request.path)
 
         if (rule.type !== 'None' && headerType !== rule.type) {
           response.status(401);
@@ -550,9 +551,8 @@ var OAuth2Server = function OAuth2Server(app, baseUrl, properties) {
     }
 
     if (error) {
-      console.log('ERROR:', error);
+      logger.debug('oauth2server:ERROR', error);
       return res.json({
-        code: 400,
         error: error.message || 'Unexcepted error occured!'
       });
     }

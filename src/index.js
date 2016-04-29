@@ -26,7 +26,9 @@
 // imports
 var _ = require('lodash');
 var path = require('path');
-var logger = require('morgan');
+var morgan = require('morgan');
+var log4js = require('log4js');
+var logger = require('./util/logger');
 var express = require('express');
 var mongoose = require('mongoose');
 var bodyParser = require('body-parser');
@@ -42,20 +44,19 @@ mongoRestifier = function mongoRestifier(propertyFile) {
   var properties = propertiesReader('./src/conf/api.conf.properties');
   if (propertyFile) properties.load(propertyFile);
 
-  // connect to the databse, throw error and come out if db is not available
-  mongoose.connect(properties.database.url, function(error) {
-    if (error) {
-      throw ('Connect to mongodb: ' + error);
-    }
-    console.log('Connect to mongodb: successful [' + properties.database.url + ']');
-  });
-
   // setup nodejs api server using express.js
   var app = express();
 
   // server static content; comment this line if this application is only api
-  app.use(require('serve-static')(__dirname + '/../build'));
-  app.use(logger('common'));
+  // app.use(require('serve-static')(__dirname + '/../build'));
+
+  if (properties.logger) {
+    if (['ERROR', 'FATAL'].indexOf(properties.logger.level) < 0) app.use(morgan('common')); // http logging
+    log4js.configure(properties.logger.log4j);
+    logger.setLevel(properties.logger.level || 'FATAL');
+  }
+
+  logger.debug("Configuration: " + JSON.stringify(properties, null, 4));
 
   // basic api configuration
   app.use(bodyParser.json());
@@ -72,7 +73,7 @@ mongoRestifier = function mongoRestifier(propertyFile) {
       res.header('Access-Control-Allow-Headers', properties.api.cors.allowed.headers);
       next();
     });
-    console.log('CORS is enabled for', [properties.api.cors.allowed.origin,
+    logger.info('CORS is enabled for', [properties.api.cors.allowed.origin,
       properties.api.cors.allowed.methods, properties.api.cors.allowed.headers
     ].join(' / '));
   }
@@ -88,12 +89,16 @@ mongoRestifier = function mongoRestifier(propertyFile) {
     return this;
   };
 
-  // // register apis
-  // properties.api.services.forEach(function(service) {
-  //   require(service)
-  // });
-
   var startup = function startup() {
+
+    // connect to the databse, throw error and come out if db is not available
+    mongoose.connect(properties.database.url, function(error) {
+      if (error) {
+        logger.error('Connect to mongodb: ' + error);
+        throw 'Connect to mongodb: ' + error;
+      }
+      logger.info('Connect to mongodb: successful [' + properties.database.url + ']');
+    });
 
     app.use(function(req, res, next) {
       // return '404' error if a requested url is not found
@@ -131,7 +136,7 @@ mongoRestifier = function mongoRestifier(propertyFile) {
 
     // start the application
     server = app.listen(app.get('port'), function() {
-      console.log('Express server listening on port ' + server.address().port);
+      logger.info('Express server listening on port ' + server.address().port);
     });
 
     return this;

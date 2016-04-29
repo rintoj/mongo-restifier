@@ -42,5 +42,16 @@
                 "Bearer      ADMIN           *                   /api/oauth2/client"
             ]
         }
+    },
+    "logger": {
+        "level": "DEBUG",
+        "log4j": {
+            "appenders": [
+                {
+                    "type": "console",
+                    "makers": {}
+                }
+            ]
+        }
     }
 }

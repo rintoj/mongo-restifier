@@ -71,7 +71,6 @@ module.exports = function propertiesReader(propertiesFile) {
         if (key === "load") {
           throw "Configuration can not have a key 'load'!";
         }
-        console.log(key, value);
         objectPath.set(self, key, processValue(reader.get(key)));
       });
 
