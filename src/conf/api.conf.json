@@ -1,8 +1,4 @@
 {
-    "database": {
-        "name": "dev-db",
-        "url": "mongodb://localhost/pathway"
-    },
     "api": {
         "port": 3000,
         "baseUrl": "/api",
@@ -15,13 +11,13 @@
                 "headers": "Origin, X-Requested-With, Content-Type, Accept, Authorization, Cache-Control"
             }
         },
-        "auth": {
+        "oauth2": {
             "enabled": true,
             "default": {
                 "user": {
                     "name": "Superuser",
-                    "userId": "superuser@pathway.com",
-                    "password": "c3lzYWRtaW5AMTIz",
+                    "userId": "superuser@system.com",
+                    "password": "c3lzYWRtaW4=",
                     "roles": [
                         "admin"
                     ]

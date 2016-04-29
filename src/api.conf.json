@@ -1,0 +1,5 @@
+{
+   "database": {
+       "url": "mongodb://localhost/pathway"
+   }
+}

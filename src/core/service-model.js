@@ -30,6 +30,30 @@ var autoIncrement = require('mongoose-auto-increment');
 var autoIncrementRegistered = false;
 var preconfigured = false;
 
+var createContext = function(name, options) {
+
+  var context = {};
+  var fields = Object.keys(options || {});
+
+  // create readonly context
+  fields.forEach(function(name) {
+    Object.defineProperty(context, name, {
+      get: function() {
+        return options[name] && (typeof options[name] === 'function' ? options[name].call(context) : options[name]);
+      }
+    });
+  });
+
+  // set name to the context
+  Object.defineProperty(context, "name", {
+    get: function() {
+      return name;
+    }
+  });
+
+  return context;
+};
+
 /**
  * Service model creates a service that can serve a collection from mongo db
  * 
@@ -192,37 +216,6 @@ var ServiceModel = function ServiceModel(context) {
 };
 
 /**
- * Given name and options this creates a context - readonly property
- * 
- * @param name Name of the service
- * @param options Other options
- * @returns A context object.
- */
-ServiceModel.createContext = function(name, options) {
-
-  var context = {};
-  var fields = Object.keys(options || {});
-
-  // create readonly context
-  fields.forEach(function(name) {
-    Object.defineProperty(context, name, {
-      get: function() {
-        return options[name] && (typeof options[name] === 'function' ? options[name].call(context) : options[name]);
-      }
-    });
-  });
-
-  // set name to the context
-  Object.defineProperty(context, "name", {
-    get: function() {
-      return name;
-    }
-  });
-
-  return context;
-}
-
-/**
  * Creates a service
  * 
  * @param name Name of the service (mandatory)
@@ -266,8 +259,6 @@ ServiceModel.createContext = function(name, options) {
  * 
  * @returns (description)
  */
-ServiceModel.create = function create(name, options) {
-  return new ServiceModel(ServiceModel.createContext(name, options));
-}
-
-module.exports = ServiceModel;
+module.exports = function defineModel(name, options) {
+  return new ServiceModel(createContext(name, options));
+};

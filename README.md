@@ -1,23 +1,14 @@
-# MONGO-RESTIFIER (Work In Progress - DO NOT USE)
+# mongo-restifier
 
-Easy to use restful-api for MongoDB with build-in oAuth2 implementation.
+Easy to use [RESTful API](http://www.restapitutorial.com/lessons/whatisrest.html#) for [MongoDB](https://www.mongodb.org/)  with build-in [OAuth2](http://oauth.net/2/) provider. 
 
-Preston serves Mongoose models on an extensible RESTful API. It handles routing and provides extensibility.
-
-[![Stories in Ready](https://badge.waffle.io/simplyianm/preston.png?label=ready&title=Ready)](https://waffle.io/simplyianm/preston)
-[![build status](https://secure.travis-ci.org/simplyianm/preston.png)](http://travis-ci.org/simplyianm/preston)
-[![Coverage Status](https://img.shields.io/coveralls/simplyianm/preston.svg)](https://coveralls.io/r/simplyianm/preston)
-
-### Features at a Glance
-* **Tight integration with Mongoose and Express.**
-  * An Express middleware. Put it on its own route and the rest of your code is left untouched.
-  * Configured within the Mongoose schema. No need to deal with messy configuration objects.
-* **Query/Create/Get/Update/Destroy**
-  * Everything you'd ever need from a REST API (other than auth) is already included.
-  * Middleware supported on each route, so integration with things like Passport is very simple
-* **[Flexible query filtering system.](#filters)**
-* **[Document transformer system.](#transformers)** Control what gets sent to which clients.
-* **[Built with Angular in mind.](#angularjs-integration)**
+### Features:
+  * Easy to use apification using **[Mongoose](http://mongoosejs.com/)** and **[Express](https://www.npmjs.com/package/express)**
+  * Build in **[OAuth2](http://oauth.net/2/)** implementation
+  * Strict implementation of **[RESTful API](http://www.restapitutorial.com/lessons/whatisrest.html#)**
+  * Bulk upload and updates supported
+  * Schema based collections
+  * Angular2 client-side library will be available (Come back later)
 
 ## Installation
 This module is installed via npm:
@@ -26,295 +17,375 @@ This module is installed via npm:
 $ npm install mongo-restifier --save
 ```
 
-## Example
-The following example serves the `User` and `Badge` models on a RESTful API.
+## Get Started
+The following example serves the `Todo` model on a RESTful API.
 
-```js
-var express = require('express');
-var preston = require('preston');
-var mongoose = require('mongoose');
+1. Install [MongoDB](https://www.mongodb.org/) and [startup](https://docs.mongodb.org/manual/tutorial/manage-mongodb-processes)
+  ```bash
+  $ mongod --syslog --fork
+  ```
 
-var app = express();
+2. Create [npm](https://docs.npmjs.com/cli/init) project
+  ```bash
+  $ mkdir server
+  $ cd server
+  $ npm init
+  ```
 
-app.use(require('body-parser').json()); // Required
+3. Install mongo-restifier
+  ```bash
+  $ npm install mongo-restifier --save
+  ```
 
-var User = preston(mongoose.model('User', new mongoose.Schema({
-  name: {
-    type: String,
-    id: true, // The id used in the route
-    unique: true
-  },
-  password: {
-    type: String,
-    restricted: true // Don't display this field to anyone!
+4. Create file **app.js** and copy the following code
+  ```js
+  // import
+  var mongoRestifier = require('mongo-restifier');
+
+  // configure the api
+  mongoRestifier('./api.conf.json')
+
+  // define "Todo" model
+  .register(mongoRestifier.defineModel("Todo", {
+
+      // api end point
+      url: '/todo',
+
+      // schema definition - supports everything that mongoose schema supports
+      schema: {
+        index: {
+          type: Number,         // type of this attribute
+          autoIncrement: true,  // auto increment this attribute
+          idField: true         // serves as id attribute replacing _id
+        },
+        title: {
+          type: String,
+          required: true
+        },
+        description: String,    // attribute definition can be as simple as this
+        status: String,
+      }
+
+  }))
+  
+  // ... more models can be added here
+
+  // and finally startup the server
+  .startup();
+  ```
+
+5. Create configruation file **api.conf.json**
+  ```json
+  {
+      "database": {
+          "url": "mongodb://localhost/dbname"
+      }
   }
-})));
+  ```
 
-// A nested route
-var Badge = User.submodel('badges', 'owner', mongoose.model('Badge', new mongoose.Schema({
-  owner: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User'
-  },
-  id: {
-    type: Number,
-    id: true,
-    unique: true
-  },
-  content: String
-})));
+6. And finally run
+  ```bash
+  $ node app.js
+  ``` 
 
-app.use('/api', preston.middleware()); // Serve the api on /api.
-
-app.listen(3000);
-```
-
-## REST API
-Preston uses the MongoDB collection name to determine the name of the base route, so the `User` model would create routes under `/users`.
+REST API
+========
 
 ### Query
+```
+GET /todo
+GET /todo/{id}
+GET /todo?{field}={value}
+GET /todo?fields=posts,comments
+GET /todo?sort={field1},-{field2}
+GET /todo?limit=10&skip=10
+```
 Querying takes in the following parameters:
 * `field` - Replace `field` with any field in your Mongoose model, and it will check for equality.
-* `populate` - Comma-delimited list of fields to populate
+* `fields` - Comma-delimited list of fields to populate
 * `sort` - Sorts by the given fields in the given order, comma delimited. A `-` sign will sort descending.
 * `limit` - Limits the number of returned results.
 * `skip` - Skips a number of results. Useful for pagination when combined with `limit`.
-* `filter` - Applies a filter. See the Filters section for more details.
 
+### Advanced Query
 ```
-GET /users
-GET /users?field=value
-GET /users?populate=posts,comments
-GET /users?sort=field,-field2
-GET /users?limit=10&skip=10
-GET /users?filter=filter1|filter2
-GET /users/Bob/badges?sort=date
+POST /todo {title: "Your title"}
+POST /todo/{id} {title: "Your title"}
 ```
 
-### Create
+### Create or Update
 ```
-POST /users
-POST /users/Bob/badges
-```
-
-### Get
-Get supports one parameter, the `populate` field.
-
-```
-GET /users/Bob
-GET /users/Bob?populate=posts
-GET /users/Bob/badges/1
-GET /users/Bob/badges/1?populate=things
+PUT /todo { "title": "Your title", "status": "new" }
+PUT /todo/{id} { "title": "Your title", "status": "new" }
 ```
 
-### Update
-PUT and PATCH are handled the same way.
-
+### Paritial Update
 ```
-PUT /users/Bob
-PATCH /users/Bob
-PUT /users/Bob/badges/1
-PATCH /users/Bob/badges/1
+PATCH /todo/{id} { "title": "Your title" }
 ```
 
-### Destroy
+### Delete
 ```
-DELETE /users/Bob
-DELETE /users/Bob/badges/1
+DELETE /todo/{id}
 ```
+*Note: Bulk delete is **NOT** allowed*
 
-## Creating an API
-First, declare all of your models using `preston(mongooseModel)`. This function returns a `Model` object which can be altered. (see the JSDocs)
+Model Configuration
+======
 
-Next, serve the API as middleware:
+## Schema Definition
 
-```
-app.use('/api', preston.middleware());
-```
+| Option                       | Type       | Purpose           
+| ---------------------------- |:---------- | :------------------------------------------------
+|**  {field}.type           ** | Definition | Valid values are `String`, `Number` and `Date` 
+|**  {field}.idField        ** | Behaviour  | If set to `true`, system replaces _id with the given field. One and only one field can be set as id field. <div> Usage: `idField: true`</div> 
+|**  {field}.autoIncrement  ** | Behaviour  | If set to `true`, system increments value of the given field for every insertion. This validation can be applied only on `Number` fields <div> Usage: `autoIncrement: true`</div> 
+|**  {field}.startAt        ** | Behaviour  | Start autoIcrement at the given value. This configuration takes effect only if `autoIcrement` is set to `true`<div> Usage: `startAt: 1`</div> 
+|**  {field}.incrementBy    ** | Behaviour  | Start autoIcrement with the given steps. This configuration takes effect only if `autoIcrement` is set to `true`<div> Usage: `incrementBy: 1`</div> 
+|**  {field}.default        ** | Behaviour  | Sets the given value as the default value of the field if not specified in the request. <div> Usage: `default: Date.now` </div> 
+|**  {field}.required       ** | Validation | If set to `true` adds a required validator. If a value is not specified while creating an entity, operation will be rejected with an error, unless 'default' value is configured. Required can be configured as: <div>Usage: `required: true` </div> <div>Usage: `required: [true, 'User phone number required']` <br>This format is applicable to all validators except `validate` </div>
+|**  {field}.enum           ** | Validation | Validates the value of a field against predefined enum values; This validation can be applied only on `String` fields. <div>Usage: `enum: ['Coffee', 'Tea']` </div>
+|**  {field}.minlength      ** | Validation | Validates the length of the value to be minimum of given value; This validation can be applied only on `String` fields. <div>Usage: `minlength: 5` </div>
+|**  {field}.maxlength      ** | Validation | Validates the length of the value to be maximum of given value; This validation can be applied only on `String` fields. <div>Usage: `maxlength: 5` </div>
+|**  {field}.min            ** | Validation | Validates the value to be minimum of given value; This validation can be applied only on `Number` fields. <div>Usage: `min: 5` </div>
+|**  {field}.max            ** | Validation | Validates the value to be maximum of given value; This validation can be applied only on `Number` fields. <div>Usage: `max: 5` </div>
+|**  {field}.validate       ** | Validation | Helps in defining custom validation. <br><br>`validate: { `<br>&nbsp;&nbsp;&nbsp;&nbsp;` validator: function(v) { `<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`   return /\d{3}-\d{3}-\d{4}/.test(v); `<br>&nbsp;&nbsp;&nbsp;&nbsp;` }, `<br>&nbsp;&nbsp;&nbsp;&nbsp;`message: '{VALUE} is not a valid phone number!' `<br>`}`
 
-This will create a middleware that will be used by Express.
+## Other Options
+| Option              | Type       | Purpose           
+| ------------------- |:---------- | :------------------------------------------------
+|**  url           ** | Definition | Serving endpoint. The final url will be `http://{app}:{port}/{baseUrl}/{url}` 
+|**  userSpace     ** | Behaviour  | Keep track of the user for each record and restrict access to the corresponding users.<br> Usage: `userSpace: true` </br> Usage: `userSpace: {`<br>&nbsp;&nbsp;&nbsp;&nbsp;`field: "_user"`<br>`}`
 
-### Namespace Collision
-In the case of namespace collision, routes are handled sequentially by Express. Declare your custom routes
-before using the middleware. For example:
-
-```
-app.post('/api/login', myLoginHandler);
-app.use('/api', preston.middleware());
-```
-
-is the appropriate way to add functionality to your API.
-
-### Route middleware
-There are 5 types of routes: query, create, get, update, and destroy. You can apply middleware to a single one of these routes by doing the following:
-
+## Example
 ```js
-model.use('get', function(req, res, next) {
-  console.log('Get middleware on model ' + model.model.modelName + ' called!');
-});
+// define "Todo" model
+.register(mongoRestifier.defineModel("Todo", {
+  
+   /** schema definition (mandatory) **/
+   
+   schema: {  
+     
+     /** field definition **/
+     
+     field1: {
+       
+       /** type of the field **/
+       
+       type: String | Number | Date,
+
+       /** validations **/
+       
+       required: true,                      // on any type of field
+       required: [true, 'phone# required'], // custom message
+       enum: ['Coffee', 'Tea'],             // only if type = String
+       minlength: number,                   // only if type = String
+       maxlength: number,                   // only if type = String
+       min: number,                         // only if type = Number
+       max: number,                         // only if type = Number
+
+       /** custom validation **/
+       
+       validate: {
+          validator: function(v) {
+            return /\d{3}-\d{3}-\d{4}/.test(v);
+          },
+          message: '{VALUE} is not a valid phone number!'
+       },
+        
+       /** other options **/
+       
+       idField: boolean,           // replaces _id with field1. one and only one field can be id
+       autoIncrement: boolean,     // only if type = Number
+       startAt: number,            // only if type = Number and autoIncrement = true
+       incrementBy: number         // only if type = Number and autoIncrement = true  
+     }
+   },
+   permissions: Object,
+   configure: Function,
+   url: String,
+   userSpace: Boolean
+}));
+    
 ```
 
-You can also apply middleware to all of a model's routes:
+API Configuration
+======
 
-```js
-model.use('all', function(req, res, next) {
-  console.log('Middleware on model ' + model.model.modelName + ' called!');
-});
-```
+## Options
+All values except `database.url` are predefined. Specify any value in `app.conf.json` or `app.conf.properties` only if you need to override them.
 
-The following fields are exposed in the request object:
-* `doc` -- The document being retrieved, or null if not operating on a document route
-* `parentDoc` -- The parent document being retrieved. Used for nested routes.
-* `req.query` - The `populate` and `sort` fields are parsed beforehand, `populate` being an Array of Strings and `sort` being an object.
+| Option                          | Purpose           
+| ------------------------------- |:-------------------------------------------------------
+|**  database.url              ** | Mongo DB url. Format:  `mongodb://localhost/{dbname}`
+|**  api.port                  ** | Port your server should start at; default: `3000`  
+|**  api.baseUrl               ** | Port and baseUrl defines your api url: `http://{host}:{port}/{baseUrl}/`  
+|**  api.cors.enabled          ** | `true` if you want to make [cross-origin HTTP request](https://developer.mozilla.org/en-US/docs/Web/HTTP/Access_control_CORS) 
+|**  api.cors.allowed          ** | <li>`origin` - coma separated domain names; `*` - for any domain</li><li>`methods` - coma separated values of: `GET`, `POST`, `HEAD`, `POST`, `PUT` , `DELETE`</li><li>`headers` - all possible headers added by user or user agent 
+|**  api.oauth2.enabled        ** | `true` to enable OAuth2 based authentication and authorization
+|**  api.oauth2.default.user   ** | To create a default user at startup, provide user attributes: <li>`name` - Full name of the user; default: `Superuser`</li><li> `userId` - Required for login; default: `superuser@system.com`</li><li> `password` - Password must be base64 encode; default: `sysadmin` (TODO: use encryption) </li><li> `roles` -  the roles must be an array of string; default: [`ADMIN`]</li>
+|**  api.oauth2.default.client ** | To create a default client at startup, provide client attributes: <li>`name`</li><li>`description`</li><li>`id`</li><li>`secret`</li><li> `grantTypes` - valid values are `password` and `refresh_token`</li> 
+|**  api.oauth2.rules          ** | Array of tab separated values in the order: <li> `AuthType` - valid values are `None`, `Basic` and `Bearer`</li><li>`Roles` - coma separated values without space. eg: `ADMIN,USER`</li><li>`Methods` - coma separated values without space. eg: `GET,POST,PUT`</li><li> `Url Pattern` - eg: `/api/user/**/*`</li>
+|**  api.environment           ** | `development` or `production`  
 
-Error middleware can also be added to each route or for all routes:
+## Configuration File
 
-```js
-model.use('get', function(err, req, res, next) {
-  console.log('Error on model');
-});
-```
+You may setup configuration in either of the two formats:
+  <li> `json` - The file must have an extension `.json` </li>
+  <li> `ini` - The file must have an extension `.properties` </li>
+### JSON Format:
 
-#### Authentication middleware example with Passport
-Here is an example of using [Passport](http://passportjs.org/) to restrict access to a document:
-
-```js
-model.use('get', function(req, res, next) {
-  if (req.user._id !== req.doc.owner) {
-    res.status(403).send('Unauthorized!');
-  }
-  return next();
-});
-```
-
-Passport exposes a `user` property on the request, so we can deal with that directly in our middleware. If we were to use something like [connect-roles](https://github.com/ForbesLindesay/connect-roles), we would do something like this:
-
-```js
-model.use('all', user.can('operate on the model'));
-```
-
-## The Query Pipeline
-Preston was designed to be very flexible so it could be used as a backend for any app. Thus, queries go through a series of steps before being transformed into what is sent to the client.
-
-```
-Modifiers --> Parameters --> Filters --> Population --> Execution --> Transformers
-```
-
-### Modifiers
-Modifiers alter the query parameters that will be passed to the pipeline. For example, you could have a modifier that forces sorting by name ascending, as shown below:
-
-```js
-model.modifyParam('sort', function(req, value) {
-  value.name = 1;
-  return value;
-});
-```
-
-To modify a parameter, just pass the name of the parameter you wish to modify and a callback that returns the modified value of the parameter.
-
-`sort` and `populate` are the only parameters that are objects.
-
-The `sort` parameter looks like this:
-
-```js
+```json
 {
-  name: 1, // Ascending
-  date: -1 // Descending
+    "database": {
+        "url": "mongodb://localhost/{dbname}"
+    },
+    "api": {
+        "port": 3000,
+        "baseUrl": "/api",
+        "environment": "development",
+        "cors": {
+            "enabled": true,
+            "allowed": {
+                "origin": "*",
+                "methods": "GET,PUT,POST,DELETE,OPTIONS",
+                "headers": "Origin, X-Requested-With, Content-Type, Accept, Authorization, Cache-Control"
+            }
+        },
+        "oauth2": {
+            "enabled": true,
+            "default": {
+                "user": {
+                    "name": "Superuser",
+                    "userId": "superuser@system.com",
+                    "password": "c3lzYWRtaW4=",
+                    "roles": [
+                        "admin"
+                    ]
+                },
+                "client": {
+                    "name": "Master",
+                    "description": "This is a default client setup by the system",
+                    "id": "7d65d9b6-5cae-4db7-b19d-56cbdd25eaab",
+                    "secret": "a0c7b741-b18b-47eb-b6df-48a0bd3cde2e",
+                    "grantTypes": [
+                        "password",
+                        "refresh_token"
+                    ]
+                }
+            },
+            "rules": [
+                "None        *               OPTIONS             /api/oauth2/register",
+                "None        *               OPTIONS             /api/oauth2/client",
+                "None        *               OPTIONS             /api/oauth2/user",
+                "Basic       *               GET                 /api/oauth2/user",
+                "Bearer      ADMIN           *                   /api/oauth2/user",
+                "Bearer      ADMIN           *                   /api/oauth2/client"
+            ]
+        }
+    }
 }
 ```
 
-The `populate` parameter looks like this:
+### INI Format:
 
-```js
-['users', 'comments', 'posts']
+```ini
+
+[database]
+url = mongodb://localhost/{dbname}
+
+[api]
+port = 3000
+baseUrl = /api
+environment = development
+
+[api.cors]
+enabled = true
+allowed.origin = *
+allowed.methods = GET,PUT,POST,DELETE,OPTIONS
+allowed.headers = Origin, X-Requested-With, Content-Type, Accept, Authorization, Cache-Control
+
+[api.oauth2]
+enabled = true
+
+[api.oauth2.default.user]
+name = Superuser
+userId = superuser@system.com
+password = c3lzYWRtaW4=
+roles.0 = admin
+
+[api.oauth2.default.client]
+name = Master
+id = 7d65d9b6-5cae-4db7-b19d-56cbdd25eaab
+secret = a0c7b741-b18b-47eb-b6df-48a0bd3cde2e
+grantTypes.0 = password
+grantTypes.1 = refresh_token
+
+[api.oauth2.rules]
+# ----- - ----------- --------------- ------------------- ------------------------
+# index - AuthType    Roles           Methods             Url Pattern
+# ----- - ----------- --------------- ------------------- ------------------------
+      0 = None        *               OPTIONS             /api/oauth2/register
+      1 = None        *               OPTIONS             /api/oauth2/client
+      2 = None        *               OPTIONS             /api/oauth2/user
+      3 = Basic       *               GET                 /api/oauth2/user
+      4 = Bearer      ADMIN           *                   /api/oauth2/user
+      5 = Bearer      ADMIN           *                   /api/oauth2/client
+# ----- - ----------- --------------- ------------------- ------------------------
 ```
 
-### Parameters
-There are 4 types of parameters: limit, skip, sort, and field equality. These are all described in the [Query](#query) section.
+ABOUT
+===
 
-### Filters
-Filters are user-defined functions that modify the query. They work very similarly to AngularJS filters. They can be chained and take parameters, allowing immense flexibility for developers to add features to APIs.
+## Angular2 Integration
+This software was built with [Angular](https://angularjs.org/) in mind. Client-side library is being build. Come back later.
 
-Filters are defined as follows:
-```js
-model.filter('children', function(req, query) {
-  query.where('age').lt(18);
-});
-```
+## Sample Apps
+Come back later for sample apps
 
-Here is an example of a filter that takes parameters:
-```js
-model.filter('proximity', function(req, query, distance) {
-  query.where('location').maxDistance(distance);
-});
-```
-This filter would be called using `proximity 5` if one wanted to check if the location was within a distance of 5.
-
-Chaining filters is pretty simple; just use the `|` (pipe) operator to do so.
+## Running the Tests
+Do `npm install` to install all of the dependencies, ensure that [MongoDB](http://mongodb.org) is installed, then to run the unit tests run:
 
 ```
-GET /people?filter=children | proximity 5
+$ npm test
 ```
-
-### Population
-Fields that were marked for population in the query are now populated. You can change what fields are returned using [population transformers](#population-transformers).
-
-### Execution
-At this point in the pipeline, `query.exec()` is called and we query the database.
-
-### Transformers
-Transformers change the returned results. One transformer is built in, the `restricted` transformer, and cannot be changed. Here is an example of using a transformer:
-
-```js
-model.transform(function(req, doc) {
-  delete doc._id;
-  delete doc.password;
-  doc.type = 'This is a string that isn\'t in the database!';
-});
-```
-
-Transformers are applied to each individual document in a query result.
-
-#### Population Transformers
-Population transformers are transformers that operate on populated fields. They can be used to make your application more secure by removing fields you don't want people to see.
-
-```js
-model.transformPopulate('owners', function(req, doc) {
-  delete doc._id;
-  delete doc.password;
-});
-```
-
-### Model Setup Within Schema
-You can also easily set up a model by declaring a `setupPreston(model)` static function within the schema like so:
-
-```js
-MySchema.statics.setupPreston = function(model) {
-  // Anything can go here modifying the model
-  model.transform(function(req, doc) {
-    doc.modifiedWithinModel = true;
-  });
-}
-```
-
-This is to keep your code organized if you like to have a separate file for each model.
-
-## AngularJS Integration
-This software was built with [Angular](https://angularjs.org/) in mind. Use the module [Restangular](https://github.com/mgonto/restangular) to deal with the generated API
-in a very intuitive manner.
-
-## Example Apps
-Here are some apps that use Preston. If you have one you'd like to share, please don't be afraid to send a PR!
-
-* [todo-preston](https://github.com/simplyianm/todo-preston) - A Preston-powered Todo app made with Angular, Restangular, Bootstrap, and Preston.
 
 ## Contributing
-Contributions are very welcome! Just send a pull request. Feel free to contact me using one of the options on [my website](http://ian.pw)!
+Contributions are very welcome! Just send a pull request. Feel free to contact me or checkout my [Github](https://github.com/rintoj) page.
 
-### Running the Tests
-Do `npm install` to install all of the dependencies, ensure that [MongoDB](http://mongodb.org) is installed, then run `npm test` to run the unit tests.
+## Author
 
-*Note: The tests like to fail on Travis because Travis's database stuff is slow.*
+**Rinto Jose** (rintoj) 
+
+Follow me: 
+
+  [Github](https://github.com/rintoj)
+| [Facebook](https://www.facebook.com/rinto.jose)
+| [Twitter](https://twitter.com/rintoj)
+| [Google+](https://plus.google.com/+RintoJoseMankudy)
+| [Youtube](https://youtube.com/+RintoJoseMankudy)
 
 ## License
-Copyright (c) 2014 Ian Macalinao. Released under the MIT License, which can be viewed in the attached `LICENSE` file.
+```
+The MIT License (MIT)
+
+Copyright (c) 2016 Rinto Jose (rintoj)
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+```

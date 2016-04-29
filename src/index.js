@@ -30,16 +30,16 @@ var logger = require('morgan');
 var express = require('express');
 var mongoose = require('mongoose');
 var bodyParser = require('body-parser');
-var ServiceModel = require('./core/service-model');
+var serviceModel = require('./core/service-model');
 var cookieParser = require('cookie-parser');
 var OAuth2Server = require('./oauth-server/oauth2server');
 var propertiesReader = require('./util/propertiesReader');
 
 // read properties.
 
-module.exports = function mongoRestifier(propertyFile) {
+mongoRestifier = function mongoRestifier(propertyFile) {
 
-  var properties = propertiesReader('./conf/mongo-restifier.properties');
+  var properties = propertiesReader('./src/conf/api.conf.properties');
   if (propertyFile) properties.load(propertyFile);
 
   // connect to the databse, throw error and come out if db is not available
@@ -78,15 +78,12 @@ module.exports = function mongoRestifier(propertyFile) {
   }
 
   // enable authentication module
-  if (properties.api.auth && properties.api.auth.enabled === true) {
-    // create auth server
-    app.oauth = new OAuth2Server(app, properties.api.baseUrl + '/oauth2', properties.api.auth);
+  if (properties.api.oauth2 && properties.api.oauth2.enabled === true) {
+    // create oauth2 server
+    app.ooauth2 = new OAuth2Server(app, properties.api.baseUrl + '/oauth2', properties.api.oauth2);
   }
 
   var register = function register(model) {
-    if (!(model instanceof ServiceModel)) {
-      throw 'Model must be an instance of ServiceModel';
-    }
     model.register(app, properties.api.baseUrl);
     return this;
   };
@@ -147,3 +144,7 @@ module.exports = function mongoRestifier(propertyFile) {
     startup: startup
   };
 };
+
+mongoRestifier.defineModel = serviceModel;
+
+module.exports = mongoRestifier;

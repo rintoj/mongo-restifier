@@ -81,7 +81,7 @@ var OAuth2Server = function OAuth2Server(app, baseUrl, properties) {
         active: true
       }, function(error, item) {
         if (error) return console.error(error);
-        console.log('Default user "' + properties.default.user.userId + '" is created!');
+        console.log('Created default user: "' + properties.default.user.userId + '"');
       });
     });
   }
@@ -101,7 +101,7 @@ var OAuth2Server = function OAuth2Server(app, baseUrl, properties) {
         },
         function(error, item) {
           if (error) return callback(error);
-          console.log('Default client "' + properties.default.client.name + '" created!');
+          console.log('Created default client: "' + properties.default.client.name + '"');
         });
     });
   }

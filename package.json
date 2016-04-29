@@ -2,9 +2,9 @@
   "name": "mongo-restifier",
   "version": "1.0.0",
   "description": "A restful apification library for MongoDB with build-in oAuth2 based authentication and authorization",
-  "main": "index.js",
+  "main": "src/index.js",
   "scripts": {
-    "start": "node app.js",
+    "start": "node src/api.js",
     "test": "./node_modules/mocha/bin/mocha"
   },
   "repository": {
