@@ -1,5 +1,8 @@
 {
     "database": {
         "url": "mongodb://localhost/test"
+    },
+    "logger": {
+        "level": "OFF"
     }
 }

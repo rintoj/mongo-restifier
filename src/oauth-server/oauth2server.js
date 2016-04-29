@@ -67,6 +67,8 @@ var OAuth2Server = function OAuth2Server(app, baseUrl, properties) {
           .replace(/\?/g, '[^/]?') + '/?$')
       });
     }
+    
+    logger.debug("RULES: ", JSON.stringify(rules, null, 4));
   }
 
   // setup default user if specified
@@ -393,9 +395,6 @@ var OAuth2Server = function OAuth2Server(app, baseUrl, properties) {
   // register user
   var userRegRouter = express.Router();
   userRegRouter.put('/', function(request, response, next) {
-    if (request.method !== 'PUT') {
-      return next();
-    }
 
     if (!request.body.userId || !request.body.password || !request.body.name) {
       response.status(400);

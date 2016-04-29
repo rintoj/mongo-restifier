@@ -56,78 +56,235 @@ var instance = mongoRestifier('./test/api.test.conf.json')
     status: String,
   }
 
-}));
+}))
 
-describe('Todo', function() {
+.startup();
 
-  it('should be accessible only with an access token /todo GET', function(done) {
-    chai.request(instance.app)
-      .get('/story')
-      .end(function(err, res) {
-        res.should.have.status(401);
-        done();
-      });
-  });
-  
-   it('should be accessible only with an access token /todo POST', function(done) {
-    chai.request(instance.app)
-      .post('/story')
-      .end(function(err, res) {
-        res.should.have.status(401);
-        done();
-      });
-  });
-  
-   it('should be accessible only with an access token /todo PUT', function(done) {
-    chai.request(instance.app)
-      .put('/story')
-      .end(function(err, res) {
-        res.should.have.status(401);
-        done();
-      });
-  });
-  
-   it('should be accessible only with an access token /todo DELETE', function(done) {
-    chai.request(instance.app)
-      .delete('/story')
-      .end(function(err, res) {
-        res.should.have.status(401);
-        done();
-      });
-  });
+describe('mongo-restifier', function() {
 
-  xit('should add a SINGLE story /story PUT', function(done) {
-    chai.request(instance.app)
-      .post('/story')
-      .send({
-        'title': 'Sample story'
+  var accessToken, refreshToken;
+
+  var aquireAccessToken = function aquireAccessToken(callback, useRefreshToken) {
+    var request = chai.request(instance.app)
+      .post('/api/oauth2/token')
+      .set('content-type', 'application/x-www-form-urlencoded')
+      .auth('7d65d9b6-5cae-4db7-b19d-56cbdd25eaab', 'a0c7b741-b18b-47eb-b6df-48a0bd3cde2e')
+      .send(!useRefreshToken ? {
+        "grant_type": "password",
+        "username": "superuser@system.com",
+        "password": "c3lzYWRtaW4="
+      } : {
+        "grant_type": "refresh_token",
+        "refresh_token": refreshToken
       })
       .end(function(err, res) {
         res.should.have.status(200);
         res.should.be.json;
         res.body.should.be.a('object');
-        res.body.should.have.property('SUCCESS');
-        res.body.SUCCESS.should.be.a('object');
-        res.body.SUCCESS.should.have.property('name');
-        res.body.SUCCESS.should.have.property('lastName');
-        res.body.SUCCESS.should.have.property('_id');
-        res.body.SUCCESS.name.should.equal('Java');
-        res.body.SUCCESS.lastName.should.equal('Script');
-        done();
+        res.body.should.have.property('access_token');
+        res.body.should.have.property('refresh_token');
+        accessToken = 'Bearer ' + res.body.access_token;
+        refreshToken = res.body.refresh_token;
+        if (typeof callback === 'function') callback(err, res);
       });
-  });
+  };
 
-  xit('should list ALL stories on /todo GET', function(done) {
-    chai.request(instance.app)
-      .get('/todo')
-      .end(function(err, res) {
-        console.log(res);
+  describe('OAuth2 Service', function() {
+
+    it('should ALLOW ACCESS to OPTIONS /api/todo without token', function(done) {
+      chai.request(instance.app)
+        .options('/api/todo')
+        .end(function(err, res) {
+          res.should.have.status(200);
+          res.should.be.html;
+          res.text.should.equal('PUT,GET,POST,DELETE');
+          done();
+        });
+    });
+
+    it('should DENY ACCESS to GET /api/todo without token', function(done) {
+      chai.request(instance.app)
+        .get('/api/todo')
+        .end(function(err, res) {
+          res.should.have.status(401);
+          done();
+        });
+    });
+
+    it('should DENY ACCESS to POST /api/todo without token', function(done) {
+      chai.request(instance.app)
+        .post('/api/todo')
+        .end(function(err, res) {
+          res.should.have.status(401);
+          done();
+        });
+    });
+
+    it('should DENY ACCESS to PUT /api/todo without token', function(done) {
+      chai.request(instance.app)
+        .put('/api/todo')
+        .end(function(err, res) {
+          res.should.have.status(401);
+          done();
+        });
+    });
+
+    it('should DENY ACCESS to DELETE /api/todo without token', function(done) {
+      chai.request(instance.app)
+        .delete('/api/todo')
+        .end(function(err, res) {
+          res.should.have.status(401);
+          done();
+        });
+    });
+
+    it('should ISSUE TOKEN with POST /api/oauth2/token', function(done) {
+      aquireAccessToken(function(err, res) {
         res.should.have.status(200);
         res.should.be.json;
-        res.body.should.be.a('array');
+        res.body.should.be.a('object');
+        res.body.should.have.property('token_type');
+        res.body.should.have.property('access_token');
+        res.body.should.have.property('expires_in');
+        res.body.should.have.property('refresh_token');
         done();
       });
+    });
+
+    it('should ALLOW ACCESS to OPTIONS /api/todo with token', function(done) {
+      chai.request(instance.app)
+        .options('/api/todo')
+        .set('authorization', accessToken)
+        .end(function(err, res) {
+          res.should.have.status(200);
+          res.should.be.html;
+          res.text.should.equal('PUT,GET,POST,DELETE');
+          done();
+        });
+    });
+
+    it('should ALLOW ACCESS to GET /api/todo with token', function(done) {
+      chai.request(instance.app)
+        .get('/api/todo')
+        .set('authorization', accessToken)
+        .end(function(err, res) {
+          res.should.have.status(200);
+          done();
+        });
+    });
+
+    it('should ALLOW ACCESS to POST /api/todo with token', function(done) {
+      chai.request(instance.app)
+        .post('/api/todo')
+        .set('authorization', accessToken)
+        .end(function(err, res) {
+          res.should.have.status(200);
+          done();
+        });
+    });
+
+    it('should ALLOW ACCESS to PUT /api/todo with token', function(done) {
+      chai.request(instance.app)
+        .put('/api/todo')
+        .set('authorization', accessToken)
+        .send({
+          "title": "Sample note"
+        })
+        .end(function(err, res) {
+          res.should.have.status(200);
+          done();
+        });
+    });
+
+    it('should ALLOW ACCESS to DELETE /api/todo with token', function(done) {
+      chai.request(instance.app)
+        .delete('/api/todo')
+        .set('authorization', accessToken)
+        .send({
+          "title": "Sample note"
+        })
+        .end(function(err, res) {
+          res.should.have.status(200);
+          done();
+        });
+    });
+
+    it('should REISSUE TOKEN when POST /api/oauth2/token is called with refresh_token', function(done) {
+      aquireAccessToken(function(err, res) {
+        res.should.have.status(200);
+        res.should.be.json;
+        res.body.should.be.a('object');
+        res.body.should.have.property('token_type');
+        res.body.should.have.property('access_token');
+        res.body.should.have.property('expires_in');
+        res.body.should.have.property('refresh_token');
+        done();
+      }, true);
+    });
+
+    it('should REVOKE TOKEN with POST /api/oauth2/revoke', function(done) {
+      chai.request(instance.app)
+        .post('/api/oauth2/revoke')
+        .set('authorization', accessToken)
+        .end(function(err, res) {
+          res.should.have.status(200);
+          res.should.be.json;
+          done();
+        });
+    });
+
+    it('should DENY ACCESS when a revoked token is used with GET /api/todo', function(done) {
+      chai.request(instance.app)
+        .get('/api/todo')
+        .set('content-type', 'application/json')
+        .set('authorization', accessToken)
+        .end(function(err, res) {
+          res.should.have.status(401);
+          res.should.be.json;
+          done();
+        });
+    });
   });
 
+  describe('Todo Service', function() {
 
+    before(function(done) {
+      aquireAccessToken(done);
+    })
+
+    xit('should add a SINGLE story /story PUT', function(done) {
+      chai.request(instance.app)
+        .post('/story')
+        .send({
+          'title': 'Sample story'
+        })
+        .end(function(err, res) {
+          res.should.have.status(200);
+          res.should.be.json;
+          res.body.should.be.a('object');
+          res.body.should.have.property('SUCCESS');
+          res.body.SUCCESS.should.be.a('object');
+          res.body.SUCCESS.should.have.property('name');
+          res.body.SUCCESS.should.have.property('lastName');
+          res.body.SUCCESS.should.have.property('_id');
+          res.body.SUCCESS.name.should.equal('Java');
+          res.body.SUCCESS.lastName.should.equal('Script');
+          done();
+        });
+    });
+
+    xit('should list ALL stories on /api/todo GET', function(done) {
+      chai.request(instance.app)
+        .get('/api/todo')
+        .end(function(err, res) {
+          console.log(res);
+          res.should.have.status(200);
+          res.should.be.json;
+          res.body.should.be.a('array');
+          done();
+        });
+    });
+
+
+  });
 });

@@ -51,7 +51,7 @@ mongoRestifier = function mongoRestifier(propertyFile) {
   // app.use(require('serve-static')(__dirname + '/../build'));
 
   if (properties.logger) {
-    if (['ERROR', 'FATAL'].indexOf(properties.logger.level) < 0) app.use(morgan('common')); // http logging
+    if (['OFF', 'FATAL', 'ERROR', 'WARN'].indexOf(properties.logger.level) < 0) app.use(morgan('common')); // http logging
     log4js.configure(properties.logger.log4j);
     logger.setLevel(properties.logger.level || 'FATAL');
   }
