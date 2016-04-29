@@ -30,23 +30,17 @@ var logger = require('morgan');
 var express = require('express');
 var mongoose = require('mongoose');
 var bodyParser = require('body-parser');
-var ServiceModel = require('core/service-model');
+var ServiceModel = require('./core/service-model');
 var cookieParser = require('cookie-parser');
 var OAuth2Server = require('./oauth-server/oauth2server');
 var propertiesReader = require('./util/propertiesReader');
 
 // read properties.
 
-modules.export = function mongoRestifier(propertyFile) {
+module.exports = function mongoRestifier(propertyFile) {
 
-  var properties = propertiesReader('mongo-restifier.properties');
+  var properties = propertiesReader('./conf/mongo-restifier.properties');
   if (propertyFile) properties.load(propertyFile);
-
-  // and print configurations
-  console.log('********* CONFIGURATION *********');
-  console.log('=================================');
-  console.log(JSON.stringify(properties, null, 2));
-  console.log('=================================');
 
   // connect to the databse, throw error and come out if db is not available
   mongoose.connect(properties.database.url, function(error) {
@@ -94,6 +88,7 @@ modules.export = function mongoRestifier(propertyFile) {
       throw 'Model must be an instance of ServiceModel';
     }
     model.register(app, properties.api.baseUrl);
+    return this;
   };
 
   // // register apis
@@ -101,49 +96,54 @@ modules.export = function mongoRestifier(propertyFile) {
   //   require(service)
   // });
 
-  app.use(function(req, res, next) {
-    // return '404' error if a requested url is not found
-    res.status(404);
-    res.json({
-      status: 404,
-      message: 'Requested URL is invalid!'
-    });
-  });
+  var startup = function startup() {
 
-  // return '500' error any other error that couldn't be sloved to this point
-  // development error handler and this will print stacktrace
-  if (properties.api.environment === 'development') {
-    app.use(function(error, req, res, next) {
-      res.status(error.status || 500);
+    app.use(function(req, res, next) {
+      // return '404' error if a requested url is not found
+      res.status(404);
       res.json({
-        message: error.message,
-        error: error
+        status: 404,
+        message: 'Requested URL is invalid!'
       });
     });
-  }
 
-  // production error handler and this will not leake stacktraces to user
-  if (properties.api.environment === 'production') {
-    app.use(function(error, req, res, next) {
-      res.status(error.status || 500);
-      res.json({
-        message: error.message
+    // return '500' error any other error that couldn't be sloved to this point
+    // development error handler and this will print stacktrace
+    if (properties.api.environment === 'development') {
+      app.use(function(error, req, res, next) {
+        res.status(error.status || 500);
+        res.json({
+          message: error.message,
+          error: error
+        });
       });
+    }
+
+    // production error handler and this will not leake stacktraces to user
+    if (properties.api.environment === 'production') {
+      app.use(function(error, req, res, next) {
+        res.status(error.status || 500);
+        res.json({
+          message: error.message
+        });
+      });
+    }
+
+    // set application port
+    app.set('port', parseInt(properties.api.port));
+
+    // start the application
+    server = app.listen(app.get('port'), function() {
+      console.log('Express server listening on port ' + server.address().port);
     });
+
+    return this;
   }
-
-  // set application port
-  app.set('port', parseInt(properties.api.port));
-
-  // start the application
-  var server = app.listen(app.get('port'), function() {
-    console.log('Express server listening on port ' + server.address().port);
-  });
 
   return {
     app: app,
-    server: server,
     properties: properties,
-    register: register
+    register: register,
+    startup: startup
   };
 };

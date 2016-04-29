@@ -66,8 +66,6 @@ var OAuth2Server = function OAuth2Server(app, baseUrl, properties) {
           .replace(/\?/g, '[^/]?') + '/?$')
       });
     }
-    console.log('************ rules ************');
-    console.log(rules);
   }
 
   // setup default user if specified

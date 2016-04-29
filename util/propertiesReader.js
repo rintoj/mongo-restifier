@@ -24,6 +24,8 @@
  */
 
 // imports
+var fs = require("fs");
+var merge = require("merge");
 var objectPath = require("object-path");
 var PropertiesReader = require('properties-reader');
 
@@ -49,23 +51,30 @@ module.exports = function propertiesReader(propertiesFile) {
 
     load: function(file) {
 
-      // if file not specified simply return
+      var self = this;
       if (!file) {
-        return this;
+        return self;
       }
 
-      // read properties
-      var reader = PropertiesReader(file)
+      var extension = file.split(".").slice(-1).join();
 
-      // parse and create object structure
+      // load '.json' file
+      if (extension !== "properties") {
+        var content = JSON.parse(fs.readFileSync(file, 'utf-8'));
+        self = merge.recursive(self, content);
+        return self;
+      }
+
+      // read '.properties' file
+      var reader = PropertiesReader(file)
       reader.each(function(key, value) {
         if (key === "load") {
           throw "Configuration can not have a key 'load'!";
         }
-        objectPath.set(this, key, processValue(reader.get(key)));
+        objectPath.set(self, key, processValue(reader.get(key)));
       });
 
-      return this;
+      return self;
     }
   };
 

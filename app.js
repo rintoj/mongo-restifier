@@ -1,4 +1,6 @@
-var mongoRestifier = require("./index");
-var storySerivce = require("./services/story-service");
+var mongoRestifier = require('./index');
+var storySerivce = require('./services/story-service');
 
-mongoRestifier.register(storySerivce);
+mongoRestifier('./conf/mongo-restifier.conf.json')
+    .register(storySerivce)
+    .startup();
