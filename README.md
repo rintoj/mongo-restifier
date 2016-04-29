@@ -140,9 +140,9 @@ Model Configuration
 | Option                  | Type       | Purpose           
 | ----------------------- |:---------- | :------------------------------------------------
 |**  url           ** `*` | Definition | Serving endpoint. The final url will be `http://{app}:{port}/{baseUrl}/{url}` 
-|**  schema        ** `*` | Definition | Define the schema as defined by mongoose. See **Schema Definition** for details.
+|**  schema        ** `*` | Definition | Define the schema as defined by mongoose. See [Schema Definition](#schema-definition)   for details.
 |**  userSpace     **     | Behaviour  | Keep track of the user for each record and restrict access to the corresponding users.<br> Usage: `userSpace: true` </br> Usage: `userSpace: {`<br>&nbsp;&nbsp;&nbsp;&nbsp;`field: "_user"`<br>`}`
-|**  configure     **     | Function   | Use this function to register [middleware](http://mongoosejs.com/docs/middleware.html) or [plugins](http://mongoosejs.com/docs/plugins.html). Context of this function will contain the second parameter of 'defineModel' (this object itself) <li> `this.schema` - Schema defined by `schema`</li><li> `this.model` - reference to mongoose.Model </li><li> `this.modelSchema` - reference to mongoose.Schema 
+|**  configure     **     | Function   | Use this function to register [middleware](http://mongoosejs.com/docs/middleware.html) or [plugins](http://mongoosejs.com/docs/plugins.html). Context of this function will contain the second parameter of 'defineModel' (this object itself) <li> `this.schema` - Schema defined by `schema`</li><li> `this.model` - reference to [mongoose.Model](http://mongoosejs.com/docs/models.html) </li><li> `this.modelSchema` - reference to [mongoose.Schema](http://mongoosejs.com/docs/guide.html) 
 
 ```js
 // define "Todo" model
@@ -197,9 +197,7 @@ Model Configuration
      // this.schema         - The second parameter of 'defineModel' (this object itself)
      // this.model          - reference to mongoose.Model
      // this.modelSchema    - reference to mongoose.Schema 
-   },
-   
-   permissions: Object,
+   }
    
 }));
     
