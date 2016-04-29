@@ -133,31 +133,17 @@ DELETE /todo/{id}
 Model Configuration
 ======
 
-## Schema Definition
+## Configuration
 
-| Option                       | Type       | Purpose           
-| ---------------------------- |:---------- | :------------------------------------------------
-|**  {field}.type           ** | Definition | Valid values are `String`, `Number` and `Date` 
-|**  {field}.idField        ** | Behaviour  | If set to `true`, system replaces _id with the given field. One and only one field can be set as id field. <div> Usage: `idField: true`</div> 
-|**  {field}.autoIncrement  ** | Behaviour  | If set to `true`, system increments value of the given field for every insertion. This validation can be applied only on `Number` fields <div> Usage: `autoIncrement: true`</div> 
-|**  {field}.startAt        ** | Behaviour  | Start autoIcrement at the given value. This configuration takes effect only if `autoIcrement` is set to `true`<div> Usage: `startAt: 1`</div> 
-|**  {field}.incrementBy    ** | Behaviour  | Start autoIcrement with the given steps. This configuration takes effect only if `autoIcrement` is set to `true`<div> Usage: `incrementBy: 1`</div> 
-|**  {field}.default        ** | Behaviour  | Sets the given value as the default value of the field if not specified in the request. <div> Usage: `default: Date.now` </div> 
-|**  {field}.required       ** | Validation | If set to `true` adds a required validator. If a value is not specified while creating an entity, operation will be rejected with an error, unless 'default' value is configured. Required can be configured as: <div>Usage: `required: true` </div> <div>Usage: `required: [true, 'User phone number required']` <br>This format is applicable to all validators except `validate` </div>
-|**  {field}.enum           ** | Validation | Validates the value of a field against predefined enum values; This validation can be applied only on `String` fields. <div>Usage: `enum: ['Coffee', 'Tea']` </div>
-|**  {field}.minlength      ** | Validation | Validates the length of the value to be minimum of given value; This validation can be applied only on `String` fields. <div>Usage: `minlength: 5` </div>
-|**  {field}.maxlength      ** | Validation | Validates the length of the value to be maximum of given value; This validation can be applied only on `String` fields. <div>Usage: `maxlength: 5` </div>
-|**  {field}.min            ** | Validation | Validates the value to be minimum of given value; This validation can be applied only on `Number` fields. <div>Usage: `min: 5` </div>
-|**  {field}.max            ** | Validation | Validates the value to be maximum of given value; This validation can be applied only on `Number` fields. <div>Usage: `max: 5` </div>
-|**  {field}.validate       ** | Validation | Helps in defining custom validation. <br><br>`validate: { `<br>&nbsp;&nbsp;&nbsp;&nbsp;` validator: function(v) { `<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`   return /\d{3}-\d{3}-\d{4}/.test(v); `<br>&nbsp;&nbsp;&nbsp;&nbsp;` }, `<br>&nbsp;&nbsp;&nbsp;&nbsp;`message: '{VALUE} is not a valid phone number!' `<br>`}`
+`*` - are mandatory
 
-## Other Options
-| Option              | Type       | Purpose           
-| ------------------- |:---------- | :------------------------------------------------
-|**  url           ** | Definition | Serving endpoint. The final url will be `http://{app}:{port}/{baseUrl}/{url}` 
-|**  userSpace     ** | Behaviour  | Keep track of the user for each record and restrict access to the corresponding users.<br> Usage: `userSpace: true` </br> Usage: `userSpace: {`<br>&nbsp;&nbsp;&nbsp;&nbsp;`field: "_user"`<br>`}`
+| Option                  | Type       | Purpose           
+| ----------------------- |:---------- | :------------------------------------------------
+|**  url           ** `*` | Definition | Serving endpoint. The final url will be `http://{app}:{port}/{baseUrl}/{url}` 
+|**  schema        ** `*` | Definition | Define the schema as defined by mongoose. See **Schema Definition** for details.
+|**  userSpace     **     | Behaviour  | Keep track of the user for each record and restrict access to the corresponding users.<br> Usage: `userSpace: true` </br> Usage: `userSpace: {`<br>&nbsp;&nbsp;&nbsp;&nbsp;`field: "_user"`<br>`}`
+|**  configure     **     | Function   | Use this function to register [middleware](http://mongoosejs.com/docs/middleware.html) or [plugins](http://mongoosejs.com/docs/plugins.html). Context of this function will contain the second parameter of 'defineModel' (this object itself) <li> `this.schema` - Schema defined by `schema`</li><li> `this.model` - reference to mongoose.Model </li><li> `this.modelSchema` - reference to mongoose.Schema 
 
-## Example
 ```js
 // define "Todo" model
 .register(mongoRestifier.defineModel("Todo", {
@@ -176,7 +162,7 @@ Model Configuration
 
        /** validations **/
        
-       required: true,                      // on any type of field
+       required: true,                      // check for null values 
        required: [true, 'phone# required'], // custom message
        enum: ['Coffee', 'Tea'],             // only if type = String
        minlength: number,                   // only if type = String
@@ -201,13 +187,46 @@ Model Configuration
        incrementBy: number         // only if type = Number and autoIncrement = true  
      }
    },
+   
+   url: String,                   // service endpoint eg: /todo
+   userSpace: Boolean,            // true | { field: "{your field name}" }
+   
+   configure: function() {
+     // write your code here to customize this model further
+     
+     // this.schema         - The second parameter of 'defineModel' (this object itself)
+     // this.model          - reference to mongoose.Model
+     // this.modelSchema    - reference to mongoose.Schema 
+   },
+   
    permissions: Object,
-   configure: Function,
-   url: String,
-   userSpace: Boolean
+   
 }));
     
 ```
+
+## Schema Definition
+`*` - are mandatory<br>
+`**` - additional feature than the ones supported by [mongoose](http://mongoosejs.com/docs/guide.html)
+
+| Option                           | Type       | Purpose           
+| -------------------------------- |:---------- | :------------------------------------------------
+|**  {field}.type           ** `*` | Definition | Valid values are `String`, `Number` and `Date` 
+|**  {field}.idField        ** `**` | Behaviour  | If set to `true`, system replaces _id with the given field. One and only one field can be set as id field. <div> Usage: `idField: true`</div> 
+|**  {field}.autoIncrement  ** `**` | Behaviour  | If set to `true`, system increments value of the given field for every insertion. This validation can be applied only on `Number` fields <div> Usage: `autoIncrement: true`</div> 
+|**  {field}.startAt        ** `**` | Behaviour  | Start autoIcrement at the given value. This configuration takes effect only if `autoIcrement` is set to `true`<div> Usage: `startAt: 1`</div> 
+|**  {field}.incrementBy    ** `**` | Behaviour  | Start autoIcrement with the given steps. This configuration takes effect only if `autoIcrement` is set to `true`<div> Usage: `incrementBy: 1`</div> 
+|**  {field}.default        **     | Behaviour  | Sets the given value as the default value of the field if not specified in the request. <div> Usage: `default: Date.now` </div> 
+|**  {field}.required       **     | Validation | If set to `true` adds a required validator. If a value is not specified while creating an entity, operation will be rejected with an error, unless 'default' value is configured. Required can be configured as: <div>Usage: `required: true` </div> <div>Usage: `required: [true, 'User phone number required']` <br>This format is applicable to all validators except `validate` </div>
+|**  {field}.enum           **     | Validation | Validates the value of a field against predefined enum values; This validation can be applied only on `String` fields. <div>Usage: `enum: ['Coffee', 'Tea']` </div>
+|**  {field}.minlength      **     | Validation | Validates the length of the value to be minimum of given value; This validation can be applied only on `String` fields. <div>Usage: `minlength: 5` </div>
+|**  {field}.maxlength      **     | Validation | Validates the length of the value to be maximum of given value; This validation can be applied only on `String` fields. <div>Usage: `maxlength: 5` </div>
+|**  {field}.min            **     | Validation | Validates the value to be minimum of given value; This validation can be applied only on `Number` fields. <div>Usage: `min: 5` </div>
+|**  {field}.max            **     | Validation | Validates the value to be maximum of given value; This validation can be applied only on `Number` fields. <div>Usage: `max: 5` </div>
+|**  {field}.validate       **     | Validation | Helps in defining custom validation. <br><br>`validate: { `<br>&nbsp;&nbsp;&nbsp;&nbsp;` validator: function(v) { `<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`   return /\d{3}-\d{3}-\d{4}/.test(v); `<br>&nbsp;&nbsp;&nbsp;&nbsp;` }, `<br>&nbsp;&nbsp;&nbsp;&nbsp;`message: '{VALUE} is not a valid phone number!' `<br>`}`
+
+Any other additional option supported by [mongoose schema](http://mongoosejs.com/docs/guide.html)
+
 
 API Configuration
 ======
