@@ -137,12 +137,12 @@ Model Configuration
 
 `*` - are mandatory
 
-| Option                  | Type       | Purpose           
-| ----------------------- |:---------- | :------------------------------------------------
-|**  url           ** `*` | Definition | Serving endpoint. The final url will be `http://{app}:{port}/{baseUrl}/{url}` 
-|**  schema        ** `*` | Definition | Define the schema as defined by mongoose. See [Schema Definition](#schema-definition)   for details.
-|**  userSpace     **     | Behaviour  | Keep track of the user for each record and restrict access to the corresponding users.<br> Usage: `userSpace: true` </br> Usage: `userSpace: {`<br>&nbsp;&nbsp;&nbsp;&nbsp;`field: "_user"`<br>`}`
-|**  configure     **     | Function   | Use this function to register [middleware](http://mongoosejs.com/docs/middleware.html) or [plugins](http://mongoosejs.com/docs/plugins.html). Context of this function will contain the second parameter of 'defineModel' (this object itself) <li> `this.schema` - Schema defined by `schema`</li><li> `this.model` - reference to [mongoose.Model](http://mongoosejs.com/docs/models.html) </li><li> `this.modelSchema` - reference to [mongoose.Schema](http://mongoosejs.com/docs/guide.html) 
+| Option           | Type       | Purpose           
+| ---------------- |:---------- | :------------------------------------------------
+| url          `*` | Definition | Serving endpoint. The final url will be `http://{app}:{port}/{baseUrl}/{url}` 
+| schema       `*` | Definition | Define the schema as defined by mongoose. See [Schema Definition](#schema-definition)   for details.
+| userSpace        | Behaviour  | Keep track of the user for each record and restrict access to the corresponding users.<br> Usage: `userSpace: true` </br> Usage: `userSpace: {`<br>&nbsp;&nbsp;&nbsp;&nbsp;`field: "_user"`<br>`}`
+| configure        | Function   | Use this function to register [middleware](http://mongoosejs.com/docs/middleware.html) or [plugins](http://mongoosejs.com/docs/plugins.html). Context of this function will contain the second parameter of 'defineModel' (this object itself) <li> `this.schema` - Schema defined by `schema`</li><li> `this.model` - reference to [mongoose.Model](http://mongoosejs.com/docs/models.html) </li><li> `this.modelSchema` - reference to [mongoose.Schema](http://mongoosejs.com/docs/guide.html) 
 
 ```js
 // define "Todo" model
@@ -207,21 +207,21 @@ Model Configuration
 `*` - are mandatory<br>
 `**` - additional feature than the ones supported by [mongoose](http://mongoosejs.com/docs/guide.html)
 
-| Option                           | Type       | Purpose           
-| -------------------------------- |:---------- | :------------------------------------------------
-|**  {field}.type           ** `*` | Definition | Valid values are `String`, `Number` and `Date` 
-|**  {field}.idField        ** `**` | Behaviour  | If set to `true`, system replaces _id with the given field. One and only one field can be set as id field. <div> Usage: `idField: true`</div> 
-|**  {field}.autoIncrement  ** `**` | Behaviour  | If set to `true`, system increments value of the given field for every insertion. This validation can be applied only on `Number` fields <div> Usage: `autoIncrement: true`</div> 
-|**  {field}.startAt        ** `**` | Behaviour  | Start autoIcrement at the given value. This configuration takes effect only if `autoIcrement` is set to `true`<div> Usage: `startAt: 1`</div> 
-|**  {field}.incrementBy    ** `**` | Behaviour  | Start autoIcrement with the given steps. This configuration takes effect only if `autoIcrement` is set to `true`<div> Usage: `incrementBy: 1`</div> 
-|**  {field}.default        **     | Behaviour  | Sets the given value as the default value of the field if not specified in the request. <div> Usage: `default: Date.now` </div> 
-|**  {field}.required       **     | Validation | If set to `true` adds a required validator. If a value is not specified while creating an entity, operation will be rejected with an error, unless 'default' value is configured. Required can be configured as: <div>Usage: `required: true` </div> <div>Usage: `required: [true, 'User phone number required']` <br>This format is applicable to all validators except `validate` </div>
-|**  {field}.enum           **     | Validation | Validates the value of a field against predefined enum values; This validation can be applied only on `String` fields. <div>Usage: `enum: ['Coffee', 'Tea']` </div>
-|**  {field}.minlength      **     | Validation | Validates the length of the value to be minimum of given value; This validation can be applied only on `String` fields. <div>Usage: `minlength: 5` </div>
-|**  {field}.maxlength      **     | Validation | Validates the length of the value to be maximum of given value; This validation can be applied only on `String` fields. <div>Usage: `maxlength: 5` </div>
-|**  {field}.min            **     | Validation | Validates the value to be minimum of given value; This validation can be applied only on `Number` fields. <div>Usage: `min: 5` </div>
-|**  {field}.max            **     | Validation | Validates the value to be maximum of given value; This validation can be applied only on `Number` fields. <div>Usage: `max: 5` </div>
-|**  {field}.validate       **     | Validation | Helps in defining custom validation. <br><br>`validate: { `<br>&nbsp;&nbsp;&nbsp;&nbsp;` validator: function(v) { `<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`   return /\d{3}-\d{3}-\d{4}/.test(v); `<br>&nbsp;&nbsp;&nbsp;&nbsp;` }, `<br>&nbsp;&nbsp;&nbsp;&nbsp;`message: '{VALUE} is not a valid phone number!' `<br>`}`
+| Option                    | Type       | Purpose           
+| ------------------------- |:---------- | :------------------------------------------------
+| {field}.type          `*` | Definition | Valid values are `String`, `Number` and `Date` 
+| {field}.idField       `**`| Behaviour  | If set to `true`, system replaces _id with the given field. One and only one field can be set as id field. <div> Usage: `idField: true`</div> 
+| {field}.autoIncrement `**`| Behaviour  | If set to `true`, system increments value of the given field for every insertion. This validation can be applied only on `Number` fields <div> Usage: `autoIncrement: true`</div> 
+| {field}.startAt       `**`| Behaviour  | Start autoIcrement at the given value. This configuration takes effect only if `autoIcrement` is set to `true`<div> Usage: `startAt: 1`</div> 
+| {field}.incrementBy   `**`| Behaviour  | Start autoIcrement with the given steps. This configuration takes effect only if `autoIcrement` is set to `true`<div> Usage: `incrementBy: 1`</div> 
+| {field}.default           | Behaviour  | Sets the given value as the default value of the field if not specified in the request. <div> Usage: `default: Date.now` </div> 
+| {field}.required          | Validation | If set to `true` adds a required validator. If a value is not specified while creating an entity, operation will be rejected with an error, unless 'default' value is configured. Required can be configured as: <div>Usage: `required: true` </div> <div>Usage: `required: [true, 'User phone number required']` <br>This format is applicable to all validators except `validate` </div>
+| {field}.enum              | Validation | Validates the value of a field against predefined enum values; This validation can be applied only on `String` fields. <div>Usage: `enum: ['Coffee', 'Tea']` </div>
+| {field}.minlength         | Validation | Validates the length of the value to be minimum of given value; This validation can be applied only on `String` fields. <div>Usage: `minlength: 5` </div>
+| {field}.maxlength         | Validation | Validates the length of the value to be maximum of given value; This validation can be applied only on `String` fields. <div>Usage: `maxlength: 5` </div>
+| {field}.min               | Validation | Validates the value to be minimum of given value; This validation can be applied only on `Number` fields. <div>Usage: `min: 5` </div>
+| {field}.max               | Validation | Validates the value to be maximum of given value; This validation can be applied only on `Number` fields. <div>Usage: `max: 5` </div>
+| {field}.validate          | Validation | Helps in defining custom validation. <br><br>`validate: { `<br>&nbsp;&nbsp;&nbsp;&nbsp;` validator: function(v) { `<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`   return /\d{3}-\d{3}-\d{4}/.test(v); `<br>&nbsp;&nbsp;&nbsp;&nbsp;` }, `<br>&nbsp;&nbsp;&nbsp;&nbsp;`message: '{VALUE} is not a valid phone number!' `<br>`}`
 
 Any other additional option supported by [mongoose schema](http://mongoosejs.com/docs/guide.html)
 
@@ -232,18 +232,18 @@ API Configuration
 ## Options
 All values except `database.url` are predefined. Specify any value in `app.conf.json` or `app.conf.properties` only if you need to override them.
 
-| Option                          | Purpose           
-| ------------------------------- |:-------------------------------------------------------
-|**  database.url              ** | Mongo DB url. Format:  `mongodb://localhost/{dbname}`
-|**  api.port                  ** | Port your server should start at; default: `3000`  
-|**  api.baseUrl               ** | Port and baseUrl defines your api url: `http://{host}:{port}/{baseUrl}/`  
-|**  api.cors.enabled          ** | `true` if you want to make [cross-origin HTTP request](https://developer.mozilla.org/en-US/docs/Web/HTTP/Access_control_CORS) 
-|**  api.cors.allowed          ** | <li>`origin` - coma separated domain names; `*` - for any domain</li><li>`methods` - coma separated values of: `GET`, `POST`, `HEAD`, `POST`, `PUT` , `DELETE`</li><li>`headers` - all possible headers added by user or user agent 
-|**  api.oauth2.enabled        ** | `true` to enable OAuth2 based authentication and authorization
-|**  api.oauth2.default.user   ** | To create a default user at startup, provide user attributes: <li>`name` - Full name of the user; default: `Superuser`</li><li> `userId` - Required for login; default: `superuser@system.com`</li><li> `password` - Password must be base64 encode; default: `sysadmin` (TODO: use encryption) </li><li> `roles` -  the roles must be an array of string; default: [`ADMIN`]</li>
-|**  api.oauth2.default.client ** | To create a default client at startup, provide client attributes: <li>`name`</li><li>`description`</li><li>`id`</li><li>`secret`</li><li> `grantTypes` - valid values are `password` and `refresh_token`</li> 
-|**  api.oauth2.rules          ** | Array of tab separated values in the order: <li> `AuthType` - valid values are `None`, `Basic` and `Bearer`</li><li>`Roles` - coma separated values without space. eg: `ADMIN,USER`</li><li>`Methods` - coma separated values without space. eg: `GET,POST,PUT`</li><li> `Url Pattern` - eg: `/api/user/**/*`</li>
-|**  api.environment           ** | `development` or `production`  
+| Option                    | Purpose           
+| --------------------------|:-------------------------------------------------------
+| database.url              | Mongo DB url. Format:  `mongodb://localhost/{dbname}`
+| api.port                  | Port your server should start at; default: `3000`  
+| api.baseUrl               | Port and baseUrl defines your api url: `http://{host}:{port}/{baseUrl}/`  
+| api.cors.enabled          | `true` if you want to make [cross-origin HTTP request](https://developer.mozilla.org/en-US/docs/Web/HTTP/Access_control_CORS) 
+| api.cors.allowed          | <li>`origin` - coma separated domain names; `*` - for any domain</li><li>`methods` - coma separated values of: `GET`, `POST`, `HEAD`, `POST`, `PUT` , `DELETE`</li><li>`headers` - all possible headers added by user or user agent 
+| api.oauth2.enabled        | `true` to enable OAuth2 based authentication and authorization
+| api.oauth2.default.user   | To create a default user at startup, provide user attributes: <li>`name` - Full name of the user; default: `Superuser`</li><li> `userId` - Required for login; default: `superuser@system.com`</li><li> `password` - Password must be base64 encode; default: `sysadmin` (TODO: use encryption) </li><li> `roles` -  the roles must be an array of string; default: [`ADMIN`]</li>
+| api.oauth2.default.client | To create a default client at startup, provide client attributes: <li>`name`</li><li>`description`</li><li>`id`</li><li>`secret`</li><li> `grantTypes` - valid values are `password` and `refresh_token`</li> 
+| api.oauth2.rules          | Array of tab separated values in the order: <li> `AuthType` - valid values are `None`, `Basic` and `Bearer`</li><li>`Roles` - coma separated values without space. eg: `ADMIN,USER`</li><li>`Methods` - coma separated values without space. eg: `GET,POST,PUT`</li><li> `Url Pattern` - eg: `/api/user/**/*`</li>
+| api.environment           | `development` or `production`  
 
 ## Configuration File
 
