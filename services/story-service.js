@@ -34,23 +34,22 @@ module.exports = ServiceModel.create("Story", {
     }
   },
 
-  permissions: function() {
-    return {
-      item: {
-        read: ['None'],
-        write: ['None'],
-        delete: ['None']
-      },
-      bulk: {
-        read: ['None'],
-        write: ['None'],
-        delete: ['None']
-      }
-    };
-  },
+  // permissions: function() {
+  //   return {
+  //     item: {
+  //       read: ['None'],
+  //       write: ['None'],
+  //       delete: ['None']
+  //     },
+  //     bulk: {
+  //       read: ['None'],
+  //       write: ['None'],
+  //       delete: ['None']
+  //     }
+  //   };
+  // },
 
   configure: function() {
-    console.log('configure');
     // this.model.path('name').set(function(v) {
     //   return capitalize(v);
     // });
