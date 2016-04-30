@@ -129,7 +129,7 @@ var OAuth2Server = function OAuth2Server(app, baseUrl, properties) {
           accessToken: item.token,
           clientId: item.clientId,
           user: {
-            id: item.userId,
+            userId: item.userId,
             roles: item.roles
           },
           expires: item.expires
@@ -152,7 +152,7 @@ var OAuth2Server = function OAuth2Server(app, baseUrl, properties) {
           refreshToken: item.token,
           clientId: item.clientId,
           user: {
-            id: item.userId,
+            userId: item.userId,
             roles: item.roles
           },
           expires: item.expires
