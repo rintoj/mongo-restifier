@@ -122,6 +122,7 @@ Querying takes in the following parameters:
 | `PUT /todo`                   | `{ "title": "Your title", "status": "new" }` | Create new item
 | `PUT /todo/{id}`              | `{ "title": "Your title", "status": "new" }` | Update existing item with given id
 | `PUT /todo`                   | `{ "id": "abc", "title": "Your title" }`     | Update existing item or create if not found
+| `PUT /todo?createOnly=true`   | `{ "id": "abc", "title": "Your title" }`     | Create new item; DONOT create or update if found
 | `PUT /todo?updateOnly=true`   | `{ "id": "abc", "title": "Your title" }`     | Update existing item; DONOT create if not found
 
 ### Bulk Create or Update
@@ -129,8 +130,10 @@ Querying takes in the following parameters:
 | --------------------------- | :-------------------------------------------------------------------------------------------------------- | :-----------------------------------------------------------
 | `PUT /todo`                 | `[{ "title": "Your title"},` <br>&nbsp;&nbsp;`{ "title": "Your title"}]`                                  | Create multiple items
 | `PUT /todo`                 | `[{ "id": "2sd233", "title": "Your title"},` <br>&nbsp;&nbsp;`{ "id": "2sd234", "title": "Your title"}]`  | Update multiple items, create if not found
+| `PUT /todo?createOnly=true` | `[{ "id": "2sd233", "title": "Your title"}]`                                                              | Create multiple items, DONOT update if found
 | `PUT /todo?updateOnly=true` | `[{ "id": "2sd233", "title": "Your title"}]`                                                              | Update multiple items, DONOT create if not found
 
+*NOTE: For all create and update operations, existance of an item is determinded through it's `id`*
 
 ### Delete
 | Url                         | Body                  | Description          

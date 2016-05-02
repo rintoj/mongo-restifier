@@ -272,11 +272,12 @@ describe('mongo-restifier', function() {
   describe('Todo Service', function() {
 
     var itemsCount = 0;
+    var newIds = [];
 
     before(function(done) {
       aquireAccessToken(done);
-    })
-
+    });
+    
     it('should add a SINGLE item through /api/todo PUT', function(done) {
       chai.request(instance.app)
         .put('/api/todo')
@@ -322,6 +323,27 @@ describe('mongo-restifier', function() {
           res.body.result.should.have.property('newIds');
           res.body.result.newIds.should.have.length(2);
           itemsCount += 2;
+          newIds = res.body.result.newIds;
+          done();
+        });
+    });
+
+    it('should update a SINGLE item through /api/todo/{id} PUT', function(done) {
+      chai.request(instance.app)
+        .put('/api/todo/' + newIds[0])
+        .set('authorization', accessToken)
+        .send({
+          'title': 'Sample story1'
+        })
+        .end(function(err, res) {
+          res.should.have.status(200);
+          res.should.be.json;
+          res.body.should.be.a('object');
+          res.body.should.have.property('status');
+          res.body.status.should.be.equal('updated');
+          res.body.should.have.property('item');
+          res.body.item.should.have.property('title');
+          res.body.item.title.should.be.equal('Sample story1');
           done();
         });
     });
@@ -331,9 +353,11 @@ describe('mongo-restifier', function() {
         .put('/api/todo')
         .set('authorization', accessToken)
         .send([{
-          'title': 'Sample story1'
+          'index': newIds[0],
+          'title': 'Sample story'
         }, {
-          'title': 'Sample story2'
+          'index': newIds[1],
+          'title': 'Sample story'
         }])
         .end(function(err, res) {
           res.should.have.status(200);
@@ -342,38 +366,97 @@ describe('mongo-restifier', function() {
           res.body.should.have.property('status');
           res.body.status.should.be.equal('saved');
           res.body.should.have.property('result');
-          res.body.result.should.have.property('newIds');
-          res.body.result.newIds.should.have.length(2);
-          var newIds = res.body.result.newIds;
+          res.body.result.should.have.property('updated');
+          res.body.result.updated.should.be.equal(2);
+          done();
+        });
 
-          chai.request(instance.app)
-            .put('/api/todo')
-            .set('authorization', accessToken)
-            .send([{
-              'index': newIds[0],
-              'title': 'Sample story'
-            }, {
-              'index': newIds[1],
-              'title': 'Sample story'
-            }])
-            .end(function(err, res) {
-              res.should.have.status(200);
-              res.should.be.json;
-              res.body.should.be.a('object');
-              res.body.should.have.property('status');
-              res.body.status.should.be.equal('saved');
-              res.body.should.have.property('result');
-              res.body.result.should.have.property('updated');
-              res.body.result.updated.should.be.equal(2);
-              itemsCount += 2;
-              done();
-            });
+    });
+
+    it('should NOT UPDATE items, if no change in properties, through /api/todo PUT', function(done) {
+
+      chai.request(instance.app)
+        .put('/api/todo')
+        .set('authorization', accessToken)
+        .send([{
+          'index': newIds[0],
+          'title': 'Sample story'
+        }, {
+          'index': newIds[1],
+          'title': 'Sample story'
+        }])
+        .end(function(err, res) {
+          res.should.have.status(200);
+          res.should.be.json;
+          res.body.should.be.a('object');
+          res.body.should.have.property('status');
+          res.body.status.should.be.equal('saved');
+          res.body.should.have.property('result');
+          res.body.result.should.have.property('updated');
+          res.body.result.updated.should.be.equal(0);
+          done();
         });
     });
 
-    it('should NOT UPDATE items, if not change in properties, through /api/todo PUT', function(done) {
+    it('should NOT CREATE, but only UPDATE items, with /api/todo?updateOnly=true PUT', function(done) {
+
       chai.request(instance.app)
-        .put('/api/todo')
+        .put('/api/todo?updateOnly=true')
+        .set('authorization', accessToken)
+        .send([{
+          'title': 'Sample story1'
+        }, {
+          'index': newIds[1],
+          'title': 'Sample story4'
+        }])
+        .end(function(err, res) {
+          res.should.have.status(200);
+          res.should.be.json;
+          res.body.should.be.a('object');
+          res.body.should.have.property('status');
+          res.body.status.should.be.equal('saved');
+          res.body.should.have.property('result');
+          res.body.result.should.have.property('created');
+          res.body.result.created.should.be.equal(0);
+          res.body.result.should.have.property('newIds');
+          res.body.result.newIds.should.be.length(0);
+          res.body.result.should.have.property('updated');
+          res.body.result.updated.should.be.equal(1);
+          done();
+        });
+    });
+
+    it('should NOT UPDATE, but only Create items, with /api/todo?createOnly=true PUT', function(done) {
+
+      chai.request(instance.app)
+        .put('/api/todo?createOnly=true')
+        .set('authorization', accessToken)
+        .send([{
+          'title': 'Sample story1'
+        }, {
+          'index': newIds[1],
+          'title': 'Sample story4'
+        }])
+        .end(function(err, res) {
+          res.should.have.status(200);
+          res.should.be.json;
+          res.body.should.be.a('object');
+          res.body.should.have.property('status');
+          res.body.status.should.be.equal('saved');
+          res.body.should.have.property('result');
+          res.body.result.should.have.property('created');
+          res.body.result.created.should.be.equal(1);
+          res.body.result.should.have.property('newIds');
+          res.body.result.newIds.should.be.length(1);
+          res.body.result.should.not.have.property('updated');
+          itemsCount++;
+          done();
+        });
+    });
+
+    it('should REJECT WITH ERROR, when createOnly and updateOnly are used together with /api/todo PUT', function(done) {
+      chai.request(instance.app)
+        .put('/api/todo?updateOnly=true&createOnly=true')
         .set('authorization', accessToken)
         .send([{
           'title': 'Sample story1'
@@ -381,41 +464,13 @@ describe('mongo-restifier', function() {
           'title': 'Sample story2'
         }])
         .end(function(err, res) {
-          res.should.have.status(200);
+          res.should.have.status(422);
           res.should.be.json;
-          res.body.should.be.a('object');
-          res.body.should.have.property('status');
-          res.body.status.should.be.equal('saved');
-          res.body.should.have.property('result');
-          res.body.result.should.have.property('newIds');
-          res.body.result.newIds.should.have.length(2);
-          var newIds = res.body.result.newIds;
-          itemsCount += 2;
-          chai.request(instance.app)
-            .put('/api/todo')
-            .set('authorization', accessToken)
-            .send([{
-              'index': newIds[0],
-              'title': 'Sample story1'
-            }, {
-              'index': newIds[1],
-              'title': 'Sample story2'
-            }])
-            .end(function(err, res) {
-              res.should.have.status(200);
-              res.should.be.json;
-              res.body.should.be.a('object');
-              res.body.should.have.property('status');
-              res.body.status.should.be.equal('saved');
-              res.body.should.have.property('result');
-              res.body.result.should.have.property('updated');
-              res.body.result.updated.should.be.equal(0);
-              done();
-            });
+          done();
         });
     });
 
-    it('should set createdAt and updatedAt through /api/todo PUT', function(done) {
+    it('should set createdAt and updatedAt when an item is created through /api/todo PUT', function(done) {
       chai.request(instance.app)
         .put('/api/todo')
         .set('authorization', accessToken)
@@ -435,6 +490,72 @@ describe('mongo-restifier', function() {
           done();
         });
     });
+
+    it('should set _user when an item is created through /api/todo PUT', function(done) {
+      chai.request(instance.app)
+        .put('/api/todo?fields=_user')
+        .set('authorization', accessToken)
+        .send({
+          'title': 'Sample story'
+        })
+        .end(function(err, res) {
+          res.should.have.status(200);
+          res.should.be.json;
+          res.body.should.be.a('object');
+          res.body.should.have.property('status');
+          res.body.status.should.be.equal('created');
+          res.body.should.have.property('item');
+          res.body.item.should.have.property('_user');
+          res.body.item._user.should.be.equal('superuser@system.com');
+          itemsCount++;
+          done();
+        });
+    });
+
+    it('should override _user when an item with _user set, is sent for creation through /api/todo PUT', function(done) {
+      chai.request(instance.app)
+        .put('/api/todo?fields=_user')
+        .set('authorization', accessToken)
+        .send({
+          'title': 'Sample story',
+          '_user': 'test'
+        })
+        .end(function(err, res) {
+          res.should.have.status(200);
+          res.should.be.json;
+          res.body.should.be.a('object');
+          res.body.should.have.property('status');
+          res.body.status.should.be.equal('created');
+          res.body.should.have.property('item');
+          res.body.item.should.have.property('_user');
+          res.body.item._user.should.be.equal('superuser@system.com');
+          itemsCount++;
+          done();
+        });
+    });
+
+
+    it('should override _user when an item with _user set, is sent for update through /api/todo/{id} PUT', function(done) {
+      chai.request(instance.app)
+        .put('/api/todo/' + newIds[0] + '?fields=_user')
+        .set('authorization', accessToken)
+        .send({
+          'title': 'Sample story',
+          '_user': 'test'
+        })
+        .end(function(err, res) {
+          res.should.have.status(200);
+          res.should.be.json;
+          res.body.should.be.a('object');
+          res.body.should.have.property('status');
+          res.body.status.should.be.equal('updated');
+          res.body.should.have.property('item');
+          res.body.item.should.have.property('_user');
+          res.body.item._user.should.be.equal('superuser@system.com');
+          done();
+        });
+    });
+
 
     it('should list ALL todos on /api/todo GET', function(done) {
       chai.request(instance.app)

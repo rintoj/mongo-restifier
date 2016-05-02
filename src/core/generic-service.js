@@ -410,6 +410,13 @@ module.exports = function ServiceEndpoint(model, options) {
     var multi = request.body instanceof Array;
     var items = multi ? request.body : [request.body];
 
+    if (request.query.updateOnly && request.query.createOnly) {
+      return respond(response, 422, {
+        status: 422,
+        message: 'Should not use both insertOnly and updateOnly together!'
+      });
+    }
+
     // attach user
     if (options.userField) {
       items = items.map(function(item) {
@@ -419,19 +426,21 @@ module.exports = function ServiceEndpoint(model, options) {
     }
 
     segregateExisting(items).then(function(segregateItems) {
-      var promises = [];
-      promises.push(bulkCreate(segregateItems.new));
-      promises.push(bulkUpdate(segregateItems.existing));
+        var promises = [];
 
-      Promise.when.apply(Promise, promises).then(function(result) {
-        sendBulkResult(request, response, result, multi);
-      }, function(error) {
+        promises.push(bulkCreate(request.query.updateOnly ? [] : segregateItems.new));
+        promises.push(bulkUpdate(request.query.createOnly ? [] : segregateItems.existing));
+
+        Promise.when.apply(Promise, promises).then(function(result) {
+          sendBulkResult(request, response, result, multi);
+        }, function(error) {
+          next(error);
+        });
+
+      },
+      function(error) {
         next(error);
       });
-
-    }, function(error) {
-      next(error);
-    });
 
   };
 
@@ -460,6 +469,9 @@ module.exports = function ServiceEndpoint(model, options) {
    * @param next Next hook as function
    */
   this.updateById = function updateById(request, response, next) {
+    if (options.userField) {
+      request.body[options.userField] = request.user.userId;
+    }
     model.findByIdAndUpdate(request.params.id, request.body, {
       runValidators: true
     }, function(error, item) {
