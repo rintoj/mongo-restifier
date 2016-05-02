@@ -91,34 +91,76 @@ The following example serves the `Todo` model on a RESTful API.
 REST API
 ========
 
-### Query
+### ** Query ** 
 ```
 GET /todo                         
 GET /todo/{id}                    
 GET /todo?{field}={value}         
 GET /todo?fields=posts,comments   
 GET /todo?sort={field1},-{field2} 
-GET /todo?limit=10&skip=100       
+GET /todo?limit=10&skip=100
+GET /todo?count=true       
 ```
 Querying takes in the following parameters:
-* `field` - Replace `field` with any field in your Mongoose model, and it will check for equality.
-* `fields` - Comma-delimited list of fields to populate
-* `sort` - Sorts by the given fields in the given order, comma delimited. A `-` sign will sort descending.
-* `limit` - Limits the number of returned results. All results are limited to `100` by default.
-* `skip` - Skips a number of results. Useful for pagination when combined with `limit`.
 
-### Advanced Query
+| Parameter | Purpose
+| --------- | :--------------------------------
+| `field`   | Replace `field` with any field in your Mongoose model, and it will check for equality. 
+| `fields`  | Comma-delimited list of fields to populate.
+| `sort`    | Sorts by the given fields in the given order, comma delimited. A `-` sign will sort descending. 
+| `limit`   | Limits the number of returned results. All results are limited to `100` by default.
+| `skip`    | Skips a number of results. Useful for pagination when combined with `limit`.
+| `count`   | Set count = true to get the count of matching items instead of items themselves. 
+
+### ** Advanced Query ** 
 ```
 POST /todo      
 {title: "Your title", "status": "new" }
 
-POST /todo/{id} 
-{title: "Your title", "status": "new" }
+POST /todo
+{ "status": { "$in": ["new", "hold"] }}
+
+POST /todo
+{"index": { "$gte": 1, "$lte": 100 }}
+
+POST /todo
+{ "$or" : [{ "index": 100 }, { "index": 101 }] }
+
+POST /todo
+{ "$and": [{ "index": { "$ne": 100 }}, { "index": { "$lt": 120 }}] }
+
+POST /todo
+{ "title": { "$regex": "^S.mple.*"} }
+
+POST /todo
+{ "index": { "$exists": true }}
 ```
 
-Use `POST` to perform advanced queries. Anything `mongoose`
+Use `POST` to perform advanced queries. Query parameters remains same as of `GET`. Additionally the `BODY` of the request we can contain:
 
-### Create or Update
+**Comparison Operators**
+
+| Operator  | Purpose                    | Example   
+| --------- |:---------------------------| ---------------------------------
+| `$gt`     | Greater than               | `{ "age": { "$gt": 10 } }`
+| `$gte`    | Greater than or equal      | `{ "age": { "$gte": 10 } }`
+| `$lt`     | Less than                  | `{ "age": { "$lt": 10 } }`   
+| `$lte`    | Less than or equal         | `{ "age": { "$lte": 10 } }`   
+| `$ne`     | Not equal                  | `{ "status": { "$ne": "new" } }`      
+| `$in`     | In operator                | `{ "status": { "$in": ["new", "hold"] } }`    
+| `$nin`    | Not In operator            | `{ "status": { "$nin": ["new", "hold"] } }`    
+| `$all`    | All in an array match      | `{ "status": { "$all": ["new", "hold"] } }`       
+| `$regex`  | Regular expression match   | `{ "title": { "$regex": "^S.mple.*"} }`      
+| `$exists` | Check if a field exists    | `{ "index": { "$exists": true }}`
+
+**Logical Operators**
+
+| Operator  | Purpose              | Example   
+| --------- |:---------------------| ---------------------------------
+| `$and`    | Logical AND          | `{ "$and": [{ "index": 100 }, { "status": "new" }] }`
+| `$or`     | Logical OR           | `{ "$or": [{ "index": 100 }, { "index": 101 }] }`
+
+### ** Create or Update **
 ```
 PUT /todo 
 { "title": "Your title", "status": "new" }
@@ -135,16 +177,19 @@ PUT /todo?createOnly=true
 PUT /todo?updateOnly=true 
 { "id": "abc", "title": "Your title" }   
 ```
+| Parameter       | Purpose                 
+| --------------- |:---------------------
+| `createOnly`    | Create an item if it doesn't exist, ignore updates
+| `updateOnly`    | Update an item if it exists, ignore creates
 
-### Bulk Create or Update
+
+### ** Bulk Create or Update ** 
 ```
 PUT /todo 
-[{ "title": "Your title"}, 
- { "title": "Your title"}]
+[{ "title": "Your title"}, { "title": "Your title"}]
                
 PUT /todo 
-[{ "id": "2sd233", "title": "Your title"}, 
- { "id": "2sd234", "title": "Your title"}]
+[{ "id": "2sd233", "title": "Sample"}, { "id": "2sd234", "title": "Sample"}]
 
 PUT /todo?createOnly=true 
 [{ "id": "2sd233", "title": "Your title"}]         
@@ -152,15 +197,18 @@ PUT /todo?createOnly=true
 PUT /todo?updateOnly=true 
 [{ "id": "2sd233", "title": "Your title"}]                         
 ```
-*NOTE: For all create and update operations, existance of an item is determinded through it's `id`*
+*NOTE: `createOnly` and `updateOnly` are applicable for bulk updates as well. For all create and update operations, existance of an item is determinded through it's `id`*
 
-### Delete
+### ** Delete ** 
 ```
 DELETE /todo/{id}
 
 DELETE /todo
 { "status": "new" }
+
+DELETE /todo
 ```
+*NOTE: `DELETE /todo` deletes *everything*. `USE WITH CATION`
 
 Model Configuration
 ======

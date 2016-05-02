@@ -316,10 +316,12 @@ module.exports = function ServiceEndpoint(model, options) {
   var createQuery = function createQuery(request, multi) {
     var query;
     var filters = merge(true, request.body, request.query);
-    filters = _.pick(filters, _.difference(Object.keys(filters), ['limit', 'skip', 'fields', 'sort']));
+    filters = _.pick(filters, _.difference(Object.keys(filters), ['limit', 'skip', 'fields', 'sort', 'count']));
 
     // create query
-    if (multi) {
+    if (request.query.count) {
+      query = model.count(filters);
+    } else if (multi) {
       query = model.find(filters);
     } else {
       query = model.findOne(filters);
@@ -343,6 +345,11 @@ module.exports = function ServiceEndpoint(model, options) {
       query.where(options.userField).equals(request.user.userId || '___**___');
     }
 
+    // set the batch size to tune performance
+    if (!request.query.count) {
+      query.batchSize(Math.max(100, parseInt(request.query.limit || 0)));
+    }
+
     return query;
   }
 
@@ -354,9 +361,12 @@ module.exports = function ServiceEndpoint(model, options) {
    * @param next Next hook as function
    */
   this.list = function list(request, response, next) {
+    request.body = {}; // ignore any body content because this is GET 
     createQuery(request, true).exec(function(error, items) {
       if (error) return next(error);
-      response.json(select(projection(request), items));
+      response.json(request.query.count ? {
+        count: items
+      } : select(projection(request), items));
     });
   }
 
@@ -370,7 +380,9 @@ module.exports = function ServiceEndpoint(model, options) {
   this.query = function query(request, response, next) {
     createQuery(request, true).exec(function(error, items) {
       if (error) return next(error);
-      response.json(select(projection(request), items));
+      response.json(request.query.count ? {
+        count: items
+      } : select(projection(request), items));
     });
   };
 

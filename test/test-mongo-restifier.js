@@ -725,8 +725,8 @@ describe('mongo-restifier', function() {
             });
         });
     });
-    
-     it('should list ALL todos on /api/todo POST', function(done) {
+
+    it('should list ALL todos on /api/todo POST', function(done) {
       chai.request(instance.app)
         .post('/api/todo')
         .set('authorization', accessToken)
@@ -734,6 +734,41 @@ describe('mongo-restifier', function() {
           res.should.have.status(200);
           res.should.be.json;
           res.body.should.be.a('array');
+          res.body.should.have.length(itemsCount);
+          done();
+        });
+    });
+
+
+    it('should list NO todos on /api/todo POST with body {status: hold}', function(done) {
+      chai.request(instance.app)
+        .post('/api/todo')
+        .set('authorization', accessToken)
+        .send({
+          status: 'hold'
+        })
+        .end(function(err, res) {
+          res.should.have.status(200);
+          res.should.be.json;
+          res.body.should.be.a('array');
+          res.body.should.have.length(0);
+          done();
+        });
+    });
+
+    it('should list ALL todos on /api/todo GET with body {status: hold}', function(done) {
+      chai.request(instance.app)
+        .get('/api/todo')
+        .set('authorization', accessToken)
+        .send({
+          status: 'hold'
+        })
+        .end(function(err, res) {
+          res.should.have.status(200);
+          res.should.be.json;
+          res.body.should.be.a('array');
+
+          // should ignore body and apply no filter hence itemsCount instead of 0
           res.body.should.have.length(itemsCount);
           done();
         });
@@ -863,7 +898,7 @@ describe('mongo-restifier', function() {
             });
         });
     });
-    
+
     it('should update status of an item on /api/todo/{id} PUT {status=hold}', function(done) {
       chai.request(instance.app)
         .get('/api/todo?limit=2')
@@ -971,6 +1006,25 @@ describe('mongo-restifier', function() {
         });
     });
 
+    it('should RETURN ITEMS with a regular expression search through /api/todo POST', function(done) {
+      chai.request(instance.app)
+        .post('/api/todo')
+        .set('authorization', accessToken)
+        .send({
+          title: {
+            '$regex': '^S.*1$'
+          }
+        })
+        .end(function(err, res) {
+          res.should.have.status(200);
+          res.should.be.json;
+          res.body.should.be.a('array');
+          res.body.should.have.length(1); // one item was updated to 'hold' previously
+          done();
+        });
+    });
+
+
     it('should DELETE ALL ITEMS with status = new through /api/todo DELETE', function(done) {
       chai.request(instance.app)
         .get('/api/todo?status=new')
@@ -1022,6 +1076,29 @@ describe('mongo-restifier', function() {
               res.should.be.json;
               res.body.should.be.a('array');
               res.body.should.have.length(100);
+              done();
+            });
+        });
+    });
+
+    it('should DELETE EVERYTHING with /api/todo DELETE with no parameters', function(done) {
+      chai.request(instance.app)
+        .delete('/api/todo')
+        .set('authorization', accessToken)
+        .end(function(err, res) {
+          res.should.have.status(200);
+          res.should.be.json;
+          res.body.should.be.a('object');
+          res.body.should.have.property('deleted');
+          res.body.deleted.n.should.be.equal(112);
+          chai.request(instance.app)
+            .get('/api/todo')
+            .set('authorization', accessToken)
+            .end(function(err, res) {
+              res.should.have.status(200);
+              res.should.be.json;
+              res.body.should.be.a('array');
+              res.body.should.have.length(0);
               done();
             });
         });
