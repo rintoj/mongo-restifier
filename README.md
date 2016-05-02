@@ -160,7 +160,7 @@ Use `POST` to perform advanced queries. Query parameters remains same as of `GET
 | `$and`    | Logical AND          | `{ "$and": [{ "index": 100 }, { "status": "new" }] }`
 | `$or`     | Logical OR           | `{ "$or": [{ "index": 100 }, { "index": 101 }] }`
 
-###**Create or Update **
+###**Create or Update**
 ```
 PUT /todo 
 { "title": "Your title", "status": "new" }
