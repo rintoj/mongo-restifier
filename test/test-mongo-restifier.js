@@ -76,6 +76,13 @@ var instance = mongoRestifier('./test/api.test.conf.json')
 
 describe('mongo-restifier', function() {
 
+  before(function(done) {
+    instance.models.Todo.model.remove({}, function(err, item) {
+      if (err) throw 'Could not remove all items from the model';
+      done();
+    });
+  });
+
   var accessToken, refreshToken;
 
   var aquireAccessToken = function aquireAccessToken(callback, useRefreshToken) {
@@ -277,7 +284,7 @@ describe('mongo-restifier', function() {
     before(function(done) {
       aquireAccessToken(done);
     });
-    
+
     it('should add a SINGLE item through /api/todo PUT', function(done) {
       chai.request(instance.app)
         .put('/api/todo')
@@ -534,7 +541,6 @@ describe('mongo-restifier', function() {
         });
     });
 
-
     it('should override _user when an item with _user set, is sent for update through /api/todo/{id} PUT', function(done) {
       chai.request(instance.app)
         .put('/api/todo/' + newIds[0] + '?fields=_user')
@@ -550,12 +556,13 @@ describe('mongo-restifier', function() {
           res.body.should.have.property('status');
           res.body.status.should.be.equal('updated');
           res.body.should.have.property('item');
+          res.body.item.should.not.have.property('__v');
+          res.body.item.should.not.have.property('_id');
           res.body.item.should.have.property('_user');
           res.body.item._user.should.be.equal('superuser@system.com');
           done();
         });
     });
-
 
     it('should list ALL todos on /api/todo GET', function(done) {
       chai.request(instance.app)
@@ -753,5 +760,133 @@ describe('mongo-restifier', function() {
         });
     });
 
+    it('should delete a SINGLE item when access /api/todo/{id} DELETE', function(done) {
+      chai.request(instance.app)
+        .delete('/api/todo/' + newIds[0])
+        .set('authorization', accessToken)
+        .end(function(err, res) {
+          res.should.have.status(200);
+          res.should.be.json;
+          res.body.should.be.a('object');
+          res.body.should.have.property('status');
+          res.body.status.should.be.equal('deleted');
+          res.body.should.have.property('item');
+          res.body.item.should.not.have.property('__v');
+          res.body.item.should.not.have.property('_id');
+          res.body.item.should.not.have.property('_user');
+          itemsCount--;
+          chai.request(instance.app)
+            .get('/api/todo')
+            .set('authorization', accessToken)
+            .end(function(err, res) {
+              res.should.have.status(200);
+              res.should.be.json;
+              res.body.should.be.a('array');
+              res.body.should.have.length(itemsCount);
+              done();
+            });
+        });
+    });
+
+    it('should RETURN ITEMS with status = new through /api/todo?status=new GET', function(done) {
+      chai.request(instance.app)
+        .get('/api/todo?status=new')
+        .set('authorization', accessToken)
+        .end(function(err, res) {
+          res.should.have.status(200);
+          res.should.be.json;
+          res.body.should.be.a('array');
+          res.body.should.have.length(itemsCount - 1); // one item was updated to 'hold' previously
+          done();
+        });
+    });
+
+    it('should RETURN ITEMS with status = new through /api/todo?status=new POST', function(done) {
+      chai.request(instance.app)
+        .post('/api/todo?status=new')
+        .set('authorization', accessToken)
+        .end(function(err, res) {
+          res.should.have.status(200);
+          res.should.be.json;
+          res.body.should.be.a('array');
+          res.body.should.have.length(itemsCount - 1); // one item was updated to 'hold' previously
+          res.body.should.all.not.have.property('__v');
+          res.body.should.all.not.have.property('_id');
+          res.body.should.all.not.have.property('_user');
+          done();
+        });
+    });
+
+    it('should RETURN ITEMS with status = new through /api/todo POST', function(done) {
+      chai.request(instance.app)
+        .post('/api/todo')
+        .set('authorization', accessToken)
+        .send({
+          status: 'new'
+        })
+        .end(function(err, res) {
+          res.should.have.status(200);
+          res.should.be.json;
+          res.body.should.be.a('array');
+          res.body.should.have.length(itemsCount - 1); // one item was updated to 'hold' previously
+          done();
+        });
+    });
+
+    it('should DELETE ALL ITEMS with status = new through /api/todo DELETE', function(done) {
+      chai.request(instance.app)
+        .get('/api/todo?status=new')
+        .set('authorization', accessToken)
+        .end(function(err, res) {
+          res.should.have.status(200);
+          res.should.be.json;
+          res.body.should.be.a('array');
+          var count = res.body.length;
+          chai.request(instance.app)
+            .delete('/api/todo')
+            .set('authorization', accessToken)
+            .send({
+              status: 'new'
+            })
+            .end(function(err, res) {
+              res.should.have.status(200);
+              res.should.be.json;
+              res.body.should.be.a('object');
+              res.body.should.have.property('status');
+              res.body.status.should.be.equal('deleted');
+              res.body.should.have.property('deleted');
+              res.body.deleted.should.have.property('n');
+              res.body.deleted.n.should.be.equal(count);
+              done();
+            });
+        });
+    });
+
+    it('should return maximum of 100 records with /api/todo GET', function(done) {
+      var items = [];
+      for (var i = 0; i <= 110; i++) {
+        items.push({
+          title: 'New title'
+        });
+      }
+      chai.request(instance.app)
+        .put('/api/todo')
+        .set('authorization', accessToken)
+        .send(items)
+        .end(function(err, res) {
+          res.should.have.status(200);
+          res.should.be.json;
+          chai.request(instance.app)
+            .get('/api/todo')
+            .set('authorization', accessToken)
+            .end(function(err, res) {
+              res.should.have.status(200);
+              res.should.be.json;
+              res.body.should.be.a('array');
+              res.body.should.have.length(100);
+              done();
+            });
+        });
+    });
   });
 });

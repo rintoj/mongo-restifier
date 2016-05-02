@@ -23,6 +23,7 @@
  * SOFTWARE.
  */
 var _ = require('lodash');
+var merge = require('merge');
 var express = require('express');
 var Promise = require('mpromise');
 var mongoose = require('../util/Promise');
@@ -328,9 +329,7 @@ module.exports = function ServiceEndpoint(model, options) {
     }
 
     // set limit
-    if (request.query.limit && !isNaN(request.query.limit) && parseInt(request.query.limit) > 0) {
-      query.limit(request.query.limit);
-    }
+    query.limit((request.query.limit && !isNaN(request.query.limit) && parseInt(request.query.limit) > 0) ? request.query.limit : 100);
 
     // set skip
     if (request.query.skip && !isNaN(request.query.skip) && parseInt(request.query.skip) > 0) {
@@ -338,7 +337,7 @@ module.exports = function ServiceEndpoint(model, options) {
     }
 
     // limit fields
-    query.select(projection(request));
+    // query.select(projection(request));
 
     // set sort
     if (request.query.sort) {
@@ -363,7 +362,7 @@ module.exports = function ServiceEndpoint(model, options) {
   this.list = function list(request, response, next) {
     createQuery(request, true, true).exec(function(error, items) {
       if (error) return next(error);
-      response.json(items);
+      response.json(select(projection(request), items));
     });
   }
 
@@ -375,9 +374,10 @@ module.exports = function ServiceEndpoint(model, options) {
    * @param next Next hook as function
    */
   this.query = function query(request, response, next) {
+    request.body = merge.recursive(true, request.query, request.body);
     createQuery(request, true).exec(function(error, items) {
       if (error) return next(error);
-      response.json(items);
+      response.json(select(projection(request), items));
     });
   };
 
@@ -394,7 +394,7 @@ module.exports = function ServiceEndpoint(model, options) {
     };
     createQuery(request, true).exec(function(error, item) {
       if (error) return next(error);
-      send(response, item, undefined, request.params.id);
+      send(response, select(projection(request), item), undefined, request.params.id);
     });
   }
 
@@ -452,11 +452,12 @@ module.exports = function ServiceEndpoint(model, options) {
    * @param next Next hook as function
    */
   this.deleteAll = function deleteAll(request, response, next) {
-    model.remove(request.query, function(error, item) {
+    var query = merge.recursive(true, request.query, request.body);
+    model.remove(query, function(error, result) {
       if (error) return next(error);
       send(response, {
         status: "deleted",
-        deleted: item
+        deleted: result
       }, undefined, request.params.id);
     });
   };
@@ -476,7 +477,7 @@ module.exports = function ServiceEndpoint(model, options) {
       runValidators: true
     }, function(error, item) {
       if (error) return next(error);
-      send(response, item, "updated", request.params.id);
+      send(response, select(projection(request), item), "updated", request.params.id);
     });
   };
 
@@ -488,9 +489,9 @@ module.exports = function ServiceEndpoint(model, options) {
    * @param next Next hook as function
    */
   this.deleteById = function deleteById(request, response, next) {
-    model.findByIdAndRemove(request.params.id, request.body, function(error, item) {
+    model.findByIdAndRemove(request.params.id, function(error, item) {
       if (error) return next(error);
-      send(response, item, "deleted", request.params.id);
+      send(response, select(projection(request), item), "deleted", request.params.id);
     });
   };
 

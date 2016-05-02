@@ -40,7 +40,7 @@ var propertiesReader = require('./util/propertiesReader');
 // read properties.
 
 mongoRestifier = function mongoRestifier(propertyFile) {
-
+  
   var properties = propertiesReader('./src/conf/api.conf.properties');
   if (propertyFile) properties.load(propertyFile);
 
@@ -85,7 +85,8 @@ mongoRestifier = function mongoRestifier(propertyFile) {
   }
 
   var register = function register(model) {
-    model.register(app, properties.api.baseUrl);
+    model.register(app, properties.api.baseUrl, this);
+    this.models[model.context.name] = model.context;
     return this;
   };
 
@@ -143,6 +144,7 @@ mongoRestifier = function mongoRestifier(propertyFile) {
   }
 
   return {
+    models: {},
     app: app,
     properties: properties,
     register: register,

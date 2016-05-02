@@ -60,6 +60,9 @@ var createContext = function(name, options) {
  * @param context The context of the service
  */
 var ServiceModel = function ServiceModel(context) {
+  
+  // set current context
+  this.context = context;
 
   // basic validation
   if (!context.name || context.name === '') {
