@@ -92,16 +92,14 @@ REST API
 ========
 
 ### Query
-
-| Url                                  | Body    | Description          
-| ------------------------------------ | :------ | :-----------------------------------------------------------
-| `GET /todo                         ` | `empty` | Return all items
-| `GET /todo/{id}                    ` | `empty` | Return the item with `id` = `{id}`
-| `GET /todo?{field}={value}         ` | `empty` | Return all items filtered by `{field}` = `{value}`
-| `GET /todo?fields=posts,comments   ` | `empty` | Return items with `posts` and `comments` properties only
-| `GET /todo?sort={field1},-{field2} ` | `empty` | Sort by `{field1}` ascending and `{field2}` descending
-| `GET /todo?limit=10&skip=100       ` | `empty` | Skip first `100` items and return `10` items
-
+```
+GET /todo                         
+GET /todo/{id}                    
+GET /todo?{field}={value}         
+GET /todo?fields=posts,comments   
+GET /todo?sort={field1},-{field2} 
+GET /todo?limit=10&skip=100       
+```
 Querying takes in the following parameters:
 * `field` - Replace `field` with any field in your Mongoose model, and it will check for equality.
 * `fields` - Comma-delimited list of fields to populate
@@ -110,36 +108,59 @@ Querying takes in the following parameters:
 * `skip` - Skips a number of results. Useful for pagination when combined with `limit`.
 
 ### Advanced Query
-| Url               | Body                                      | Description          
-| ----------------- | :---------------------------------------- | :-----------------------------------------------------------
-| `POST /todo`      | `{title: "Your title", "status": "new" }` | Query for items with: `title` = `'Your title'` AND `'status'` = `'new'`
-| `POST /todo/{id}` | `{title: "Your title", "status": "new" }` | Query for items with: `id` = `{id}` AND `title` = `'Your title'` AND `'status'` = `'new'`
+```
+POST /todo      
+{title: "Your title", "status": "new" }
+
+POST /todo/{id} 
+{title: "Your title", "status": "new" }
+```
+
+Use `POST` to perform advanced queries. Anything `mongoose`
 
 ### Create or Update
+```
+PUT /todo 
+{ "title": "Your title", "status": "new" }
 
-| Url                           | Body                                         | Description          
-| ----------------------------- | :------------------------------------------- | :-----------------------------------------------------------
-| `PUT /todo`                   | `{ "title": "Your title", "status": "new" }` | Create new item
-| `PUT /todo/{id}`              | `{ "title": "Your title", "status": "new" }` | Update existing item with given id
-| `PUT /todo`                   | `{ "id": "abc", "title": "Your title" }`     | Update existing item or create if not found
-| `PUT /todo?createOnly=true`   | `{ "id": "abc", "title": "Your title" }`     | Create new item; DONOT create or update if found
-| `PUT /todo?updateOnly=true`   | `{ "id": "abc", "title": "Your title" }`     | Update existing item; DONOT create if not found
+PUT /todo/{id}            
+{ "title": "Your title", "status": "new" }
+
+PUT /todo 
+{ "id": "abc", "title": "Your title" }   
+
+PUT /todo?createOnly=true 
+{ "id": "abc", "title": "Your title" }
+   
+PUT /todo?updateOnly=true 
+{ "id": "abc", "title": "Your title" }   
+```
 
 ### Bulk Create or Update
-| Url                         | Body                                                                                                      | Description          
-| --------------------------- | :-------------------------------------------------------------------------------------------------------- | :-----------------------------------------------------------
-| `PUT /todo`                 | `[{ "title": "Your title"},` <br>&nbsp;&nbsp;`{ "title": "Your title"}]`                                  | Create multiple items
-| `PUT /todo`                 | `[{ "id": "2sd233", "title": "Your title"},` <br>&nbsp;&nbsp;`{ "id": "2sd234", "title": "Your title"}]`  | Update multiple items, create if not found
-| `PUT /todo?createOnly=true` | `[{ "id": "2sd233", "title": "Your title"}]`                                                              | Create multiple items, DONOT update if found
-| `PUT /todo?updateOnly=true` | `[{ "id": "2sd233", "title": "Your title"}]`                                                              | Update multiple items, DONOT create if not found
+```
+PUT /todo 
+[{ "title": "Your title"}, 
+ { "title": "Your title"}]
+               
+PUT /todo 
+[{ "id": "2sd233", "title": "Your title"}, 
+ { "id": "2sd234", "title": "Your title"}]
 
+PUT /todo?createOnly=true 
+[{ "id": "2sd233", "title": "Your title"}]         
+
+PUT /todo?updateOnly=true 
+[{ "id": "2sd233", "title": "Your title"}]                         
+```
 *NOTE: For all create and update operations, existance of an item is determinded through it's `id`*
 
 ### Delete
-| Url                         | Body                  | Description          
-| --------------------------- | :-------------------- | :-----------------------------------------------------------
-| `DELETE /todo/{id}`         | `empty`               | Delete item by `id`
-| `DELETE /todo`              | `{ "status": "new" }` | Delete all items with `status` = `new`
+```
+DELETE /todo/{id}
+
+DELETE /todo
+{ "status": "new" }
+```
 
 Model Configuration
 ======

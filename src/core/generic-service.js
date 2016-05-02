@@ -313,13 +313,10 @@ module.exports = function ServiceEndpoint(model, options) {
    * @param multi True for muliselect query
    * @returns Returns an instance of query
    */
-  var createQuery = function createQuery(request, multi, get) {
+  var createQuery = function createQuery(request, multi) {
     var query;
-    var filters = request.body;
-
-    if (get) {
-      filters = _.pick(request.query, _.difference(Object.keys(request.query), ['limit', 'skip', 'fields', 'sort']));
-    }
+    var filters = merge(true, request.body, request.query);
+    filters = _.pick(filters, _.difference(Object.keys(filters), ['limit', 'skip', 'fields', 'sort']));
 
     // create query
     if (multi) {
@@ -329,15 +326,12 @@ module.exports = function ServiceEndpoint(model, options) {
     }
 
     // set limit
-    query.limit((request.query.limit && !isNaN(request.query.limit) && parseInt(request.query.limit) > 0) ? request.query.limit : 100);
+    query.limit((request.query.limit && !isNaN(request.query.limit) && parseInt(request.query.limit) > 0) ? parseInt(request.query.limit) : 100);
 
     // set skip
     if (request.query.skip && !isNaN(request.query.skip) && parseInt(request.query.skip) > 0) {
-      query.skip(request.query.skip);
+      query.skip(parseInt(request.query.skip));
     }
-
-    // limit fields
-    // query.select(projection(request));
 
     // set sort
     if (request.query.sort) {
@@ -360,7 +354,7 @@ module.exports = function ServiceEndpoint(model, options) {
    * @param next Next hook as function
    */
   this.list = function list(request, response, next) {
-    createQuery(request, true, true).exec(function(error, items) {
+    createQuery(request, true).exec(function(error, items) {
       if (error) return next(error);
       response.json(select(projection(request), items));
     });
@@ -374,7 +368,6 @@ module.exports = function ServiceEndpoint(model, options) {
    * @param next Next hook as function
    */
   this.query = function query(request, response, next) {
-    request.body = merge.recursive(true, request.query, request.body);
     createQuery(request, true).exec(function(error, items) {
       if (error) return next(error);
       response.json(select(projection(request), items));

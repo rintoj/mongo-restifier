@@ -725,7 +725,145 @@ describe('mongo-restifier', function() {
             });
         });
     });
+    
+     it('should list ALL todos on /api/todo POST', function(done) {
+      chai.request(instance.app)
+        .post('/api/todo')
+        .set('authorization', accessToken)
+        .end(function(err, res) {
+          res.should.have.status(200);
+          res.should.be.json;
+          res.body.should.be.a('array');
+          res.body.should.have.length(itemsCount);
+          done();
+        });
+    });
 
+    it('should list ALL todos without fields starting with _ on /api/todo POST', function(done) {
+      chai.request(instance.app)
+        .post('/api/todo')
+        .set('authorization', accessToken)
+        .end(function(err, res) {
+          res.should.have.status(200);
+          res.should.be.json;
+          res.body.should.be.a('array');
+          res.body.should.have.length.above(1);
+          res.body.should.all.not.have.property('__v');
+          res.body.should.all.not.have.property('_id');
+          res.body.should.all.not.have.property('_user');
+          done();
+        });
+    });
+
+    it('should list ALL todos with fields index and _user on /api/todo?fields=index,_user POST', function(done) {
+      chai.request(instance.app)
+        .post('/api/todo?fields=index,_user')
+        .set('authorization', accessToken)
+        .end(function(err, res) {
+          res.should.have.status(200);
+          res.should.be.json;
+          res.body.should.be.a('array');
+          res.body.should.have.length.above(1);
+          res.body.should.all.not.have.property('__v');
+          res.body.should.all.not.have.property('_id');
+          res.body.should.all.not.have.property('id');
+          res.body.should.all.not.have.property('title');
+          res.body.should.all.have.property('_user');
+          res.body.should.all.have.property('index');
+          done();
+        });
+    });
+
+    it('should list ALL todos sorted in ascending order on /api/todo?sort=index POST', function(done) {
+      chai.request(instance.app)
+        .post('/api/todo?sort=index')
+        .set('authorization', accessToken)
+        .end(function(err, res) {
+          res.should.have.status(200);
+          res.should.be.json;
+          res.body.should.be.a('array');
+          res.body.should.have.length.above(1);
+          res.body.should.all.have.property('index');
+          res.body.should.be.sortedBy('index');
+          done();
+        });
+    });
+
+    it('should list ALL todos sorted in decending order on /api/todo?sort=-index POST', function(done) {
+      chai.request(instance.app)
+        .post('/api/todo?sort=-index')
+        .set('authorization', accessToken)
+        .end(function(err, res) {
+          res.should.have.status(200);
+          res.should.be.json;
+          res.body.should.be.a('array');
+          res.body.should.have.length.above(1);
+          res.body.should.all.have.property('index');
+          res.body.should.be.sortedBy('index', true);
+          done();
+        });
+    });
+
+    it('should limit list to 2 items on /api/todo?limit=2 POST', function(done) {
+      chai.request(instance.app)
+        .post('/api/todo?limit=2')
+        .set('authorization', accessToken)
+        .end(function(err, res) {
+          res.should.have.status(200);
+          res.should.be.json;
+          res.body.should.be.a('array');
+          res.body.should.have.length(2);
+          done();
+        });
+    });
+
+    it('should skip first 2 items on /api/todo?skip=2&limit=2 POST', function(done) {
+      chai.request(instance.app)
+        .post('/api/todo?limit=2')
+        .set('authorization', accessToken)
+        .end(function(err, res) {
+          res.should.have.status(200);
+          res.should.be.json;
+          res.body.should.be.a('array');
+          var firstItem = res.body[0];
+          chai.request(instance.app)
+            .post('/api/todo?skip=2&limit=2')
+            .set('authorization', accessToken)
+            .end(function(err, res) {
+              res.should.have.status(200);
+              res.should.be.json;
+              res.body.should.be.a('array');
+              res.body.should.contain.a.thing.with.property('index', firstItem.index + 2);
+              res.body.should.have.length(2);
+              done();
+            });
+        });
+    });
+
+    it('should return an item with given index /api/todo?index={index} POST', function(done) {
+      chai.request(instance.app)
+        .post('/api/todo?limit=2')
+        .set('authorization', accessToken)
+        .end(function(err, res) {
+          res.should.have.status(200);
+          res.should.be.json;
+          res.body.should.be.a('array');
+          var firstItem = res.body[0];
+          chai.request(instance.app)
+            .post('/api/todo?index=' + firstItem.index)
+            .set('authorization', accessToken)
+            .end(function(err, res) {
+              res.should.have.status(200);
+              res.should.be.json;
+              res.body.should.be.a('array');
+              res.body.should.all.have.property('index');
+              res.body.should.have.length(1);
+              res.body[0].should.be.deep.equal(firstItem);
+              done();
+            });
+        });
+    });
+    
     it('should update status of an item on /api/todo/{id} PUT {status=hold}', function(done) {
       chai.request(instance.app)
         .get('/api/todo?limit=2')
