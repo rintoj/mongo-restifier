@@ -92,43 +92,51 @@ REST API
 ========
 
 ### Query
-```
-GET /todo
-GET /todo/{id}
-GET /todo?{field}={value}
-GET /todo?fields=posts,comments
-GET /todo?sort={field1},-{field2}
-GET /todo?limit=10&skip=10
-```
+
+| Url                                  | Body    | Description          
+| ------------------------------------ | :------ | :-----------------------------------------------------------
+| `GET /todo                         ` | `empty` | Return all items
+| `GET /todo/{id}                    ` | `empty` | Return the item with `id` = `{id}`
+| `GET /todo?{field}={value}         ` | `empty` | Return all items filtered by `{field}` = `{value}`
+| `GET /todo?fields=posts,comments   ` | `empty` | Return items with `posts` and `comments` properties only
+| `GET /todo?sort={field1},-{field2} ` | `empty` | Sort by `{field1}` ascending and `{field2}` descending
+| `GET /todo?limit=10&skip=100       ` | `empty` | Skip first `100` items and return `10` items
+
 Querying takes in the following parameters:
 * `field` - Replace `field` with any field in your Mongoose model, and it will check for equality.
 * `fields` - Comma-delimited list of fields to populate
 * `sort` - Sorts by the given fields in the given order, comma delimited. A `-` sign will sort descending.
-* `limit` - Limits the number of returned results.
+* `limit` - Limits the number of returned results. All results are limited to `100` by default.
 * `skip` - Skips a number of results. Useful for pagination when combined with `limit`.
 
 ### Advanced Query
-```
-POST /todo {title: "Your title"}
-POST /todo/{id} {title: "Your title"}
-```
+| Url               | Body                                      | Description          
+| ----------------- | :---------------------------------------- | :-----------------------------------------------------------
+| `POST /todo`      | `{title: "Your title", "status": "new" }` | Query for items with: `title` = `'Your title'` AND `'status'` = `'new'`
+| `POST /todo/{id}` | `{title: "Your title", "status": "new" }` | Query for items with: `id` = `{id}` AND `title` = `'Your title'` AND `'status'` = `'new'`
 
 ### Create or Update
-```
-PUT /todo { "title": "Your title", "status": "new" }
-PUT /todo/{id} { "title": "Your title", "status": "new" }
-```
 
-### Paritial Update
-```
-PATCH /todo/{id} { "title": "Your title" }
-```
+| Url                           | Body                                         | Description          
+| ----------------------------- | :------------------------------------------- | :-----------------------------------------------------------
+| `PUT /todo`                   | `{ "title": "Your title", "status": "new" }` | Create new item
+| `PUT /todo/{id}`              | `{ "title": "Your title", "status": "new" }` | Update existing item with given id
+| `PUT /todo`                   | `{ "id": "abc", "title": "Your title" }`     | Update existing item or create if not found
+| `PUT /todo?updateOnly=true`   | `{ "id": "abc", "title": "Your title" }`     | Update existing item; DONOT create if not found
+
+### Bulk Create or Update
+| Url                         | Body                                                                                                      | Description          
+| --------------------------- | :-------------------------------------------------------------------------------------------------------- | :-----------------------------------------------------------
+| `PUT /todo`                 | `[{ "title": "Your title"},` <br>&nbsp;&nbsp;`{ "title": "Your title"}]`                                  | Create multiple items
+| `PUT /todo`                 | `[{ "id": "2sd233", "title": "Your title"},` <br>&nbsp;&nbsp;`{ "id": "2sd234", "title": "Your title"}]`  | Update multiple items, create if not found
+| `PUT /todo?updateOnly=true` | `[{ "id": "2sd233", "title": "Your title"}]`                                                              | Update multiple items, DONOT create if not found
+
 
 ### Delete
-```
-DELETE /todo/{id}
-```
-*Note: Bulk delete is **NOT** allowed*
+| Url                         | Body                  | Description          
+| --------------------------- | :-------------------- | :-----------------------------------------------------------
+| `DELETE /todo/{id}`         | `empty`               | Delete item by `id`
+| `DELETE /todo`              | `{ "status": "new" }` | Delete all items with `status` = `new`
 
 Model Configuration
 ======
@@ -138,7 +146,7 @@ Model Configuration
 `*` - are mandatory
 
 | Option           | Type       | Purpose           
-| ---------------- |:---------- | :------------------------------------------------
+| ---------------- | :--------- | :------------------------------------------------
 | url          `*` | Definition | Serving endpoint. The final url will be `http://{app}:{port}/{baseUrl}/{url}` 
 | schema       `*` | Definition | Define the schema as defined by mongoose. See [Schema Definition](#schema-definition)   for details.
 | userSpace        | Behaviour  | Keep track of the user for each record and restrict access to the corresponding users.<br> Usage: `userSpace: true` </br> Usage: `userSpace: {`<br>&nbsp;&nbsp;&nbsp;&nbsp;`field: "_user"`<br>`}`

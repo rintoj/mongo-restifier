@@ -26,11 +26,12 @@ var app = require('express')();
 var chai = require('chai');
 var should = chai.should();
 var mongoose = require('mongoose');
-var chaiHttp = require('chai-http');
 var mongoRestifier = require('../src/index');
 
 // intial setup
-chai.use(chaiHttp);
+chai.use(require('chai-http'));
+chai.use(require("chai-sorted"));
+chai.use(require('chai-things'));
 
 // configure the api
 var instance = mongoRestifier('./test/api.test.conf.json')
@@ -43,18 +44,31 @@ var instance = mongoRestifier('./test/api.test.conf.json')
 
   // schema definition - supports everything that mongoose schema supports
   schema: {
+
     index: {
-      type: Number, // type of this attribute
-      autoIncrement: true, // auto increment this attribute
-      idField: true // serves as id attribute replacing _id
+      type: Number,
+      required: true,
+      min: 1,
+      autoIncrement: true,
+      idField: true
     },
     title: {
       type: String,
       required: true
     },
-    description: String, // attribute definition can be as simple as this
-    status: String,
-  }
+    description: String,
+    status: {
+      type: String,
+      required: true,
+      default: 'new',
+      enum: ['new', 'progress', 'done', 'hold']
+    }
+  },
+
+  userSpace: {
+    field: "_user"
+  },
+  timestamps: true
 
 }))
 
@@ -257,6 +271,8 @@ describe('mongo-restifier', function() {
 
   describe('Todo Service', function() {
 
+    var itemsCount = 0;
+
     before(function(done) {
       aquireAccessToken(done);
     })
@@ -278,25 +294,343 @@ describe('mongo-restifier', function() {
           res.body.item.should.have.property('index');
           res.body.item.should.have.property('title');
           res.body.item.title.should.be.equal('Sample story');
-          res.body.item.should.not.have.property('__v');
-          res.body.item.should.not.have.property('_id');
-          res.body.item.should.not.have.property('_user');
+          res.body.item.should.have.property('status');
+          res.body.item.status.should.be.equal('new');
+          itemsCount++;
           done();
         });
     });
 
-    xit('should list ALL stories on /api/todo GET', function(done) {
+    it('should add MULTIPLE items through /api/todo PUT', function(done) {
+      chai.request(instance.app)
+        .put('/api/todo')
+        .set('authorization', accessToken)
+        .send([{
+          'title': 'Sample story1'
+        }, {
+          'title': 'Sample story2'
+        }])
+        .end(function(err, res) {
+          res.should.have.status(200);
+          res.should.be.json;
+          res.body.should.be.a('object');
+          res.body.should.have.property('status');
+          res.body.status.should.be.equal('saved');
+          res.body.should.have.property('result');
+          res.body.result.should.have.property('created');
+          res.body.result.created.should.be.equal(2);
+          res.body.result.should.have.property('newIds');
+          res.body.result.newIds.should.have.length(2);
+          itemsCount += 2;
+          done();
+        });
+    });
+
+    it('should update MULTIPLE items through /api/todo PUT', function(done) {
+      chai.request(instance.app)
+        .put('/api/todo')
+        .set('authorization', accessToken)
+        .send([{
+          'title': 'Sample story1'
+        }, {
+          'title': 'Sample story2'
+        }])
+        .end(function(err, res) {
+          res.should.have.status(200);
+          res.should.be.json;
+          res.body.should.be.a('object');
+          res.body.should.have.property('status');
+          res.body.status.should.be.equal('saved');
+          res.body.should.have.property('result');
+          res.body.result.should.have.property('newIds');
+          res.body.result.newIds.should.have.length(2);
+          var newIds = res.body.result.newIds;
+
+          chai.request(instance.app)
+            .put('/api/todo')
+            .set('authorization', accessToken)
+            .send([{
+              'index': newIds[0],
+              'title': 'Sample story'
+            }, {
+              'index': newIds[1],
+              'title': 'Sample story'
+            }])
+            .end(function(err, res) {
+              res.should.have.status(200);
+              res.should.be.json;
+              res.body.should.be.a('object');
+              res.body.should.have.property('status');
+              res.body.status.should.be.equal('saved');
+              res.body.should.have.property('result');
+              res.body.result.should.have.property('updated');
+              res.body.result.updated.should.be.equal(2);
+              itemsCount += 2;
+              done();
+            });
+        });
+    });
+
+    it('should NOT UPDATE items, if not change in properties, through /api/todo PUT', function(done) {
+      chai.request(instance.app)
+        .put('/api/todo')
+        .set('authorization', accessToken)
+        .send([{
+          'title': 'Sample story1'
+        }, {
+          'title': 'Sample story2'
+        }])
+        .end(function(err, res) {
+          res.should.have.status(200);
+          res.should.be.json;
+          res.body.should.be.a('object');
+          res.body.should.have.property('status');
+          res.body.status.should.be.equal('saved');
+          res.body.should.have.property('result');
+          res.body.result.should.have.property('newIds');
+          res.body.result.newIds.should.have.length(2);
+          var newIds = res.body.result.newIds;
+          itemsCount += 2;
+          chai.request(instance.app)
+            .put('/api/todo')
+            .set('authorization', accessToken)
+            .send([{
+              'index': newIds[0],
+              'title': 'Sample story1'
+            }, {
+              'index': newIds[1],
+              'title': 'Sample story2'
+            }])
+            .end(function(err, res) {
+              res.should.have.status(200);
+              res.should.be.json;
+              res.body.should.be.a('object');
+              res.body.should.have.property('status');
+              res.body.status.should.be.equal('saved');
+              res.body.should.have.property('result');
+              res.body.result.should.have.property('updated');
+              res.body.result.updated.should.be.equal(0);
+              done();
+            });
+        });
+    });
+
+    it('should set createdAt and updatedAt through /api/todo PUT', function(done) {
+      chai.request(instance.app)
+        .put('/api/todo')
+        .set('authorization', accessToken)
+        .send({
+          'title': 'Sample story'
+        })
+        .end(function(err, res) {
+          res.should.have.status(200);
+          res.should.be.json;
+          res.body.should.be.a('object');
+          res.body.should.have.property('status');
+          res.body.status.should.be.equal('created');
+          res.body.should.have.property('item');
+          res.body.item.should.have.property('createdAt');
+          res.body.item.should.have.property('updatedAt');
+          itemsCount++;
+          done();
+        });
+    });
+
+    it('should list ALL todos on /api/todo GET', function(done) {
       chai.request(instance.app)
         .get('/api/todo')
+        .set('authorization', accessToken)
         .end(function(err, res) {
-          console.log(res);
           res.should.have.status(200);
           res.should.be.json;
           res.body.should.be.a('array');
+          res.body.should.have.length(itemsCount);
           done();
         });
     });
 
+    it('should list ALL todos without fields starting with _ on /api/todo GET', function(done) {
+      chai.request(instance.app)
+        .get('/api/todo')
+        .set('authorization', accessToken)
+        .end(function(err, res) {
+          res.should.have.status(200);
+          res.should.be.json;
+          res.body.should.be.a('array');
+          res.body.should.have.length.above(1);
+          res.body.should.all.not.have.property('__v');
+          res.body.should.all.not.have.property('_id');
+          res.body.should.all.not.have.property('_user');
+          done();
+        });
+    });
+
+    it('should list ALL todos with fields index and _user on /api/todo?fields=index,_user GET', function(done) {
+      chai.request(instance.app)
+        .get('/api/todo?fields=index,_user')
+        .set('authorization', accessToken)
+        .end(function(err, res) {
+          res.should.have.status(200);
+          res.should.be.json;
+          res.body.should.be.a('array');
+          res.body.should.have.length.above(1);
+          res.body.should.all.not.have.property('__v');
+          res.body.should.all.not.have.property('_id');
+          res.body.should.all.not.have.property('id');
+          res.body.should.all.not.have.property('title');
+          res.body.should.all.have.property('_user');
+          res.body.should.all.have.property('index');
+          done();
+        });
+    });
+
+    it('should list ALL todos sorted in ascending order on /api/todo?sort=index GET', function(done) {
+      chai.request(instance.app)
+        .get('/api/todo?sort=index')
+        .set('authorization', accessToken)
+        .end(function(err, res) {
+          res.should.have.status(200);
+          res.should.be.json;
+          res.body.should.be.a('array');
+          res.body.should.have.length.above(1);
+          res.body.should.all.have.property('index');
+          res.body.should.be.sortedBy('index');
+          done();
+        });
+    });
+
+    it('should list ALL todos sorted in decending order on /api/todo?sort=-index GET', function(done) {
+      chai.request(instance.app)
+        .get('/api/todo?sort=-index')
+        .set('authorization', accessToken)
+        .end(function(err, res) {
+          res.should.have.status(200);
+          res.should.be.json;
+          res.body.should.be.a('array');
+          res.body.should.have.length.above(1);
+          res.body.should.all.have.property('index');
+          res.body.should.be.sortedBy('index', true);
+          done();
+        });
+    });
+
+    it('should limit list to 2 items on /api/todo?limit=2 GET', function(done) {
+      chai.request(instance.app)
+        .get('/api/todo?limit=2')
+        .set('authorization', accessToken)
+        .end(function(err, res) {
+          res.should.have.status(200);
+          res.should.be.json;
+          res.body.should.be.a('array');
+          res.body.should.have.length(2);
+          done();
+        });
+    });
+
+    it('should skip first 2 items on /api/todo?skip=2&limit=2 GET', function(done) {
+      chai.request(instance.app)
+        .get('/api/todo?limit=2')
+        .set('authorization', accessToken)
+        .end(function(err, res) {
+          res.should.have.status(200);
+          res.should.be.json;
+          res.body.should.be.a('array');
+          var firstItem = res.body[0];
+          chai.request(instance.app)
+            .get('/api/todo?skip=2&limit=2')
+            .set('authorization', accessToken)
+            .end(function(err, res) {
+              res.should.have.status(200);
+              res.should.be.json;
+              res.body.should.be.a('array');
+              res.body.should.contain.a.thing.with.property('index', firstItem.index + 2);
+              res.body.should.have.length(2);
+              done();
+            });
+        });
+    });
+
+    it('should return an item with given id /api/todo/{id} GET', function(done) {
+      chai.request(instance.app)
+        .get('/api/todo?limit=2')
+        .set('authorization', accessToken)
+        .end(function(err, res) {
+          res.should.have.status(200);
+          res.should.be.json;
+          res.body.should.be.a('array');
+          var firstItem = res.body[0];
+          chai.request(instance.app)
+            .get('/api/todo/' + firstItem.index)
+            .set('authorization', accessToken)
+            .end(function(err, res) {
+              res.should.have.status(200);
+              res.should.be.json;
+              res.body.should.be.a('array');
+              res.body.should.all.have.property('index');
+              res.body.should.have.length(1);
+              res.body[0].should.be.deep.equal(firstItem);
+              done();
+            });
+        });
+    });
+
+    it('should return an item with given index /api/todo?index={index} GET', function(done) {
+      chai.request(instance.app)
+        .get('/api/todo?limit=2')
+        .set('authorization', accessToken)
+        .end(function(err, res) {
+          res.should.have.status(200);
+          res.should.be.json;
+          res.body.should.be.a('array');
+          var firstItem = res.body[0];
+          chai.request(instance.app)
+            .get('/api/todo?index=' + firstItem.index)
+            .set('authorization', accessToken)
+            .end(function(err, res) {
+              res.should.have.status(200);
+              res.should.be.json;
+              res.body.should.be.a('array');
+              res.body.should.all.have.property('index');
+              res.body.should.have.length(1);
+              res.body[0].should.be.deep.equal(firstItem);
+              done();
+            });
+        });
+    });
+
+    it('should update status of an item on /api/todo/{id} PUT {status=hold}', function(done) {
+      chai.request(instance.app)
+        .get('/api/todo?limit=2')
+        .set('authorization', accessToken)
+        .end(function(err, res) {
+          res.should.have.status(200);
+          res.should.be.json;
+          res.body.should.be.a('array');
+          var firstItem = res.body[0];
+          firstItem.status.should.not.be.equal('hold');
+          chai.request(instance.app)
+            .put('/api/todo/' + firstItem.index)
+            .set('authorization', accessToken)
+            .send({
+              status: 'hold'
+            })
+            .end(function(err, res) {
+              res.should.have.status(200);
+              chai.request(instance.app)
+                .get('/api/todo/' + firstItem.index)
+                .set('authorization', accessToken)
+                .end(function(err, res) {
+                  res.should.have.status(200);
+                  res.should.be.json;
+                  res.body.should.be.a('array');
+                  res.body.should.all.have.property('status');
+                  res.body.should.have.length(1);
+                  res.body[0].status.should.be.equal('hold');
+                  done();
+                });
+            });
+        });
+    });
 
   });
 });

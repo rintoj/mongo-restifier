@@ -35,9 +35,10 @@ mongoRestifier('./src/api.conf.json')
   // api end point
   url: '/story',
 
-  // schema definition
+  // schema definition - supports everything that mongoose schema supports
   schema: {
-    id: {
+
+    index: {
       type: Number,
       required: true,
       min: 1,
@@ -54,19 +55,13 @@ mongoRestifier('./src/api.conf.json')
       required: true,
       default: 'new',
       enum: ['new', 'progress', 'done', 'hold']
-    },
-    createdDate: {
-      type: Date,
-      required: true,
-      default: Date.now
     }
   },
 
   userSpace: {
     field: "_user"
   },
-
-  timestamps: true,
+  timestamps: true
 
 }))
 

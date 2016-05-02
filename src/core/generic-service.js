@@ -70,12 +70,13 @@ module.exports = function ServiceEndpoint(model, options) {
    * Send response back to client after a bulk update request
    * 
    * @private 
+   * @param request Http request
    * @param response Http response
    * @param result As array with first element as the result from create operation and the second
    *               element as the status from bulk update operation
    * @param multi Boolean value. True if the bulk operation was performed on more than one item
    */
-  var sendBulkResult = function sendBulkResult(response, result, multi) {
+  var sendBulkResult = function sendBulkResult(request, response, result, multi) {
 
     // if multi request do this
     if (multi) {
@@ -94,7 +95,7 @@ module.exports = function ServiceEndpoint(model, options) {
 
     // if single request and the request was create
     if (result[0].length > 0) {
-      return send(response, result[0][0], "created");
+      return send(response, select(projection(request), result[0][0]), "created");
     }
 
     // if single request, the request was update and the item was modified
@@ -252,12 +253,55 @@ module.exports = function ServiceEndpoint(model, options) {
   var projection = function projection(request) {
     // set projection
     if (request.query.fields) {
-      return request.query.fields.replace(/,/g, " ")
+      return request.query.fields.replace(/,/g, ' ')
     } else if (options.projection) {
-      return options.projection.replace(/,/g, " ");
+      return options.projection.replace(/,/g, ' ');
     }
 
     return undefined;
+  };
+
+  /**
+   * Select attributes of the object item based on projection
+   * 
+   * @param projection Projection as string. Eg: 'id,-status' - include 'id' and exclude 'status'
+   * @param item The item or array of items to be processed
+   * @returns Returns processed item
+   */
+  var select = function select(projection, item) {
+
+    var fields;
+    var pickFields = [];
+
+    if (item instanceof Array) {
+      if (item.length === 0) return item;
+      fields = Object.keys(item[0].toJSON ? item[0].toJSON() : item[0]);
+    } else {
+      item = item.toJSON ? item.toJSON() : item;
+      fields = Object.keys(item);
+    }
+
+    // split and get include and exclude fields
+    var selection = _((projection || '').split(' ')).partition(function(item) {
+      return item.indexOf("-") !== 0;
+    }).map(function(item) {
+      return _.map(item, function(i) {
+        return i.replace(/^-/, '');
+      });
+    }).value();
+
+    // calculate fields to be picked
+    if (selection[0].length !== 0) {
+      pickFields = _(fields).intersection(selection[0]).value();
+    } else if (selection[1].length !== 0) {
+      pickFields = _(fields).difference(selection[1]).value();
+    } else {
+      pickFields = fields;
+    }
+
+    return (item instanceof Array) ? item.map(function(i) {
+      return _(i.toJSON ? i.toJSON() : i).pick(pickFields).value();
+    }) : _(item).pick(pickFields).value();
   };
 
   /**
@@ -268,14 +312,19 @@ module.exports = function ServiceEndpoint(model, options) {
    * @param multi True for muliselect query
    * @returns Returns an instance of query
    */
-  var createQuery = function createQuery(request, multi) {
+  var createQuery = function createQuery(request, multi, get) {
     var query;
+    var filters = request.body;
+
+    if (get) {
+      filters = _.pick(request.query, _.difference(Object.keys(request.query), ['limit', 'skip', 'fields', 'sort']));
+    }
 
     // create query
     if (multi) {
-      query = model.find(request.body);
+      query = model.find(filters);
     } else {
-      query = model.findOne(request.body);
+      query = model.findOne(filters);
     }
 
     // set limit
@@ -298,7 +347,7 @@ module.exports = function ServiceEndpoint(model, options) {
 
     // attach user query
     if (options.userField) {
-      query.where(options.userField).equals(request.user.id || '___**___');
+      query.where(options.userField).equals(request.user.userId || '___**___');
     }
 
     return query;
@@ -312,7 +361,7 @@ module.exports = function ServiceEndpoint(model, options) {
    * @param next Next hook as function
    */
   this.list = function list(request, response, next) {
-    createQuery(request, true).exec(function(error, items) {
+    createQuery(request, true, true).exec(function(error, items) {
       if (error) return next(error);
       response.json(items);
     });
@@ -368,14 +417,14 @@ module.exports = function ServiceEndpoint(model, options) {
         return item;
       });
     }
-    
+
     segregateExisting(items).then(function(segregateItems) {
       var promises = [];
       promises.push(bulkCreate(segregateItems.new));
       promises.push(bulkUpdate(segregateItems.existing));
 
       Promise.when.apply(Promise, promises).then(function(result) {
-        sendBulkResult(response, result, multi);
+        sendBulkResult(request, response, result, multi);
       }, function(error) {
         next(error);
       });

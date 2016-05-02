@@ -71,7 +71,7 @@ var ServiceModel = function ServiceModel(context) {
 
   // setting up user specific collection
   var userField;
-  if (context.userSpace) {
+  if (context.userSpace === true || typeof context.userSpace === 'object') {
     userField = "_user";
     if (typeof context.userSpace === 'object' && context.userSpace.field) {
       userField = context.userSpace.field;
