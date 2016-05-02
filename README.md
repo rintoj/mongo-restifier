@@ -91,7 +91,7 @@ The following example serves the `Todo` model on a RESTful API.
 REST API
 ========
 
-### ** Query ** 
+###**Query**
 ```
 GET /todo                         
 GET /todo/{id}                    
@@ -112,7 +112,7 @@ Querying takes in the following parameters:
 | `skip`    | Skips a number of results. Useful for pagination when combined with `limit`.
 | `count`   | Set count = true to get the count of matching items instead of items themselves. 
 
-### ** Advanced Query ** 
+###**Advanced Query**
 ```
 POST /todo      
 {title: "Your title", "status": "new" }
@@ -160,7 +160,7 @@ Use `POST` to perform advanced queries. Query parameters remains same as of `GET
 | `$and`    | Logical AND          | `{ "$and": [{ "index": 100 }, { "status": "new" }] }`
 | `$or`     | Logical OR           | `{ "$or": [{ "index": 100 }, { "index": 101 }] }`
 
-### ** Create or Update **
+###**Create or Update **
 ```
 PUT /todo 
 { "title": "Your title", "status": "new" }
@@ -183,7 +183,7 @@ PUT /todo?updateOnly=true
 | `updateOnly`    | Update an item if it exists, ignore creates
 
 
-### ** Bulk Create or Update ** 
+###**Bulk Create or Update**
 ```
 PUT /todo 
 [{ "title": "Your title"}, { "title": "Your title"}]
@@ -199,7 +199,7 @@ PUT /todo?updateOnly=true
 ```
 *NOTE: `createOnly` and `updateOnly` are applicable for bulk updates as well. For all create and update operations, existance of an item is determinded through it's `id`*
 
-### ** Delete ** 
+###**Delete**
 ```
 DELETE /todo/{id}
 
