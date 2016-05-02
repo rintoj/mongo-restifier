@@ -364,11 +364,11 @@ module.exports = function ServiceEndpoint(model, options) {
     // attach user
     if (options.userField) {
       items = items.map(function(item) {
-        item[options.userField] = request.user.id;
+        item[options.userField] = request.user.userId;
         return item;
       });
     }
-
+    
     segregateExisting(items).then(function(segregateItems) {
       var promises = [];
       promises.push(bulkCreate(segregateItems.new));

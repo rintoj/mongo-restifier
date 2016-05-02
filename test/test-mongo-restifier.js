@@ -78,13 +78,14 @@ describe('mongo-restifier', function() {
         "refresh_token": refreshToken
       })
       .end(function(err, res) {
-        res.should.have.status(200);
-        res.should.be.json;
-        res.body.should.be.a('object');
-        res.body.should.have.property('access_token');
-        res.body.should.have.property('refresh_token');
-        accessToken = 'Bearer ' + res.body.access_token;
-        refreshToken = res.body.refresh_token;
+        if (res.status === 200) {
+          res.should.be.json;
+          res.body.should.be.a('object');
+          res.body.should.have.property('access_token');
+          res.body.should.have.property('refresh_token');
+          accessToken = 'Bearer ' + res.body.access_token;
+          refreshToken = res.body.refresh_token;
+        }
         if (typeof callback === 'function') callback(err, res);
       });
   };
@@ -244,6 +245,14 @@ describe('mongo-restifier', function() {
           done();
         });
     });
+
+    it('should DENY ACCESS when POST /api/oauth2/token is called with revoked refresh_token', function(done) {
+      aquireAccessToken(function(err, res) {
+        res.should.have.status(401);
+        done();
+      }, true);
+    });
+
   });
 
   describe('Todo Service', function() {
@@ -252,9 +261,10 @@ describe('mongo-restifier', function() {
       aquireAccessToken(done);
     })
 
-    xit('should add a SINGLE story /story PUT', function(done) {
+    it('should add a SINGLE item through /api/todo PUT', function(done) {
       chai.request(instance.app)
-        .post('/story')
+        .put('/api/todo')
+        .set('authorization', accessToken)
         .send({
           'title': 'Sample story'
         })
@@ -262,13 +272,15 @@ describe('mongo-restifier', function() {
           res.should.have.status(200);
           res.should.be.json;
           res.body.should.be.a('object');
-          res.body.should.have.property('SUCCESS');
-          res.body.SUCCESS.should.be.a('object');
-          res.body.SUCCESS.should.have.property('name');
-          res.body.SUCCESS.should.have.property('lastName');
-          res.body.SUCCESS.should.have.property('_id');
-          res.body.SUCCESS.name.should.equal('Java');
-          res.body.SUCCESS.lastName.should.equal('Script');
+          res.body.should.have.property('status');
+          res.body.status.should.be.equal('created');
+          res.body.should.have.property('item');
+          res.body.item.should.have.property('index');
+          res.body.item.should.have.property('title');
+          res.body.item.title.should.be.equal('Sample story');
+          res.body.item.should.not.have.property('__v');
+          res.body.item.should.not.have.property('_id');
+          res.body.item.should.not.have.property('_user');
           done();
         });
     });
