@@ -1,16 +1,19 @@
+
 # mongo-restifier
 
 Easy to use [RESTful API](http://www.restapitutorial.com/lessons/whatisrest.html#) for [MongoDB](https://www.mongodb.org/)  with build-in [OAuth2](http://oauth.net/2/) provider. 
 
-### Features:
-  * Easy to use apification using **[Mongoose](http://mongoosejs.com/)** and **[Express](https://www.npmjs.com/package/express)**
-  * Build in **[OAuth2](http://oauth.net/2/)** implementation
-  * Strict implementation of **[RESTful API](http://www.restapitutorial.com/lessons/whatisrest.html#)**
-  * Bulk upload and updates supported
-  * Schema based collections
-  * Angular2 client-side library will be available soon (Come back later)
+## Features
+
+* Easy to use apification using **[Mongoose](http://mongoosejs.com/)** and **[Express](https://www.npmjs.com/package/express)**
+* Build in **[OAuth2](http://oauth.net/2/)** API implementation
+* Strict implementation of **[RESTful API](http://www.restapitutorial.com/lessons/whatisrest.html#)**
+* **[Bulk upload and updates](#bulk-create-or-update)** supported
+* **[Cross domain resource sharing (CORS)](https://developer.mozilla.org/en-US/docs/Web/HTTP/Access_control_CORS)** is enabled by default
+* Schema based collections and **[advanced querying](#advanced-query)** options
 
 ## Installation
+
 This module is installed via npm:
 
 ```bash
@@ -91,52 +94,93 @@ The following example serves the `Todo` model on a RESTful API.
 REST API
 ========
 
-###**Query**
+### Query
 ```
-GET /todo                         
-GET /todo/{id}                    
-GET /todo?{field}={value}         
-GET /todo?fields=posts,comments   
-GET /todo?sort={field1},-{field2} 
-GET /todo?limit=10&skip=100
-GET /todo?count=true       
+GET /todo HTTP/1.1
+Authorization: Bearer {access_token}
 ```
+```                         
+GET /todo/{id} HTTP/1.1
+Authorization: Bearer {access_token}
+```
+```                    
+GET /todo?{field}={value} HTTP/1.1
+Authorization: Bearer {access_token}
+```
+```         
+GET /todo?fields={field1},-{field2} HTTP/1.1
+Authorization: Bearer {access_token}
+```
+```   
+GET /todo?sort={field1},-{field2} HTTP/1.1
+Authorization: Bearer {access_token}
+```
+```
+GET /todo?count=true HTTP/1.1
+Authorization: Bearer {access_token}
+```
+``` 
+GET /todo?limit=10&skip=10 HTTP/1.1
+Authorization: Bearer {access_token}
+```
+
 Querying takes in the following parameters:
 
 | Parameter | Purpose
 | --------- | :--------------------------------
 | `field`   | Replace `field` with any field in your Mongoose model, and it will check for equality. 
-| `fields`  | Comma-delimited list of fields to populate.
+| `fields`  | Comma-delimited list of fields to populate or field names with `-` sign at the beginning, to omit.
 | `sort`    | Sorts by the given fields in the given order, comma delimited. A `-` sign will sort descending. 
 | `limit`   | Limits the number of returned results. All results are limited to `100` by default.
 | `skip`    | Skips a number of results. Useful for pagination when combined with `limit`.
 | `count`   | Set count = true to get the count of matching items instead of items themselves. 
 
-###**Advanced Query**
+### Advanced Query
 ```
-POST /todo      
+POST /todo HTTP/1.1
+Authorization: Bearer {access_token}
+
 {title: "Your title", "status": "new" }
+```
+```
+POST /todo HTTP/1.1
+Authorization: Bearer {access_token}
 
-POST /todo
 { "status": { "$in": ["new", "hold"] }}
+```
+```
+POST /todo HTTP/1.1
+Authorization: Bearer {access_token}
 
-POST /todo
 {"index": { "$gte": 1, "$lte": 100 }}
-
-POST /todo
+```
+```
+POST /todo HTTP/1.1
+Authorization: Bearer {access_token}
+ 
 { "$or" : [{ "index": 100 }, { "index": 101 }] }
-
-POST /todo
+```
+```
+POST /todo HTTP/1.1
+Authorization: Bearer {access_token}
+ 
 { "$and": [{ "index": { "$ne": 100 }}, { "index": { "$lt": 120 }}] }
+```
+```
+POST /todo HTTP/1.1
+Authorization: Bearer {access_token}
 
-POST /todo
 { "title": { "$regex": "^S.mple.*"} }
+```
+```
+POST /todo HTTP/1.1
+Authorization: Bearer {access_token}
 
-POST /todo
 { "index": { "$exists": true }}
 ```
 
-Use `POST` to perform advanced queries. Query parameters remains same as of `GET`. Additionally the `BODY` of the request we can contain:
+
+Use `POST` to perform advanced queries. Query parameters remain same as of `GET`. Additionally the `BODY` of the request we can contain:
 
 **Comparison Operators**
 
@@ -160,59 +204,191 @@ Use `POST` to perform advanced queries. Query parameters remains same as of `GET
 | `$and`    | Logical AND          | `{ "$and": [{ "index": 100 }, { "status": "new" }] }`
 | `$or`     | Logical OR           | `{ "$or": [{ "index": 100 }, { "index": 101 }] }`
 
-###**Create or Update**
+### Create or Update
 ```
-PUT /todo 
+PUT /todo HTTP/1.1
+Authorization: Bearer {access_token}
+
 { "title": "Your title", "status": "new" }
-
-PUT /todo/{id}            
+```
+```
+PUT /todo/{id} HTTP/1.1
+Authorization: Bearer {access_token}
+         
 { "title": "Your title", "status": "new" }
+```
+```
+PUT /todo HTTP/1.1
+Authorization: Bearer {access_token}
 
-PUT /todo 
-{ "id": "abc", "title": "Your title" }   
-
-PUT /todo?createOnly=true 
 { "id": "abc", "title": "Your title" }
-   
-PUT /todo?updateOnly=true 
-{ "id": "abc", "title": "Your title" }   
 ```
+```
+PUT /todo?createOnly=true HTTP/1.1
+Authorization: Bearer {access_token}
+
+{ "id": "abc", "title": "Your title" }
+```
+```   
+PUT /todo?updateOnly=true HTTP/1.1
+Authorization: Bearer {access_token}
+
+{ "id": "abc", "title": "Your title" }
+```
+
 | Parameter       | Purpose                 
 | --------------- |:---------------------
 | `createOnly`    | Create an item if it doesn't exist, ignore updates
 | `updateOnly`    | Update an item if it exists, ignore creates
 
-
-###**Bulk Create or Update**
+### Bulk Create or Update
 ```
-PUT /todo 
+PUT /todo HTTP/1.1
+Authorization: Bearer {access_token}
+
 [{ "title": "Your title"}, { "title": "Your title"}]
-               
-PUT /todo 
+```
+```               
+PUT /todo HTTP/1.1
+Authorization: Bearer {access_token}
+
 [{ "id": "2sd233", "title": "Sample"}, { "id": "2sd234", "title": "Sample"}]
+```
+```
+PUT /todo?createOnly=true HTTP/1.1
+Authorization: Bearer {access_token}
 
-PUT /todo?createOnly=true 
 [{ "id": "2sd233", "title": "Your title"}]         
+```
+```
+PUT /todo?updateOnly=true HTTP/1.1
+Authorization: Bearer {access_token}
 
-PUT /todo?updateOnly=true 
 [{ "id": "2sd233", "title": "Your title"}]                         
 ```
+
 *NOTE: `createOnly` and `updateOnly` are applicable for bulk updates as well. For all create and update operations, existance of an item is determinded through it's `id`*
 
-###**Delete**
+### Delete
 ```
-DELETE /todo/{id}
+DELETE /todo/{id} HTTP/1.1
+Authorization: Bearer {access_token}
+```
+```
+DELETE /todo HTTP/1.1
+Authorization: Bearer {access_token}
 
-DELETE /todo
 { "status": "new" }
-
-DELETE /todo
 ```
-*NOTE: `DELETE /todo` deletes *everything*. `USE WITH CATION`
+```
+DELETE /todo HTTP/1.1
+Authorization: Bearer {access_token}
+```
+*NOTE: `DELETE /todo` deletes everything. `USE WITH CATION`*
 
 OAuth2 API
 =====
-This software contains `OAuth2` services configured out-of-the-box
+This module contains **[OAuth2](http://oauth.net/2/)** services configured out-of-box for `password` and `refresh_token` grant types. In this section we will discuss how to use them. To know about how to configure see [API Configuration](#api-configuration) section.
+
+### Using the password grant type
+First you must create a client and a user. A default client and user are configured at startup (see [API Configuration](#api-configuration) for details). Additionally users and clients can be created using build in apis `/oauth2/user` and `/oauth2/client`.
+
+To obtain a token you should POST to /oauth2/token. You should include your client credentials in the `Authorization` header (`"Basic " + client_id:client_secret base64'd`), and then `grant_type` (`password`), `username` and `password` in the request body, for example:
+```
+POST /oauth/token HTTP/1.1
+Authorization: Basic czZCaGRSa3F0MzpnWDFmQmF0M2JW
+Content-Type: application/x-www-form-urlencoded
+ 
+grant_type=password&username=johndoe&password=A3ddj3w
+```
+
+Provided there weren't any errors, this will return the following (excluding the refresh_token if you've not enabled the refresh_token grant type):
+
+```
+HTTP/1.1 200 OK
+Content-Type: application/json;charset=UTF-8
+ 
+{
+  "access_token":"2YotnFZFEjr1zCsicMWpAA",
+  "token_type":"bearer",
+  "expires_in":3600,
+  "refresh_token":"tGzv3JOkF0XG5Qx2TlKWIA"
+}
+```
+
+### Using the refresh_token grant type
+
+Send a request with previously obtained `refresh_token` to extend grant and expect the same output as the previous call.
+
+```
+POST /oauth/token HTTP/1.1
+Authorization: Basic {access_token}
+Content-Type: application/x-www-form-urlencoded
+
+grant_type=refresh_token&refresh_token=tGzv3JOkF0XG5Qx2TlKWIA
+```
+
+### Managing Users
+
+#### Get
+```
+GET /oauth2/user/{userId} HTTP/1.1
+Authorization: Basic base64{clientId:clientSecret}
+```
+
+#### Create User
+```
+PUT /oauth2/user HTTP/1.1
+Authorization: Basic base64{clientId:clientSecret}
+
+{ "userId": "emailid", "password": "base64(plaintext)", "name": "Full name" }
+```
+
+#### Bulk Create Or Update
+```
+PUT /oauth2/user HTTP/1.1
+Authorization: Bearer {access_token}
+
+[{ "userId": "user1@system.com", "password": "base64(plaintext)", "name": "Full name" },
+ { "userId": "user2@system.com", "password": "base64(plaintext)", "name": "Full name" }]
+```
+
+#### Delete
+```
+DELETE /oauth2/user/{userId} HTTP/1.1
+Authorization: Bearer {access_token}
+```
+
+### Managing Clients
+
+#### Get
+```
+GET /oauth2/client/{clientId} HTTP/1.1
+Authorization: Basic base64{clientId:clientSecret}
+```
+
+#### Create Client
+```
+PUT /oauth2/client HTTP/1.1
+Authorization: Basic base64{clientId:clientSecret}
+
+{ "clientId": "24x43f-sd23dde-sda23", "clientSecret": "a0c7b741-b18b-47eb", "name": "Full name" }
+```
+
+#### Bulk Create Or Update
+```
+PUT /oauth2/client HTTP/1.1
+Authorization: Bearer {access_token}
+
+[{ "clientId": "4x33-23cs34d-3ss12", "clientSecret": "a0c7b741-b18b-47eb", "name": "Full name" },
+ { "clientId": "243f-sd23dde-sda23", "clientSecret": "a0c7b741-b18b-47eb", "name": "Full name" }]
+```
+
+#### Delete
+```
+DELETE /oauth2/client/{clientId} HTTP/1.1
+Authorization: Bearer {access_token}
+```
 
 Model Configuration
 ======
@@ -225,9 +401,9 @@ Model Configuration
 | ---------------- | :--------- | :------------------------------------------------
 | url          `*` | Definition | Serving endpoint. The final url will be `http://{app}:{port}/{baseUrl}/{url}` 
 | schema       `*` | Definition | Define the schema as defined by mongoose. See [Schema Definition](#schema-definition)   for details.
-| projection       | Behaviour  | Coma separated list of fields that needs to be projected. Use `-` at the beginning of the fieldname to hide it.<br> Usage: `projection: 'userId,name,roles,-password'`
-| userSpace        | Behaviour  | Keep track of the user for each record and restrict access to the corresponding users.<br> Usage: `userSpace: true` </br> Usage: `userSpace: {`<br>&nbsp;&nbsp;&nbsp;&nbsp;`field: "_user"`<br>`}`
-| configure        | Function   | Use this function to register [middleware](http://mongoosejs.com/docs/middleware.html) or [plugins](http://mongoosejs.com/docs/plugins.html). Context of this function will contain the second parameter of 'defineModel' (this object itself) <li> `this.schema` - Schema defined by `schema`</li><li> `this.model` - reference to [mongoose.Model](http://mongoosejs.com/docs/models.html) </li><li> `this.modelSchema` - reference to [mongoose.Schema](http://mongoosejs.com/docs/guide.html) 
+| projection       | Behaviour  | Coma separated list of fields that needs to be projected. Use `-` at the beginning of the fieldname to hide it. Usage: `projection: 'userId,name,roles,-password'`
+| userSpace        | Behaviour  | Keep track of the user for each record and restrict access to the corresponding users. Usage: `userSpace: true`. Usage: `userSpace: {``field: "_user"``}`
+| configure        | Function   | Use this function to register [middleware](http://mongoosejs.com/docs/middleware.html) or [plugins](http://mongoosejs.com/docs/plugins.html). Context of this function will contain the second parameter of 'defineModel' (this object itself) *this.schema* - Schema defined by `schema, *this.model* - reference to [mongoose.Model](http://mongoosejs.com/docs/models.html), *this.modelSchema* - reference to [mongoose.Schema](http://mongoosejs.com/docs/guide.html)
 
 ```js
 // define "Todo" model
@@ -288,53 +464,55 @@ Model Configuration
     
 ```
 ## Schema Definition
-`*` - are mandatory<br>
+`*` - are mandatory
 `**` - additional feature than the ones supported by [mongoose](http://mongoosejs.com/docs/guide.html)
 
 | Option                    | Type       | Purpose           
 | ------------------------- |:---------- | :------------------------------------------------
 | {field}.type          `*` | Definition | Valid values are `String`, `Number` and `Date` 
-| {field}.idField       `**`| Behaviour  | If set to `true`, system replaces _id with the given field. One and only one field can be set as id field. <div> Usage: `idField: true`</div> 
-| {field}.autoIncrement `**`| Behaviour  | If set to `true`, system increments value of the given field for every insertion. This validation can be applied only on `Number` fields <div> Usage: `autoIncrement: true`</div> 
-| {field}.startAt       `**`| Behaviour  | Start autoIcrement at the given value. This configuration takes effect only if `autoIcrement` is set to `true`<div> Usage: `startAt: 1`</div> 
-| {field}.incrementBy   `**`| Behaviour  | Start autoIcrement with the given steps. This configuration takes effect only if `autoIcrement` is set to `true`<div> Usage: `incrementBy: 1`</div> 
-| {field}.default           | Behaviour  | Sets the given value as the default value of the field if not specified in the request. <div> Usage: `default: Date.now` </div> 
-| {field}.required          | Validation | If set to `true` adds a required validator. If a value is not specified while creating an entity, operation will be rejected with an error, unless 'default' value is configured. Required can be configured as: <div>Usage: `required: true` </div> <div>Usage: `required: [true, 'User phone number required']` <br>This format is applicable to all validators except `validate` </div>
-| {field}.enum              | Validation | Validates the value of a field against predefined enum values; This validation can be applied only on `String` fields. <div>Usage: `enum: ['Coffee', 'Tea']` </div>
-| {field}.minlength         | Validation | Validates the length of the value to be minimum of given value; This validation can be applied only on `String` fields. <div>Usage: `minlength: 5` </div>
-| {field}.maxlength         | Validation | Validates the length of the value to be maximum of given value; This validation can be applied only on `String` fields. <div>Usage: `maxlength: 5` </div>
-| {field}.min               | Validation | Validates the value to be minimum of given value; This validation can be applied only on `Number` fields. <div>Usage: `min: 5` </div>
-| {field}.max               | Validation | Validates the value to be maximum of given value; This validation can be applied only on `Number` fields. <div>Usage: `max: 5` </div>
-| {field}.validate          | Validation | Helps in defining custom validation. <br><br>`validate: { `<br>&nbsp;&nbsp;&nbsp;&nbsp;` validator: function(v) { `<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`   return /\d{3}-\d{3}-\d{4}/.test(v); `<br>&nbsp;&nbsp;&nbsp;&nbsp;` }, `<br>&nbsp;&nbsp;&nbsp;&nbsp;`message: '{VALUE} is not a valid phone number!' `<br>`}`
+| {field}.idField       `**`| Behaviour  | If set to `true`, system replaces _id with the given field. One and only one field can be set as id field. Usage: `idField: true` 
+| {field}.autoIncrement `**`| Behaviour  | If set to `true`, system increments value of the given field for every insertion. This validation can be applied only on `Number` fields . Usage: `autoIncrement: true` 
+| {field}.startAt       `**`| Behaviour  | Start autoIcrement at the given value. This configuration takes effect only if `autoIcrement` is set to `true`. Usage: `startAt: 1` 
+| {field}.incrementBy   `**`| Behaviour  | Start autoIcrement with the given steps. This configuration takes effect only if `autoIcrement` is set to `true`. Usage: `incrementBy: 1` 
+| {field}.default           | Behaviour  | Sets the given value as the default value of the field if not specified in the request. Usage: `default: Date.now`  
+| {field}.required          | Validation | If set to `true` adds a required validator. If a value is not specified while creating an entity, operation will be rejected with an error, unless 'default' value is configured. Required can be configured as:. Usage: `required: true` or `required: [true, 'User phone number required']` This format is applicable to all validators except `validate` 
+| {field}.enum              | Validation | Validates the value of a field against predefined enum values; This validation can be applied only on `String` fields. Usage: `enum: ['Coffee', 'Tea']` 
+| {field}.minlength         | Validation | Validates the length of the value to be minimum of given value; This validation can be applied only on `String` fields. Usage: `minlength: 5` 
+| {field}.maxlength         | Validation | Validates the length of the value to be maximum of given value; This validation can be applied only on `String` fields. Usage: `maxlength: 5` 
+| {field}.min               | Validation | Validates the value to be minimum of given value; This validation can be applied only on `Number` fields. Usage: `min: 5` 
+| {field}.max               | Validation | Validates the value to be maximum of given value; This validation can be applied only on `Number` fields. Usage: `max: 5` 
+| {field}.validate          | Validation | Helps in defining custom validation. `validate: { validator: function(v) { return /\d{3}-\d{3}-\d{4}/.test(v); }, message: '{VALUE} is not a valid phone number!'}`
 
 Any other additional option supported by [mongoose schema](http://mongoosejs.com/docs/guide.html)
 
-API Configuration
-======
+# API Configuration
 
 ## Options
+
 All values except `database.url` are predefined. Specify any value in `app.conf.json` or `app.conf.properties` only if you need to override them.
 
-| Option                    | Purpose           
+| Option                    | Purpose
 | --------------------------|:-------------------------------------------------------
 | database.url              | Mongo DB url. Format:  `mongodb://localhost/{dbname}`
-| api.port                  | Port your server should start at; default: `3000`  
-| api.baseUrl               | Port and baseUrl defines your api url: `http://{host}:{port}/{baseUrl}/`  
-| api.cors.enabled          | `true` if you want to make [cross-origin HTTP request](https://developer.mozilla.org/en-US/docs/Web/HTTP/Access_control_CORS) 
-| api.cors.allowed          | <li>`origin` - coma separated domain names; `*` - for any domain</li><li>`methods` - coma separated values of: `GET`, `POST`, `HEAD`, `POST`, `PUT` , `DELETE`</li><li>`headers` - all possible headers added by user or user agent 
+| api.port                  | Port your server should start at; default: `3000`
+| api.baseUrl               | Port and baseUrl defines your api url: `http://{host}:{port}/{baseUrl}/`
+| api.cors.enabled          | `true` if you want to make [cross-origin HTTP request](https://developer.mozilla.org/en-US/docs/Web/HTTP/Access_control_CORS). CORS is enabled by default.
+| api.cors.allowed          | *origin* - coma separated domain names; `*` - for any domain, *methods* - coma separated values of: `GET`, `POST`, `HEAD`, `POST`, `PUT` , `DELETE`, *headers* - all possible headers added by user or user agent 
 | api.oauth2.enabled        | `true` to enable OAuth2 based authentication and authorization
-| api.oauth2.default.user   | To create a default user at startup, provide user attributes: <li>`name` - Full name of the user; default: `Superuser`</li><li> `userId` - Required for login; default: `superuser@system.com`</li><li> `password` - Password must be base64 encode; default: `sysadmin` (TODO: use encryption) </li><li> `roles` -  the roles must be an array of string; default: [`ADMIN`]</li>
-| api.oauth2.default.client | To create a default client at startup, provide client attributes: <li>`name`</li><li>`description`</li><li>`id`</li><li>`secret`</li><li> `grantTypes` - valid values are `password` and `refresh_token`</li> 
-| api.oauth2.rules          | Array of tab separated values in the order: <li> `AuthType` - valid values are `None`, `Basic` and `Bearer`</li><li>`Roles` - coma separated values without space. eg: `ADMIN,USER`</li><li>`Methods` - coma separated values without space. eg: `GET,POST,PUT`</li><li> `Url Pattern` - eg: `/api/user/**/*`</li>
-| api.environment           | `development` or `production`  
+| api.oauth2.default.user   | To create a default user at startup, provide user attributes: *name* - Full name of the user; default: `Superuser`,  *userId* - Required for login; default: `superuser@system.com`,  *password* - Password must be base64 encode; default: `sysadmin` (TODO: use encryption) ,  *roles* -  the roles must be an array of string; default: [`ADMIN`]
+| api.oauth2.default.client | To create a default client at startup, provide client attributes: *name*, *description*, *id*, *secret*,  *grantTypes* - valid values are `password` and `refresh_token` 
+| api.oauth2.rules          | Array of tab separated values in the order:  *AuthType* - valid values are `None`, `Basic` and `Bearer`, *Roles* - coma separated values without space. eg: `ADMIN,USER`, *Methods* - coma separated values without space. eg: `GET,POST,PUT`,  *Url* - eg: `/api/user/**/*`
+| api.environment           | `development` or `production`
 | logger.level              | Valid values are `OFF`, `FATAL`, `ERROR`, `WARN`, `LOG`, `INFO`, `DEBUG`, `TRACE` and `ALL`
-| logger.log4js             | [Log4j configuration](https://www.npmjs.com/package/log4js#configuration) 
+| logger.log4js             | [Log4j configuration](https://www.npmjs.com/package/log4js#configuration)
 
 ## Configuration File
 
 You may setup configuration in either of the two formats:
-  <li> `json` - The file must have an extension `.json` </li>
-  <li> `ini` - The file must have an extension `.properties` </li>
+
+* `json` - The file must have an extension `.json`
+* `ini` - The file must have an extension `.properties`
+
 ### JSON Format:
 
 ```json
@@ -377,7 +555,7 @@ You may setup configuration in either of the two formats:
                 }
             },
             "rules": [
-                "None        *               OPTIONS             /api/oauth2/register",
+                "None        ,               OPTIONS             /api/oauth2/register",
                 "None        *               OPTIONS             /api/oauth2/client",
                 "None        *               OPTIONS             /api/oauth2/user",
                 "Basic       *               GET                 /api/oauth2/user",

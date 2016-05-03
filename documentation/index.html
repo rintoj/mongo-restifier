@@ -1,0 +1,2421 @@
+
+<!DOCTYPE html>
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Gulp Markdown Docs</title>
+  <style>/*
+
+github.com style (c) Vasily Polovnyov <vast@whiteants.net>
+
+*/
+
+.hljs {
+  display: block;
+  overflow-x: auto;
+  padding: 0.5em;
+  color: #333;
+  background: #f8f8f8;
+  -webkit-text-size-adjust: none;
+}
+
+.hljs-comment,
+.diff .hljs-header {
+  color: #998;
+  font-style: italic;
+}
+
+.hljs-keyword,
+.css .rule .hljs-keyword,
+.hljs-winutils,
+.nginx .hljs-title,
+.hljs-subst,
+.hljs-request,
+.hljs-status {
+  color: #333;
+  font-weight: bold;
+}
+
+.hljs-number,
+.hljs-hexcolor,
+.ruby .hljs-constant {
+  color: #008080;
+}
+
+.hljs-string,
+.hljs-tag .hljs-value,
+.hljs-doctag,
+.tex .hljs-formula {
+  color: #d14;
+}
+
+.hljs-title,
+.hljs-id,
+.scss .hljs-preprocessor {
+  color: #900;
+  font-weight: bold;
+}
+
+.hljs-list .hljs-keyword,
+.hljs-subst {
+  font-weight: normal;
+}
+
+.hljs-class .hljs-title,
+.hljs-type,
+.vhdl .hljs-literal,
+.tex .hljs-command {
+  color: #458;
+  font-weight: bold;
+}
+
+.hljs-tag,
+.hljs-tag .hljs-title,
+.hljs-rule .hljs-property,
+.django .hljs-tag .hljs-keyword {
+  color: #000080;
+  font-weight: normal;
+}
+
+.hljs-attribute,
+.hljs-variable,
+.lisp .hljs-body,
+.hljs-name {
+  color: #008080;
+}
+
+.hljs-regexp {
+  color: #009926;
+}
+
+.hljs-symbol,
+.ruby .hljs-symbol .hljs-string,
+.lisp .hljs-keyword,
+.clojure .hljs-keyword,
+.scheme .hljs-keyword,
+.tex .hljs-special,
+.hljs-prompt {
+  color: #990073;
+}
+
+.hljs-built_in {
+  color: #0086b3;
+}
+
+.hljs-preprocessor,
+.hljs-pragma,
+.hljs-pi,
+.hljs-doctype,
+.hljs-shebang,
+.hljs-cdata {
+  color: #999;
+  font-weight: bold;
+}
+
+.hljs-deletion {
+  background: #fdd;
+}
+
+.hljs-addition {
+  background: #dfd;
+}
+
+.diff .hljs-change {
+  background: #0086b3;
+}
+
+.hljs-chunk {
+  color: #aaa;
+}
+</style><style>body {
+    font-family: Segoe WPC, Segoe UI, SFUIText-Light, HelveticaNeue-Light, sans-serif;
+    font-size: 14px;
+    padding-left: 12px;
+    line-height: 22px
+}
+
+img {
+    max-width: 100%;
+    max-height: 100%
+}
+
+a {
+    color: #4080d0;
+    text-decoration: none
+}
+
+a:focus,
+input:focus,
+select:focus,
+textarea:focus {
+    outline: 1px solid -webkit-focus-ring-color;
+    outline-offset: -1px
+}
+
+hr {
+    border: 0;
+    height: 2px;
+    border-bottom: 2px solid
+}
+
+h1 {
+    padding-bottom: .3em;
+    line-height: 1.2;
+    border-bottom-width: 1px;
+    border-bottom-style: solid
+}
+
+h1,
+h2,
+h3 {
+    font-weight: 400
+}
+
+a:hover {
+    color: #4080d0;
+    text-decoration: underline
+}
+
+table {
+    border-collapse: collapse
+}
+
+table>thead>tr>th {
+    text-align: left;
+    border-bottom: 1px solid
+}
+
+table>tbody>tr>td,
+table>tbody>tr>th,
+table>thead>tr>td,
+table>thead>tr>th {
+    padding: 5px 10px
+}
+
+table>tbody>tr+tr>td {
+    border-top: 1px solid
+}
+
+blockquote {
+    margin: 0 0 0 5px;
+    padding-left: 10px;
+    border-left: 5px solid
+}
+
+code {
+    font-family: Menlo, Monaco, Consolas, Droid Sans Mono, Courier New, monospace;
+    font-size: 14px;
+    line-height: 19px
+}
+
+.mac code {
+    font-size: 12px;
+    line-height: 18px
+}
+
+code>div {
+    padding: 16px;
+    border-radius: 3px;
+    overflow: auto
+}
+
+.vs {
+    color: #1e1e1e
+}
+
+.vs-dark {
+    color: #ddd
+}
+
+.hc-black {
+    color: #fff
+}
+
+.vs code {
+    color: #a31515
+}
+
+.vs-dark code {
+    color: #d7ba7d
+}
+
+.vs code>div {
+    background-color: hsla(0, 0%, 86%, .4)
+}
+
+.vs-dark code>div {
+    background-color: hsla(0, 0%, 4%, .4)
+}
+
+.hc-black code>div {
+    background-color: #000
+}
+
+.hc-black h1 {
+    border-color: #000
+}
+
+.vs table>thead>tr>th {
+    border-color: rgba(0, 0, 0, .69)
+}
+
+.vs-dark table>thead>tr>th {
+    border-color: hsla(0, 0%, 100%, .69)
+}
+
+.vs h1,
+.vs hr,
+.vs table>tbody>tr+tr>td {
+    border-color: rgba(0, 0, 0, .18)
+}
+
+.vs-dark h1,
+.vs-dark hr,
+.vs-dark table>tbody>tr+tr>td {
+    border-color: hsla(0, 0%, 100%, .18)
+}
+
+.vs-dark blockquote,
+.vs blockquote {
+    background: hsla(0, 0%, 50%, .1);
+    border-color: rgba(0, 122, 204, .5)
+}
+
+.hc-black blockquote {
+    background: transparent;
+    border-color: #fff
+}
+
+.monaco-editor.vs .token.terminal {
+    color: #e00000
+}
+
+.monaco-editor.vs .token.terminal.code1 {
+    font-weight: 700
+}
+
+.monaco-editor.vs .token.variable {
+    color: #018
+}
+
+.monaco-editor.vs .token.variable.predefined {
+    color: #4864aa
+}
+
+.monaco-editor.vs .token.string.escape {
+    color: #a31515
+}
+
+.monaco-editor.vs .token.comment {
+    color: green
+}
+
+.monaco-editor.vs .token.comment.shebang {
+    color: #929292
+}
+
+.monaco-editor.vs .token.literal {
+    color: #000
+}
+
+.monaco-editor.vs .token.literal.string {
+    color: #a31515
+}
+
+.monaco-editor.vs .token.literal.hex {
+    color: #e07000
+}
+
+.monaco-editor.vs .token.number {
+    color: #09885a
+}
+
+.monaco-editor.vs .token.number.hex {
+    color: #3030c0
+}
+
+.monaco-editor.vs .token.number.octal {
+    color: #204070
+}
+
+.monaco-editor.vs .token.number.binary {
+    color: #e07070
+}
+
+.monaco-editor.vs .token.regexp {
+    color: maroon
+}
+
+.monaco-editor.vs .token.delimiter {
+    color: #000
+}
+
+.monaco-editor.vs .token.tag {
+    color: maroon
+}
+
+.monaco-editor.vs .token.metatag {
+    color: #e00000
+}
+
+.monaco-editor.vs .token.annotation {
+    color: gray
+}
+
+.monaco-editor.vs .token.key {
+    color: #863b00
+}
+
+.monaco-editor.vs .token.attribute.name {
+    color: red
+}
+
+.monaco-editor.vs .token.attribute.value {
+    color: #0451a5
+}
+
+.monaco-editor.vs .token.info-token {
+    color: #316bcd
+}
+
+.monaco-editor.vs .token.warn-token {
+    color: #cd9731
+}
+
+.monaco-editor.vs .token.error-token {
+    color: #cd3131
+}
+
+.monaco-editor.vs .token.debug-token {
+    color: purple
+}
+
+.monaco-editor.vs .token.keyword.flow {
+    color: #af00db
+}
+
+.monaco-editor.vs .token.metatag.php {
+    font-weight: 700
+}
+
+.monaco-editor.vs .token.predefined.ruby {
+    color: #00f
+}
+
+.monaco-editor.vs .token.emphasis {
+    font-style: italic
+}
+
+.monaco-editor.vs .token.strong {
+    font-weight: 700
+}
+
+.monaco-editor.vs .token.header {
+    color: navy
+}
+
+.monaco-editor.vs .token.string.key {
+    color: #a31515
+}
+
+.monaco-editor.vs .token.string.value,
+.monaco-editor.vs .token.string.yaml {
+    color: #0451a5
+}
+
+.monaco-editor.vs .token.type {
+    color: teal
+}
+
+.monaco-editor.vs .token.identifier.method {
+    color: #e07000
+}
+
+.monaco-editor.vs .token.string.sql {
+    color: red
+}
+
+.monaco-editor.vs .token.predefined.sql {
+    color: #f0f
+}
+
+.monaco-editor.vs .token.operator.sql {
+    color: #789
+}
+
+.monaco-editor.vs .token.delimiter.html {
+    color: #383838
+}
+
+.monaco-editor.vs .token.metatag.content.html {
+    color: red
+}
+
+.monaco-editor.vs .token.metatag.html {
+    color: gray
+}
+
+.monaco-editor.vs .token.attribute.name.html {
+    color: red
+}
+
+.monaco-editor.vs .token.attribute.value.html,
+.monaco-editor.vs .token.delimiter.xml,
+.monaco-editor.vs .token.string.html {
+    color: blue
+}
+
+.monaco-editor.vs .token.metatag.content.xml {
+    color: red
+}
+
+.monaco-editor.vs .token.metatag.xml {
+    color: gray
+}
+
+.monaco-editor.vs .token.attribute.name.xml {
+    color: red
+}
+
+.monaco-editor.vs .token.attribute.value.xml {
+    color: blue
+}
+
+.monaco-editor.vs .token.entity.ts {
+    color: #000
+}
+
+.monaco-editor.vs .token.vs {
+    color: #006400
+}
+
+.monaco-editor.vs .token.attribute.name.vs,
+.monaco-editor.vs .token.comment.vs,
+.monaco-editor.vs .token.tag.vs {
+    color: #aeb9ae
+}
+
+.monaco-editor.vs .token.attribute.value.vs {
+    color: #2c51cc
+}
+
+.monaco-editor.vs .token.delimiter.vs {
+    color: #708870
+}
+
+.monaco-editor.vs .token.tag.class.jade,
+.monaco-editor.vs .token.tag.id.jade {
+    color: #4f76ac
+}
+
+.monaco-editor.vs .token.interpolation.delimiter.jade,
+.monaco-editor.vs .token.interpolation.jade {
+    color: #f0f
+}
+
+.monaco-editor.vs-dark .token.terminal {
+    color: #bd5050
+}
+
+.monaco-editor.vs-dark .token.terminal.code1 {
+    font-weight: 700
+}
+
+.monaco-editor.vs-dark .token.variable {
+    color: #74b0df
+}
+
+.monaco-editor.vs-dark .token.variable.predefined {
+    color: #4864aa
+}
+
+.monaco-editor.vs-dark .token.constant {
+    color: #d00
+}
+
+.monaco-editor.vs-dark .token.string.escape {
+    color: #ce9178
+}
+
+.monaco-editor.vs-dark .token.comment,
+.monaco-editor.vs-dark .token.comment.shebang {
+    color: #929292
+}
+
+.monaco-editor.vs-dark .token.comment.doc {
+    color: #608b4e
+}
+
+.monaco-editor.vs-dark .token.literal {
+    color: #e00000
+}
+
+.monaco-editor.vs-dark .token.literal.hex {
+    color: #e07000
+}
+
+.monaco-editor.vs-dark .token.number {
+    color: #b5cea8
+}
+
+.monaco-editor.vs-dark .token.number.hex {
+    color: #5bb498
+}
+
+.monaco-editor.vs-dark .token.number.binary {
+    color: #3030c0
+}
+
+.monaco-editor.vs-dark .token.number.octal {
+    color: #204070
+}
+
+.monaco-editor.vs-dark .token.regexp {
+    color: #b46695
+}
+
+.monaco-editor.vs-dark .token.delimiter {
+    color: #dcdcdc
+}
+
+.monaco-editor.vs-dark .token.tag {
+    color: #569cd6
+}
+
+.monaco-editor.vs-dark .token.metatag {
+    color: #dd6a6f
+}
+
+.monaco-editor.vs-dark .token.annotation {
+    color: #c66
+}
+
+.monaco-editor.vs-dark .token.attribute.name,
+.monaco-editor.vs-dark .token.key {
+    color: #9cdcfe
+}
+
+.monaco-editor.vs-dark .token.attribute.value {
+    color: #ce9178
+}
+
+.monaco-editor.vs-dark .token.info-token {
+    color: #6796e6
+}
+
+.monaco-editor.vs-dark .token.warn-token {
+    color: #cd9731
+}
+
+.monaco-editor.vs-dark .token.error-token {
+    color: #f44747
+}
+
+.monaco-editor.vs-dark .token.debug-token {
+    color: #b267e6
+}
+
+.monaco-editor.vs-dark .token.keyword.flow {
+    color: #c586c0
+}
+
+.monaco-editor.vs-dark .token.keyword.datatype {
+    color: #569cd6
+}
+
+.monaco-editor.vs-dark .token.metatag.php {
+    font-weight: 700
+}
+
+.monaco-editor.vs-dark .token.predefined.ruby {
+    color: #4e94ce
+}
+
+.monaco-editor.vs-dark .token.emphasis {
+    font-style: italic
+}
+
+.monaco-editor.vs-dark .token.strong {
+    font-weight: 700
+}
+
+.monaco-editor.vs-dark .token.header {
+    color: navy
+}
+
+.monaco-editor.vs-dark .token.string.key {
+    color: #9cdcfe
+}
+
+.monaco-editor.vs-dark .token.string.value,
+.monaco-editor.vs-dark .token.string.yaml {
+    color: #ce9178
+}
+
+.monaco-editor.vs-dark .token.type {
+    color: #3dc9b0
+}
+
+.monaco-editor.vs-dark .token.identifier.method {
+    color: #e07000
+}
+
+.monaco-editor.vs-dark .token.string.sql {
+    color: red
+}
+
+.monaco-editor.vs-dark .token.predefined.sql {
+    color: #f0f
+}
+
+.monaco-editor.vs-dark .token.operator.sql {
+    color: #789
+}
+
+.monaco-editor.vs-dark .token.delimiter.html {
+    color: gray
+}
+
+.monaco-editor.vs-dark .token.metatag.content.html {
+    color: #9cdcfe
+}
+
+.monaco-editor.vs-dark .token.metatag.html {
+    color: #569cd6
+}
+
+.monaco-editor.vs-dark .token.string.html {
+    color: #ce9178
+}
+
+.monaco-editor.vs-dark .token.delimiter.xml {
+    color: gray
+}
+
+.monaco-editor.vs-dark .token.metatag.content.xml {
+    color: #9cdcfe
+}
+
+.monaco-editor.vs-dark .token.metatag.xml {
+    color: #569cd6
+}
+
+.monaco-editor.vs-dark .token.attribute.name.css {
+    color: #9cdcfe
+}
+
+.monaco-editor.vs-dark .token.attribute.value.css {
+    color: #c8c8c8
+}
+
+.monaco-editor.vs-dark .token.delimiter.css {
+    color: #dcdcdc
+}
+
+.monaco-editor.vs-dark .token.vs {
+    color: #608b4e
+}
+
+.monaco-editor.vs-dark .token.tag.vs {
+    color: #949494
+}
+
+.monaco-editor.vs-dark .token.delimiter.vs {
+    color: #585858
+}
+
+.monaco-editor.vs-dark .token.attribute.name.vs {
+    color: #949494
+}
+
+.monaco-editor.vs-dark .token.attribute.value.vs {
+    color: #c4c4c4
+}
+
+.monaco-editor.vs-dark .token.tag.class.jade,
+.monaco-editor.vs-dark .token.tag.id.jade {
+    color: #4f76ac
+}
+
+.monaco-editor.vs-dark .token.interpolation.delimiter.jade,
+.monaco-editor.vs-dark .token.interpolation.jade {
+    color: #f0f
+}
+
+.monaco-editor.hc-black .token.whitespace {
+    color: #ff0!important
+}
+
+.monaco-editor.hc-black .token.terminal {
+    color: #569cd6
+}
+
+.monaco-editor.hc-black .token.terminal.code1 {
+    font-weight: 700
+}
+
+.monaco-editor.hc-black .token.variable,
+.monaco-editor.hc-black .token.variable.predefined {
+    color: #1aebff
+}
+
+.monaco-editor.hc-black .token.constant {
+    color: #d00
+}
+
+.monaco-editor.hc-black .token.string.escape {
+    color: #ce9178
+}
+
+.monaco-editor.hc-black .token.comment {
+    color: green
+}
+
+.monaco-editor.hc-black .token.comment.shebang {
+    color: #929292
+}
+
+.monaco-editor.hc-black .token.comment.doc {
+    color: #608b4e
+}
+
+.monaco-editor.hc-black .token.literal,
+.monaco-editor.hc-black .token.literal.hex,
+.monaco-editor.hc-black .token.number,
+.monaco-editor.hc-black .token.number.binary,
+.monaco-editor.hc-black .token.number.hex,
+.monaco-editor.hc-black .token.number.octal {
+    color: #fff
+}
+
+.monaco-editor.hc-black .token.regexp {
+    color: silver
+}
+
+.monaco-editor.hc-black .token.delimiter {
+    color: #ff0
+}
+
+.monaco-editor.hc-black .token.annotation,
+.monaco-editor.hc-black .token.metatag,
+.monaco-editor.hc-black .token.tag {
+    color: #569cd6
+}
+
+.monaco-editor.hc-black .token.key {
+    color: #9cdcfe
+}
+
+.monaco-editor.hc-black .token.attribute.name {
+    color: #569cd6
+}
+
+.monaco-editor.hc-black .token.attribute.value {
+    color: #3ff23f
+}
+
+.monaco-editor.hc-black .token.info-token {
+    color: #6796e6
+}
+
+.monaco-editor.hc-black .token.warn-token {
+    color: green
+}
+
+.monaco-editor.hc-black .token.error-token {
+    color: red
+}
+
+.monaco-editor.hc-black .token.debug-token {
+    color: #b267e6
+}
+
+.monaco-editor.hc-black .token.keyword {
+    color: #1aebff
+}
+
+.monaco-editor.hc-black .token.keyword.flow {
+    color: #c586c0
+}
+
+.monaco-editor.hc-black .token.keyword.datatype {
+    color: #569cd6
+}
+
+.monaco-editor.hc-black .token.metatag.php {
+    font-weight: 700
+}
+
+.monaco-editor.hc-black .token.predefined.ruby {
+    color: #4e94ce
+}
+
+.monaco-editor.hc-black .token.emphasis {
+    font-style: italic
+}
+
+.monaco-editor.hc-black .token.strong {
+    font-weight: 700
+}
+
+.monaco-editor.hc-black .token.header {
+    color: navy
+}
+
+.monaco-editor.hc-black .token.string.key {
+    color: #9cdcfe
+}
+
+.monaco-editor.hc-black .token.string.value,
+.monaco-editor.hc-black .token.string.yaml {
+    color: #ce9178
+}
+
+.monaco-editor.hc-black .token.type {
+    color: #3dc9b0
+}
+
+.monaco-editor.hc-black .token.identifier.method {
+    color: #e07000
+}
+
+.monaco-editor.hc-black .token.string.sql {
+    color: red
+}
+
+.monaco-editor.hc-black .token.predefined.sql {
+    color: #f0f
+}
+
+.monaco-editor.hc-black .token.operator.sql {
+    color: #789
+}
+
+.monaco-editor.hc-black .token.delimiter.html {
+    color: #ff0
+}
+
+.monaco-editor.hc-black .token.metatag.content.html {
+    color: #1aebff
+}
+
+.monaco-editor.hc-black .token.metatag.html {
+    color: #569cd6
+}
+
+.monaco-editor.hc-black .token.string.html {
+    color: #ce9178
+}
+
+.monaco-editor.hc-black .token.delimiter.xml {
+    color: #ff0
+}
+
+.monaco-editor.hc-black .token.metatag.content.xml {
+    color: #1aebff
+}
+
+.monaco-editor.hc-black .token.attribute.name.css,
+.monaco-editor.hc-black .token.metatag.xml {
+    color: #569cd6
+}
+
+.monaco-editor.hc-black .token.attribute.value.css {
+    color: #3ff23f
+}
+
+.monaco-editor.hc-black .token.delimiter.css {
+    color: #ff0
+}
+
+.monaco-editor.hc-black .token.vs {
+    color: #fff
+}
+
+.monaco-editor.hc-black .token.tag.vs {
+    color: #949494
+}
+
+.monaco-editor.hc-black .token.delimiter.vs {
+    color: #585858
+}
+
+.monaco-editor.hc-black .token.attribute.name.vs {
+    color: #949494
+}
+
+.monaco-editor.hc-black .token.attribute.value.vs {
+    color: #c4c4c4
+}
+
+.monaco-editor.hc-black .token.tag.string.jade {
+    color: #ce9178
+}
+
+.monaco-editor.hc-black .token.tag.class.jade,
+.monaco-editor.hc-black .token.tag.id.jade {
+    color: #4f76ac
+}
+
+.monaco-editor.hc-black .token.interpolation.delimiter.jade,
+.monaco-editor.hc-black .token.interpolation.jade {
+    color: #f0f
+}
+
+.monaco-editor.vs .token {
+    color: #000
+}
+
+.monaco-editor.vs .token.whitespace {
+    color: rgba(51, 51, 51, .2)!important
+}
+
+.monaco-editor.vs .token.builtin.function {
+    color: #00f
+}
+
+.monaco-editor.vs .token.comment,
+.monaco-editor.vs .token.comment.block,
+.monaco-editor.vs .token.comment.block.documentation,
+.monaco-editor.vs .token.comment.line {
+    color: green
+}
+
+.monaco-editor.vs .token.constant {
+    color: #d00
+}
+
+.monaco-editor.vs .token.constant.language {
+    color: #00f
+}
+
+.monaco-editor.vs .token.constant.numeric {
+    color: #09885a
+}
+
+.monaco-editor.vs .token.constant.numeric.hex {
+    color: #3030c0
+}
+
+.monaco-editor.vs .token.constant.numeric.octal {
+    color: #204070
+}
+
+.monaco-editor.vs .token.constant.numeric.binary {
+    color: #e07070
+}
+
+.monaco-editor.vs .token.constant.regexp {
+    color: #811f3f
+}
+
+.monaco-editor.vs .token.constant.rgb-value {
+    color: #0451a5
+}
+
+.monaco-editor.vs .token.entity {
+    color: #a31515
+}
+
+.monaco-editor.vs .token.entity.name,
+.monaco-editor.vs .token.entity.name.tag {
+    color: maroon
+}
+
+.monaco-editor.vs .token.entity.name.function {
+    color: #444
+}
+
+.monaco-editor.vs .token.entity.name.class {
+    color: #2b91af
+}
+
+.monaco-editor.vs .token.entity.name.selector,
+.monaco-editor.vs .token.entity.other.selector {
+    color: maroon
+}
+
+.monaco-editor.vs .token.entity.other.attribute-name {
+    color: red
+}
+
+.monaco-editor.vs .token.entity.other.attribute-name.css {
+    color: maroon
+}
+
+.monaco-editor.vs .token.annotation.storage.type,
+.monaco-editor.vs .token.heritage.storage.type {
+    color: #2b91af
+}
+
+.monaco-editor.vs .token.invalid {
+    color: #cd3131
+}
+
+.monaco-editor.vs .token.markup.underline {
+    text-decoration: underline
+}
+
+.monaco-editor.vs .token.markup.bold {
+    font-weight: 700
+}
+
+.monaco-editor.vs .token.markup.heading {
+    color: navy
+}
+
+.monaco-editor.vs .token.markup.italic {
+    font-style: italic
+}
+
+.monaco-editor.vs .token.meta {
+    color: #000
+}
+
+.monaco-editor.vs .token.meta.selector,
+.monaco-editor.vs .token.meta.tag {
+    color: maroon
+}
+
+.monaco-editor.vs .token.storage {
+    color: gray
+}
+
+.monaco-editor.vs .token.storage.content {
+    color: red
+}
+
+.monaco-editor.vs .token.storage.modifier,
+.monaco-editor.vs .token.storage.type {
+    color: #00f
+}
+
+.monaco-editor.vs .token.cast.storage.type,
+.monaco-editor.vs .token.new.storage.type {
+    color: #2b91af
+}
+
+.monaco-editor.vs .token.var.storage.type {
+    color: #00f
+}
+
+.monaco-editor.vs .token.var.annotation.storage.type {
+    color: #2b91af
+}
+
+.monaco-editor.vs .token.string {
+    color: #a31515
+}
+
+.monaco-editor.vs .token.string.tag {
+    color: blue
+}
+
+.monaco-editor.vs .token.string.quoted.variable {
+    color: #018
+}
+
+.monaco-editor.vs .token.string.regexp {
+    color: #811f3f
+}
+
+.monaco-editor.vs .token.support {
+    color: maroon
+}
+
+.monaco-editor.vs .token.support.type {
+    color: red
+}
+
+.monaco-editor.vs .token.support.type.json {
+    color: #a31515
+}
+
+.monaco-editor.vs .token.support.property-value {
+    color: #0451a5
+}
+
+.monaco-editor.vs .token.variable.parameter {
+    color: #018
+}
+
+.monaco-editor.vs .token.variable.language {
+    color: #4864aa
+}
+
+.monaco-editor.vs .token.keyword,
+.monaco-editor.vs .token.keyword.control {
+    color: #00f
+}
+
+.monaco-editor.vs .token.keyword.operator {
+    color: #666
+}
+
+.monaco-editor.vs .token.keyword.operator.new {
+    color: #00f
+}
+
+.monaco-editor.vs .token.keyword.other.unit {
+    color: #09885a
+}
+
+.monaco-editor.vs .token.punctuation {
+    color: #000
+}
+
+.monaco-editor.vs .token.punctuation.string {
+    color: #a31515
+}
+
+.monaco-editor.vs .token.punctuation.string.quoted.variable {
+    color: #018
+}
+
+.monaco-editor.vs .token.punctuation.string.regexp {
+    color: #811f3f
+}
+
+.monaco-editor.vs .token.punctuation.tag {
+    color: maroon
+}
+
+.monaco-editor.vs .token.punctuation.string.tag {
+    color: blue
+}
+
+.monaco-editor.vs-dark .token {
+    color: #d4d4d4
+}
+
+.monaco-editor.vs-dark .token.whitespace {
+    color: hsla(90, 4%, 89%, .16)!important
+}
+
+.monaco-editor.vs-dark .token.builtin.function {
+    color: #569cd6
+}
+
+.monaco-editor.vs-dark .token.comment,
+.monaco-editor.vs-dark .token.comment.block,
+.monaco-editor.vs-dark .token.comment.block.documentation,
+.monaco-editor.vs-dark .token.comment.line {
+    color: #608b4e
+}
+
+.monaco-editor.vs-dark .token.constant,
+.monaco-editor.vs-dark .token.constant.language {
+    color: #569cd6
+}
+
+.monaco-editor.vs-dark .token.constant.numeric {
+    color: #b5cea8
+}
+
+.monaco-editor.vs-dark .token.constant.numeric.hex {
+    color: #5bb498
+}
+
+.monaco-editor.vs-dark .token.constant.numeric.octal {
+    color: #204070
+}
+
+.monaco-editor.vs-dark .token.constant.numeric.binary {
+    color: #e07070
+}
+
+.monaco-editor.vs-dark .token.constant.regexp {
+    color: #646695
+}
+
+.monaco-editor.vs-dark .token.constant.rgb-value {
+    color: #d4d4d4
+}
+
+.monaco-editor.vs-dark .token.entity {
+    color: #9cdcfe
+}
+
+.monaco-editor.vs-dark .token.entity.name,
+.monaco-editor.vs-dark .token.entity.name.tag {
+    color: #569cd6
+}
+
+.monaco-editor.vs-dark .token.entity.name.function {
+    color: #dcdcaa
+}
+
+.monaco-editor.vs-dark .token.entity.name.class {
+    color: #4ec9b0
+}
+
+.monaco-editor.vs-dark .token.entity.name.selector,
+.monaco-editor.vs-dark .token.entity.other.selector {
+    color: #569cd6
+}
+
+.monaco-editor.vs-dark .token.entity.other.attribute-name {
+    color: #9cdcfe
+}
+
+.monaco-editor.vs-dark .token.entity.other.attribute-name.css {
+    color: #569cd6
+}
+
+.monaco-editor.vs-dark .token.invalid {
+    color: #f44747
+}
+
+.monaco-editor.vs-dark .token.markup.underline {
+    text-decoration: underline
+}
+
+.monaco-editor.vs-dark .token.markup.bold {
+    font-weight: 700
+}
+
+.monaco-editor.vs-dark .token.markup.heading {
+    color: #6796e6
+}
+
+.monaco-editor.vs-dark .token.markup.italic {
+    font-style: italic
+}
+
+.monaco-editor.vs-dark .token.meta {
+    color: #d4d4d4
+}
+
+.monaco-editor.vs-dark .token.meta.selector {
+    color: #569cd6
+}
+
+.monaco-editor.vs-dark .token.meta.tag {
+    color: #ce9178
+}
+
+.monaco-editor.vs-dark .token.storage {
+    color: #569cd6
+}
+
+.monaco-editor.vs-dark .token.storage.content {
+    color: #9cdcfe
+}
+
+.monaco-editor.vs-dark .token.storage.modifier,
+.monaco-editor.vs-dark .token.storage.type {
+    color: #569cd6
+}
+
+.monaco-editor.vs-dark .token.annotation.storage.type,
+.monaco-editor.vs-dark .token.cast.storage.type,
+.monaco-editor.vs-dark .token.heritage.storage.type,
+.monaco-editor.vs-dark .token.new.storage.type {
+    color: #4ec9b0
+}
+
+.monaco-editor.vs-dark .token.var.storage.type {
+    color: #569cd6
+}
+
+.monaco-editor.vs-dark .token.var.annotation.storage.type {
+    color: #4ec9b0
+}
+
+.monaco-editor.vs-dark .token.string,
+.monaco-editor.vs-dark .token.string.tag {
+    color: #ce9178
+}
+
+.monaco-editor.vs-dark .token.string.quoted.variable {
+    color: #74b0df
+}
+
+.monaco-editor.vs-dark .token.string.regexp {
+    color: #d16969
+}
+
+.monaco-editor.vs-dark .token.support {
+    color: #a79873
+}
+
+.monaco-editor.vs-dark .token.support.type {
+    color: #9cdcfe
+}
+
+.monaco-editor.vs-dark .token.support.property-value {
+    color: #ce9178
+}
+
+.monaco-editor.vs-dark .token.variable.parameter {
+    color: #9cdcfe
+}
+
+.monaco-editor.vs-dark .token.variable.language {
+    color: #4864aa
+}
+
+.monaco-editor.vs-dark .token.keyword,
+.monaco-editor.vs-dark .token.keyword.control {
+    color: #569cd6
+}
+
+.monaco-editor.vs-dark .token.keyword.operator {
+    color: #909090
+}
+
+.monaco-editor.vs-dark .token.keyword.operator.new {
+    color: #569cd6
+}
+
+.monaco-editor.vs-dark .token.keyword.other.unit {
+    color: #b5cea8
+}
+
+.monaco-editor.vs-dark .token.punctuation {
+    color: #dcdcdc
+}
+
+.monaco-editor.vs-dark .token.punctuation.string {
+    color: #ce9178
+}
+
+.monaco-editor.vs-dark .token.punctuation.string.quoted.variable {
+    color: #74b0df
+}
+
+.monaco-editor.vs-dark .token.punctuation.string.regexp {
+    color: #d16969
+}
+
+.monaco-editor.vs-dark .token.punctuation.tag {
+    color: #569cd6
+}
+
+.monaco-editor.vs-dark .token.punctuation.string.tag {
+    color: #ce9178
+}
+
+.monaco-editor.hc-black .token {
+    color: #fff
+}
+
+.monaco-editor.hc-black .token.whitespace {
+    color: hsla(90, 4%, 89%, .16)!important
+}
+
+.monaco-editor.hc-black .token.builtin.function {
+    color: #569cd6
+}
+
+.monaco-editor.hc-black .token.comment,
+.monaco-editor.hc-black .token.comment.block,
+.monaco-editor.hc-black .token.comment.block.documentation,
+.monaco-editor.hc-black .token.comment.line {
+    color: #608b4e
+}
+
+.monaco-editor.hc-black .token.constant,
+.monaco-editor.hc-black .token.constant.language {
+    color: #569cd6
+}
+
+.monaco-editor.hc-black .token.constant.numeric {
+    color: #b5cea8
+}
+
+.monaco-editor.hc-black .token.constant.numeric.hex {
+    color: #5bb498
+}
+
+.monaco-editor.hc-black .token.constant.numeric.octal {
+    color: #204070
+}
+
+.monaco-editor.hc-black .token.constant.numeric.binary {
+    color: #e07070
+}
+
+.monaco-editor.hc-black .token.constant.regexp {
+    color: #b46695
+}
+
+.monaco-editor.hc-black .token.constant.rgb-value {
+    color: #d4d4d4
+}
+
+.monaco-editor.hc-black .token.entity {
+    color: #9cdcfe
+}
+
+.monaco-editor.hc-black .token.entity.name,
+.monaco-editor.hc-black .token.entity.name.tag {
+    color: #569cd6
+}
+
+.monaco-editor.hc-black .token.entity.name.function {
+    color: #dcdcaa
+}
+
+.monaco-editor.hc-black .token.entity.name.class {
+    color: #4ec9b0
+}
+
+.monaco-editor.hc-black .token.entity.name.selector,
+.monaco-editor.hc-black .token.entity.other.selector {
+    color: #569cd6
+}
+
+.monaco-editor.hc-black .token.entity.other.attribute-name {
+    color: #9cdcfe
+}
+
+.monaco-editor.hc-black .token.entity.other.attribute-name.css {
+    color: #569cd6
+}
+
+.monaco-editor.hc-black .token.invalid {
+    color: #f44747
+}
+
+.monaco-editor.hc-black .token.markup.underline {
+    text-decoration: underline
+}
+
+.monaco-editor.hc-black .token.markup.bold {
+    font-weight: 700
+}
+
+.monaco-editor.hc-black .token.markup.heading {
+    color: #6796e6
+}
+
+.monaco-editor.hc-black .token.markup.italic {
+    font-style: italic
+}
+
+.monaco-editor.hc-black .token.meta {
+    color: #d4d4d4
+}
+
+.monaco-editor.hc-black .token.meta.selector {
+    color: #569cd6
+}
+
+.monaco-editor.hc-black .token.meta.tag {
+    color: #ce9178
+}
+
+.monaco-editor.hc-black .token.storage {
+    color: #569cd6
+}
+
+.monaco-editor.hc-black .token.storage.content {
+    color: #9cdcfe
+}
+
+.monaco-editor.hc-black .token.storage.modifier,
+.monaco-editor.hc-black .token.storage.type {
+    color: #569cd6
+}
+
+.monaco-editor.hc-black .token.annotation.storage.type,
+.monaco-editor.hc-black .token.cast.storage.type,
+.monaco-editor.hc-black .token.heritage.storage.type,
+.monaco-editor.hc-black .token.new.storage.type {
+    color: #4ec9b0
+}
+
+.monaco-editor.hc-black .token.var.storage.type {
+    color: #569cd6
+}
+
+.monaco-editor.hc-black .token.var.annotation.storage.type {
+    color: #4ec9b0
+}
+
+.monaco-editor.hc-black .token.string,
+.monaco-editor.hc-black .token.string.tag {
+    color: #ce9178
+}
+
+.monaco-editor.hc-black .token.string.quoted.variable {
+    color: #74b0df
+}
+
+.monaco-editor.hc-black .token.string.regexp {
+    color: #d16969
+}
+
+.monaco-editor.hc-black .token.support {
+    color: maroon
+}
+
+.monaco-editor.hc-black .token.support.type {
+    color: #9cdcfe
+}
+
+.monaco-editor.hc-black .token.support.property-value {
+    color: #ce9178
+}
+
+.monaco-editor.hc-black .token.variable.parameter {
+    color: #9cdcfe
+}
+
+.monaco-editor.hc-black .token.variable.language {
+    color: #4864aa
+}
+
+.monaco-editor.hc-black .token.keyword,
+.monaco-editor.hc-black .token.keyword.control {
+    color: #569cd6
+}
+
+.monaco-editor.hc-black .token.keyword.operator {
+    color: #909090
+}
+
+.monaco-editor.hc-black .token.keyword.operator.new {
+    color: #569cd6
+}
+
+.monaco-editor.hc-black .token.keyword.other.unit {
+    color: #b5cea8
+}
+
+.monaco-editor.hc-black .token.punctuation {
+    color: #dcdcdc
+}
+
+.monaco-editor.hc-black .token.punctuation.string {
+    color: #ce9178
+}
+
+.monaco-editor.hc-black .token.punctuation.string.quoted.variable {
+    color: #74b0df
+}
+
+.monaco-editor.hc-black .token.punctuation.string.regexp {
+    color: #d16969
+}
+
+.monaco-editor.hc-black .token.punctuation.tag {
+    color: #569cd6
+}
+
+.monaco-editor.hc-black .token.punctuation.string.tag {
+    color: #ce9178
+}
+
+pre {
+    padding: 15px;
+    background: whitesmoke;
+    border-radius: 3px;
+    white-space: pre-wrap;
+}
+
+pre * {
+    font-size: 13px !important;
+}
+
+code {
+    font-family: monospace;
+    color: #CE3B05;
+}
+
+pre code {
+    color: #1f1f1f;
+}
+
+section {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+h1, h2, h3 {
+    font-weight: bold;
+}
+
+h1 {
+    font-size: 24px;
+    border-bottom: 1px solid #C3C3C3;
+}</style></head>
+  <body>
+    <section class="doc-nav"><ul class="doc-nav-group"></ul></section>
+    <section class="doc-content"><section class="doc-section"><article class="doc-article"><h1 id="mongo-restifier">mongo-restifier</h1>
+<p>Easy to use <a href="http://www.restapitutorial.com/lessons/whatisrest.html#">RESTful API</a> for <a href="https://www.mongodb.org/">MongoDB</a>  with build-in <a href="http://oauth.net/2/">OAuth2</a> provider. </p>
+<h2 id="features">Features</h2>
+<ul>
+<li>Easy to use apification using <strong><a href="http://mongoosejs.com/">Mongoose</a></strong> and <strong><a href="https://www.npmjs.com/package/express">Express</a></strong></li>
+<li>Build in <strong><a href="http://oauth.net/2/">OAuth2</a></strong> API implementation</li>
+<li>Strict implementation of <strong><a href="http://www.restapitutorial.com/lessons/whatisrest.html#">RESTful API</a></strong></li>
+<li><strong><a href="#bulk-create-or-update">Bulk upload and updates</a></strong> supported</li>
+<li><strong><a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Access_control_CORS">Cross domain resource sharing (CORS)</a></strong> is enabled by default</li>
+<li>Schema based collections and <strong><a href="#advanced-query">advanced querying</a></strong> options</li>
+</ul>
+<h2 id="installation">Installation</h2>
+<p>This module is installed via npm:</p>
+<pre><code class="lang-bash">$ npm <span class="hljs-operator"><span class="hljs-keyword">install</span> mongo-restifier <span class="hljs-comment">--save</span></span>
+</code></pre>
+<h2 id="get-started">Get Started</h2>
+<p>The following example serves the <code>Todo</code> model on a RESTful API.</p>
+<ol>
+<li><p>Install <a href="https://www.mongodb.org/">MongoDB</a> and <a href="https://docs.mongodb.org/manual/tutorial/manage-mongodb-processes">startup</a></p>
+<pre><code class="lang-bash"><span class="hljs-comment">$</span> <span class="hljs-comment">mongod</span> <span class="hljs-literal">-</span><span class="hljs-literal">-</span><span class="hljs-comment">syslog</span> <span class="hljs-literal">-</span><span class="hljs-literal">-</span><span class="hljs-comment">fork</span>
+</code></pre>
+</li>
+<li><p>Create <a href="https://docs.npmjs.com/cli/init">npm</a> project</p>
+<pre><code class="lang-bash"><span class="hljs-variable">$ </span>mkdir server
+<span class="hljs-variable">$ </span>cd server
+<span class="hljs-variable">$ </span>npm init
+</code></pre>
+</li>
+<li><p>Install mongo-restifier</p>
+<pre><code class="lang-bash">$ npm <span class="hljs-operator"><span class="hljs-keyword">install</span> mongo-restifier <span class="hljs-comment">--save</span></span>
+</code></pre>
+</li>
+<li><p>Create file <strong>app.js</strong> and copy the following code</p>
+<pre><code class="lang-js"><span class="hljs-comment">// import</span>
+<span class="hljs-keyword">var</span> mongoRestifier = <span class="hljs-built_in">require</span>(<span class="hljs-string">&apos;mongo-restifier&apos;</span>);
+
+<span class="hljs-comment">// configure the api</span>
+mongoRestifier(<span class="hljs-string">&apos;./api.conf.json&apos;</span>)
+
+<span class="hljs-comment">// define &quot;Todo&quot; model</span>
+.register(mongoRestifier.defineModel(<span class="hljs-string">&quot;Todo&quot;</span>, {
+
+   <span class="hljs-comment">// api end point</span>
+   url: <span class="hljs-string">&apos;/todo&apos;</span>,
+
+   <span class="hljs-comment">// schema definition - supports everything that mongoose schema supports</span>
+   schema: {
+     index: {
+       <span class="hljs-keyword">type</span>: <span class="hljs-built_in">Number</span>,         <span class="hljs-comment">// type of this attribute</span>
+       autoIncrement: <span class="hljs-literal">true</span>,  <span class="hljs-comment">// auto increment this attribute</span>
+       idField: <span class="hljs-literal">true</span>         <span class="hljs-comment">// serves as id attribute replacing _id</span>
+     },
+     title: {
+       <span class="hljs-keyword">type</span>: <span class="hljs-built_in">String</span>,
+       required: <span class="hljs-literal">true</span>
+     },
+     description: <span class="hljs-built_in">String</span>,    <span class="hljs-comment">// attribute definition can be as simple as this</span>
+     status: <span class="hljs-built_in">String</span>,
+   }
+
+}))
+
+<span class="hljs-comment">// ... more models can be added here</span>
+
+<span class="hljs-comment">// and finally startup the server</span>
+.startup();
+</code></pre>
+</li>
+<li><p>Create configruation file <strong>api.conf.json</strong></p>
+<pre><code class="lang-json">{
+   &quot;<span class="hljs-attribute">database</span>&quot;: <span class="hljs-value">{
+       &quot;<span class="hljs-attribute">url</span>&quot;: <span class="hljs-value"><span class="hljs-string">&quot;mongodb://localhost/dbname&quot;</span>
+   </span>}
+</span>}
+</code></pre>
+</li>
+<li><p>And finally run</p>
+<pre><code class="lang-bash">$ <span class="hljs-keyword">node</span><span class="hljs-identifier"> </span><span class="hljs-title">app</span>.js
+</code></pre>
+</li>
+</ol>
+<h1 id="rest-api">REST API</h1>
+<h3 id="query">Query</h3>
+<pre><code><span class="hljs-request">GET <span class="hljs-string">/todo</span> HTTP/1.1</span>
+<span class="hljs-attribute">Authorization</span>: <span class="hljs-string">Bearer {access_token}</span>
+</code></pre><pre><code><span class="hljs-request">GET <span class="hljs-string">/todo/{id}</span> HTTP/1.1</span>
+<span class="hljs-attribute">Authorization</span>: <span class="hljs-string">Bearer {access_token}</span>
+</code></pre><pre><code><span class="hljs-request">GET <span class="hljs-string">/todo?{field}={value}</span> HTTP/1.1</span>
+<span class="hljs-attribute">Authorization</span>: <span class="hljs-string">Bearer {access_token}</span>
+</code></pre><pre><code><span class="hljs-request">GET <span class="hljs-string">/todo?fields={field1},-{field2}</span> HTTP/1.1</span>
+<span class="hljs-attribute">Authorization</span>: <span class="hljs-string">Bearer {access_token}</span>
+</code></pre><pre><code><span class="hljs-request">GET <span class="hljs-string">/todo?sort={field1},-{field2}</span> HTTP/1.1</span>
+<span class="hljs-attribute">Authorization</span>: <span class="hljs-string">Bearer {access_token}</span>
+</code></pre><pre><code><span class="hljs-request">GET <span class="hljs-string">/todo?count=true</span> HTTP/1.1</span>
+<span class="hljs-attribute">Authorization</span>: <span class="hljs-string">Bearer {access_token}</span>
+</code></pre><pre><code><span class="hljs-request">GET <span class="hljs-string">/todo?limit=10&amp;skip=10</span> HTTP/1.1</span>
+<span class="hljs-attribute">Authorization</span>: <span class="hljs-string">Bearer {access_token}</span>
+</code></pre><p>Querying takes in the following parameters:</p>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th style="text-align:left">Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>field</code></td>
+<td style="text-align:left">Replace <code>field</code> with any field in your Mongoose model, and it will check for equality. </td>
+</tr>
+<tr>
+<td><code>fields</code></td>
+<td style="text-align:left">Comma-delimited list of fields to populate or field names with <code>-</code> sign at the beginning, to omit.</td>
+</tr>
+<tr>
+<td><code>sort</code></td>
+<td style="text-align:left">Sorts by the given fields in the given order, comma delimited. A <code>-</code> sign will sort descending. </td>
+</tr>
+<tr>
+<td><code>limit</code></td>
+<td style="text-align:left">Limits the number of returned results. All results are limited to <code>100</code> by default.</td>
+</tr>
+<tr>
+<td><code>skip</code></td>
+<td style="text-align:left">Skips a number of results. Useful for pagination when combined with <code>limit</code>.</td>
+</tr>
+<tr>
+<td><code>count</code></td>
+<td style="text-align:left">Set count = true to get the count of matching items instead of items themselves. </td>
+</tr>
+</tbody>
+</table>
+<h3 id="advanced-query">Advanced Query</h3>
+<pre><code><span class="hljs-request">POST <span class="hljs-string">/todo</span> HTTP/1.1</span>
+<span class="hljs-attribute">Authorization</span>: <span class="hljs-string">Bearer {access_token}</span>
+
+<span class="css"><span class="hljs-rules">{<span class="hljs-rule"><span class="hljs-attribute">title</span>:<span class="hljs-value"> <span class="hljs-string">&quot;Your title&quot;</span>, <span class="hljs-string">&quot;status&quot;</span>: <span class="hljs-string">&quot;new&quot;</span> </span></span></span>}</span>
+</code></pre><pre><code><span class="hljs-request">POST <span class="hljs-string">/todo</span> HTTP/1.1</span>
+<span class="hljs-attribute">Authorization</span>: <span class="hljs-string">Bearer {access_token}</span>
+
+<span class="json">{ &quot;<span class="hljs-attribute">status</span>&quot;: <span class="hljs-value">{ &quot;<span class="hljs-attribute">$in</span>&quot;: <span class="hljs-value">[<span class="hljs-string">&quot;new&quot;</span>, <span class="hljs-string">&quot;hold&quot;</span>] </span>}</span>}</span>
+</code></pre><pre><code><span class="hljs-request">POST <span class="hljs-string">/todo</span> HTTP/1.1</span>
+<span class="hljs-attribute">Authorization</span>: <span class="hljs-string">Bearer {access_token}</span>
+
+<span class="json">{&quot;<span class="hljs-attribute">index</span>&quot;: <span class="hljs-value">{ &quot;<span class="hljs-attribute">$gte</span>&quot;: <span class="hljs-value"><span class="hljs-number">1</span></span>, &quot;<span class="hljs-attribute">$lte</span>&quot;: <span class="hljs-value"><span class="hljs-number">100</span> </span>}</span>}</span>
+</code></pre><pre><code><span class="hljs-request">POST <span class="hljs-string">/todo</span> HTTP/1.1</span>
+<span class="hljs-attribute">Authorization</span>: <span class="hljs-string">Bearer {access_token}</span>
+
+<span class="json">{ &quot;<span class="hljs-attribute">$or</span>&quot; : <span class="hljs-value">[{ &quot;<span class="hljs-attribute">index</span>&quot;: <span class="hljs-value"><span class="hljs-number">100</span> </span>}, { &quot;<span class="hljs-attribute">index</span>&quot;: <span class="hljs-value"><span class="hljs-number">101</span> </span>}] </span>}</span>
+</code></pre><pre><code><span class="hljs-request">POST <span class="hljs-string">/todo</span> HTTP/1.1</span>
+<span class="hljs-attribute">Authorization</span>: <span class="hljs-string">Bearer {access_token}</span>
+
+<span class="json">{ &quot;<span class="hljs-attribute">$and</span>&quot;: <span class="hljs-value">[{ &quot;<span class="hljs-attribute">index</span>&quot;: <span class="hljs-value">{ &quot;<span class="hljs-attribute">$ne</span>&quot;: <span class="hljs-value"><span class="hljs-number">100</span> </span>}</span>}, { &quot;<span class="hljs-attribute">index</span>&quot;: <span class="hljs-value">{ &quot;<span class="hljs-attribute">$lt</span>&quot;: <span class="hljs-value"><span class="hljs-number">120</span> </span>}</span>}] </span>}</span>
+</code></pre><pre><code><span class="hljs-request">POST <span class="hljs-string">/todo</span> HTTP/1.1</span>
+<span class="hljs-attribute">Authorization</span>: <span class="hljs-string">Bearer {access_token}</span>
+
+<span class="json">{ &quot;<span class="hljs-attribute">title</span>&quot;: <span class="hljs-value">{ &quot;<span class="hljs-attribute">$regex</span>&quot;: <span class="hljs-value"><span class="hljs-string">&quot;^S.mple.*&quot;</span></span>} </span>}</span>
+</code></pre><pre><code><span class="hljs-request">POST <span class="hljs-string">/todo</span> HTTP/1.1</span>
+<span class="hljs-attribute">Authorization</span>: <span class="hljs-string">Bearer {access_token}</span>
+
+<span class="json">{ &quot;<span class="hljs-attribute">index</span>&quot;: <span class="hljs-value">{ &quot;<span class="hljs-attribute">$exists</span>&quot;: <span class="hljs-value"><span class="hljs-literal">true</span> </span>}</span>}</span>
+</code></pre><p>Use <code>POST</code> to perform advanced queries. Query parameters remain same as of <code>GET</code>. Additionally the <code>BODY</code> of the request we can contain:</p>
+<p><strong>Comparison Operators</strong></p>
+<table>
+<thead>
+<tr>
+<th>Operator</th>
+<th style="text-align:left">Purpose</th>
+<th>Example   </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>$gt</code></td>
+<td style="text-align:left">Greater than</td>
+<td><code>{ &quot;age&quot;: { &quot;$gt&quot;: 10 } }</code></td>
+</tr>
+<tr>
+<td><code>$gte</code></td>
+<td style="text-align:left">Greater than or equal</td>
+<td><code>{ &quot;age&quot;: { &quot;$gte&quot;: 10 } }</code></td>
+</tr>
+<tr>
+<td><code>$lt</code></td>
+<td style="text-align:left">Less than</td>
+<td><code>{ &quot;age&quot;: { &quot;$lt&quot;: 10 } }</code>   </td>
+</tr>
+<tr>
+<td><code>$lte</code></td>
+<td style="text-align:left">Less than or equal</td>
+<td><code>{ &quot;age&quot;: { &quot;$lte&quot;: 10 } }</code>   </td>
+</tr>
+<tr>
+<td><code>$ne</code></td>
+<td style="text-align:left">Not equal</td>
+<td><code>{ &quot;status&quot;: { &quot;$ne&quot;: &quot;new&quot; } }</code>      </td>
+</tr>
+<tr>
+<td><code>$in</code></td>
+<td style="text-align:left">In operator</td>
+<td><code>{ &quot;status&quot;: { &quot;$in&quot;: [&quot;new&quot;, &quot;hold&quot;] } }</code>    </td>
+</tr>
+<tr>
+<td><code>$nin</code></td>
+<td style="text-align:left">Not In operator</td>
+<td><code>{ &quot;status&quot;: { &quot;$nin&quot;: [&quot;new&quot;, &quot;hold&quot;] } }</code>    </td>
+</tr>
+<tr>
+<td><code>$all</code></td>
+<td style="text-align:left">All in an array match</td>
+<td><code>{ &quot;status&quot;: { &quot;$all&quot;: [&quot;new&quot;, &quot;hold&quot;] } }</code>       </td>
+</tr>
+<tr>
+<td><code>$regex</code></td>
+<td style="text-align:left">Regular expression match</td>
+<td><code>{ &quot;title&quot;: { &quot;$regex&quot;: &quot;^S.mple.*&quot;} }</code>      </td>
+</tr>
+<tr>
+<td><code>$exists</code></td>
+<td style="text-align:left">Check if a field exists</td>
+<td><code>{ &quot;index&quot;: { &quot;$exists&quot;: true }}</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Logical Operators</strong></p>
+<table>
+<thead>
+<tr>
+<th>Operator</th>
+<th style="text-align:left">Purpose</th>
+<th>Example   </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>$and</code></td>
+<td style="text-align:left">Logical AND</td>
+<td><code>{ &quot;$and&quot;: [{ &quot;index&quot;: 100 }, { &quot;status&quot;: &quot;new&quot; }] }</code></td>
+</tr>
+<tr>
+<td><code>$or</code></td>
+<td style="text-align:left">Logical OR</td>
+<td><code>{ &quot;$or&quot;: [{ &quot;index&quot;: 100 }, { &quot;index&quot;: 101 }] }</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="create-or-update">Create or Update</h3>
+<pre><code><span class="hljs-request">PUT <span class="hljs-string">/todo</span> HTTP/1.1</span>
+<span class="hljs-attribute">Authorization</span>: <span class="hljs-string">Bearer {access_token}</span>
+
+<span class="json">{ &quot;<span class="hljs-attribute">title</span>&quot;: <span class="hljs-value"><span class="hljs-string">&quot;Your title&quot;</span></span>, &quot;<span class="hljs-attribute">status</span>&quot;: <span class="hljs-value"><span class="hljs-string">&quot;new&quot;</span> </span>}</span>
+</code></pre><pre><code><span class="hljs-request">PUT <span class="hljs-string">/todo/{id}</span> HTTP/1.1</span>
+<span class="hljs-attribute">Authorization</span>: <span class="hljs-string">Bearer {access_token}</span>
+
+<span class="json">{ &quot;<span class="hljs-attribute">title</span>&quot;: <span class="hljs-value"><span class="hljs-string">&quot;Your title&quot;</span></span>, &quot;<span class="hljs-attribute">status</span>&quot;: <span class="hljs-value"><span class="hljs-string">&quot;new&quot;</span> </span>}</span>
+</code></pre><pre><code><span class="hljs-request">PUT <span class="hljs-string">/todo</span> HTTP/1.1</span>
+<span class="hljs-attribute">Authorization</span>: <span class="hljs-string">Bearer {access_token}</span>
+
+<span class="json">{ &quot;<span class="hljs-attribute">id</span>&quot;: <span class="hljs-value"><span class="hljs-string">&quot;abc&quot;</span></span>, &quot;<span class="hljs-attribute">title</span>&quot;: <span class="hljs-value"><span class="hljs-string">&quot;Your title&quot;</span> </span>}</span>
+</code></pre><pre><code><span class="hljs-request">PUT <span class="hljs-string">/todo?createOnly=true</span> HTTP/1.1</span>
+<span class="hljs-attribute">Authorization</span>: <span class="hljs-string">Bearer {access_token}</span>
+
+<span class="json">{ &quot;<span class="hljs-attribute">id</span>&quot;: <span class="hljs-value"><span class="hljs-string">&quot;abc&quot;</span></span>, &quot;<span class="hljs-attribute">title</span>&quot;: <span class="hljs-value"><span class="hljs-string">&quot;Your title&quot;</span> </span>}</span>
+</code></pre><pre><code><span class="hljs-request">PUT <span class="hljs-string">/todo?updateOnly=true</span> HTTP/1.1</span>
+<span class="hljs-attribute">Authorization</span>: <span class="hljs-string">Bearer {access_token}</span>
+
+<span class="json">{ &quot;<span class="hljs-attribute">id</span>&quot;: <span class="hljs-value"><span class="hljs-string">&quot;abc&quot;</span></span>, &quot;<span class="hljs-attribute">title</span>&quot;: <span class="hljs-value"><span class="hljs-string">&quot;Your title&quot;</span> </span>}</span>
+</code></pre><table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th style="text-align:left">Purpose                 </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>createOnly</code></td>
+<td style="text-align:left">Create an item if it doesn&apos;t exist, ignore updates</td>
+</tr>
+<tr>
+<td><code>updateOnly</code></td>
+<td style="text-align:left">Update an item if it exists, ignore creates</td>
+</tr>
+</tbody>
+</table>
+<h3 id="bulk-create-or-update">Bulk Create or Update</h3>
+<pre><code><span class="hljs-request">PUT <span class="hljs-string">/todo</span> HTTP/1.1</span>
+<span class="hljs-attribute">Authorization</span>: <span class="hljs-string">Bearer {access_token}</span>
+
+<span class="json">[{ &quot;<span class="hljs-attribute">title</span>&quot;: <span class="hljs-value"><span class="hljs-string">&quot;Your title&quot;</span></span>}, { &quot;<span class="hljs-attribute">title</span>&quot;: <span class="hljs-value"><span class="hljs-string">&quot;Your title&quot;</span></span>}]</span>
+</code></pre><pre><code><span class="hljs-request">PUT <span class="hljs-string">/todo</span> HTTP/1.1</span>
+<span class="hljs-attribute">Authorization</span>: <span class="hljs-string">Bearer {access_token}</span>
+
+<span class="json">[{ &quot;<span class="hljs-attribute">id</span>&quot;: <span class="hljs-value"><span class="hljs-string">&quot;2sd233&quot;</span></span>, &quot;<span class="hljs-attribute">title</span>&quot;: <span class="hljs-value"><span class="hljs-string">&quot;Sample&quot;</span></span>}, { &quot;<span class="hljs-attribute">id</span>&quot;: <span class="hljs-value"><span class="hljs-string">&quot;2sd234&quot;</span></span>, &quot;<span class="hljs-attribute">title</span>&quot;: <span class="hljs-value"><span class="hljs-string">&quot;Sample&quot;</span></span>}]</span>
+</code></pre><pre><code><span class="hljs-request">PUT <span class="hljs-string">/todo?createOnly=true</span> HTTP/1.1</span>
+<span class="hljs-attribute">Authorization</span>: <span class="hljs-string">Bearer {access_token}</span>
+
+<span class="json">[{ &quot;<span class="hljs-attribute">id</span>&quot;: <span class="hljs-value"><span class="hljs-string">&quot;2sd233&quot;</span></span>, &quot;<span class="hljs-attribute">title</span>&quot;: <span class="hljs-value"><span class="hljs-string">&quot;Your title&quot;</span></span>}]</span>
+</code></pre><pre><code><span class="hljs-request">PUT <span class="hljs-string">/todo?updateOnly=true</span> HTTP/1.1</span>
+<span class="hljs-attribute">Authorization</span>: <span class="hljs-string">Bearer {access_token}</span>
+
+<span class="json">[{ &quot;<span class="hljs-attribute">id</span>&quot;: <span class="hljs-value"><span class="hljs-string">&quot;2sd233&quot;</span></span>, &quot;<span class="hljs-attribute">title</span>&quot;: <span class="hljs-value"><span class="hljs-string">&quot;Your title&quot;</span></span>}]</span>
+</code></pre><p><em>NOTE: <code>createOnly</code> and <code>updateOnly</code> are applicable for bulk updates as well. For all create and update operations, existance of an item is determinded through it&apos;s <code>id</code></em></p>
+<h3 id="delete">Delete</h3>
+<pre><code><span class="hljs-request">DELETE <span class="hljs-string">/todo/{id}</span> HTTP/1.1</span>
+<span class="hljs-attribute">Authorization</span>: <span class="hljs-string">Bearer {access_token}</span>
+</code></pre><pre><code><span class="hljs-request">DELETE <span class="hljs-string">/todo</span> HTTP/1.1</span>
+<span class="hljs-attribute">Authorization</span>: <span class="hljs-string">Bearer {access_token}</span>
+
+<span class="json">{ &quot;<span class="hljs-attribute">status</span>&quot;: <span class="hljs-value"><span class="hljs-string">&quot;new&quot;</span> </span>}</span>
+</code></pre><pre><code><span class="hljs-request">DELETE <span class="hljs-string">/todo</span> HTTP/1.1</span>
+<span class="hljs-attribute">Authorization</span>: <span class="hljs-string">Bearer {access_token}</span>
+</code></pre><p><em>NOTE: <code>DELETE /todo</code> deletes everything. <code>USE WITH CATION</code></em></p>
+<h1 id="oauth2-api">OAuth2 API</h1>
+<p>This module contains <strong><a href="http://oauth.net/2/">OAuth2</a></strong> services configured out-of-box for <code>password</code> and <code>refresh_token</code> grant types. In this section we will discuss how to use them. To know about how to configure see <a href="#api-configuration">API Configuration</a> section.</p>
+<h3 id="using-the-password-grant-type">Using the password grant type</h3>
+<p>First you must create a client and a user. A default client and user are configured at startup (see <a href="#api-configuration">API Configuration</a> for details). Additionally users and clients can be created using build in apis <code>/oauth2/user</code> and <code>/oauth2/client</code>.</p>
+<p>To obtain a token you should POST to /oauth2/token. You should include your client credentials in the <code>Authorization</code> header (<code>&quot;Basic &quot; + client_id:client_secret base64&apos;d</code>), and then <code>grant_type</code> (<code>password</code>), <code>username</code> and <code>password</code> in the request body, for example:</p>
+<pre><code><span class="hljs-request">POST <span class="hljs-string">/oauth/token</span> HTTP/1.1</span>
+<span class="hljs-attribute">Authorization</span>: <span class="hljs-string">Basic czZCaGRSa3F0MzpnWDFmQmF0M2JW</span>
+<span class="hljs-attribute">Content-Type</span>: <span class="hljs-string">application/x-www-form-urlencoded</span>
+
+<span class="bash">grant_<span class="hljs-built_in">type</span>=password&amp;username=johndoe&amp;password=A3ddj3w</span>
+</code></pre><p>Provided there weren&apos;t any errors, this will return the following (excluding the refresh_token if you&apos;ve not enabled the refresh_token grant type):</p>
+<pre><code><span class="hljs-status">HTTP/1.1 <span class="hljs-number">200</span> OK</span>
+<span class="hljs-attribute">Content-Type</span>: <span class="hljs-string">application/json;charset=UTF-8</span>
+
+<span class="json">{
+  &quot;<span class="hljs-attribute">access_token</span>&quot;:<span class="hljs-value"><span class="hljs-string">&quot;2YotnFZFEjr1zCsicMWpAA&quot;</span></span>,
+  &quot;<span class="hljs-attribute">token_type</span>&quot;:<span class="hljs-value"><span class="hljs-string">&quot;bearer&quot;</span></span>,
+  &quot;<span class="hljs-attribute">expires_in</span>&quot;:<span class="hljs-value"><span class="hljs-number">3600</span></span>,
+  &quot;<span class="hljs-attribute">refresh_token</span>&quot;:<span class="hljs-value"><span class="hljs-string">&quot;tGzv3JOkF0XG5Qx2TlKWIA&quot;</span>
+</span>}</span>
+</code></pre><h3 id="using-the-refresh_token-grant-type">Using the refresh_token grant type</h3>
+<p>Send a request with previously obtained <code>refresh_token</code> to extend grant and expect the same output as the previous call.</p>
+<pre><code><span class="hljs-request">POST <span class="hljs-string">/oauth/token</span> HTTP/1.1</span>
+<span class="hljs-attribute">Authorization</span>: <span class="hljs-string">Basic {access_token}</span>
+<span class="hljs-attribute">Content-Type</span>: <span class="hljs-string">application/x-www-form-urlencoded</span>
+
+<span class="bash">grant_<span class="hljs-built_in">type</span>=refresh_token&amp;refresh_token=tGzv3JOkF0XG5Qx2TlKWIA</span>
+</code></pre><h3 id="managing-users">Managing Users</h3>
+<h4 id="get">Get</h4>
+<pre><code>GET <span class="hljs-regexp">/oauth2/</span>user<span class="hljs-regexp">/{userId} HTTP/</span><span class="hljs-number">1.1</span>
+<span class="hljs-string">Authorization:</span> Basic base64{<span class="hljs-string">clientId:</span>clientSecret}
+</code></pre><h4 id="create-user">Create User</h4>
+<pre><code><span class="hljs-request">PUT <span class="hljs-string">/oauth2/user</span> HTTP/1.1</span>
+<span class="hljs-attribute">Authorization</span>: <span class="hljs-string">Basic base64{clientId:clientSecret}</span>
+
+<span class="json">{ &quot;<span class="hljs-attribute">userId</span>&quot;: <span class="hljs-value"><span class="hljs-string">&quot;emailid&quot;</span></span>, &quot;<span class="hljs-attribute">password</span>&quot;: <span class="hljs-value"><span class="hljs-string">&quot;base64(plaintext)&quot;</span></span>, &quot;<span class="hljs-attribute">name</span>&quot;: <span class="hljs-value"><span class="hljs-string">&quot;Full name&quot;</span> </span>}</span>
+</code></pre><h4 id="bulk-create-or-update">Bulk Create Or Update</h4>
+<pre><code><span class="hljs-request">PUT <span class="hljs-string">/oauth2/user</span> HTTP/1.1</span>
+<span class="hljs-attribute">Authorization</span>: <span class="hljs-string">Bearer {access_token}</span>
+
+<span class="json">[{ &quot;<span class="hljs-attribute">userId</span>&quot;: <span class="hljs-value"><span class="hljs-string">&quot;user1@system.com&quot;</span></span>, &quot;<span class="hljs-attribute">password</span>&quot;: <span class="hljs-value"><span class="hljs-string">&quot;base64(plaintext)&quot;</span></span>, &quot;<span class="hljs-attribute">name</span>&quot;: <span class="hljs-value"><span class="hljs-string">&quot;Full name&quot;</span> </span>},
+ { &quot;<span class="hljs-attribute">userId</span>&quot;: <span class="hljs-value"><span class="hljs-string">&quot;user2@system.com&quot;</span></span>, &quot;<span class="hljs-attribute">password</span>&quot;: <span class="hljs-value"><span class="hljs-string">&quot;base64(plaintext)&quot;</span></span>, &quot;<span class="hljs-attribute">name</span>&quot;: <span class="hljs-value"><span class="hljs-string">&quot;Full name&quot;</span> </span>}]</span>
+</code></pre><h4 id="delete">Delete</h4>
+<pre><code><span class="hljs-request">DELETE <span class="hljs-string">/oauth2/user/{userId}</span> HTTP/1.1</span>
+<span class="hljs-attribute">Authorization</span>: <span class="hljs-string">Bearer {access_token}</span>
+</code></pre><h3 id="managing-clients">Managing Clients</h3>
+<h4 id="get">Get</h4>
+<pre><code>GET <span class="hljs-regexp">/oauth2/</span>client<span class="hljs-regexp">/{clientId} HTTP/</span><span class="hljs-number">1.1</span>
+<span class="hljs-string">Authorization:</span> Basic base64{<span class="hljs-string">clientId:</span>clientSecret}
+</code></pre><h4 id="create-client">Create Client</h4>
+<pre><code><span class="hljs-request">PUT <span class="hljs-string">/oauth2/client</span> HTTP/1.1</span>
+<span class="hljs-attribute">Authorization</span>: <span class="hljs-string">Basic base64{clientId:clientSecret}</span>
+
+<span class="json">{ &quot;<span class="hljs-attribute">clientId</span>&quot;: <span class="hljs-value"><span class="hljs-string">&quot;24x43f-sd23dde-sda23&quot;</span></span>, &quot;<span class="hljs-attribute">clientSecret</span>&quot;: <span class="hljs-value"><span class="hljs-string">&quot;a0c7b741-b18b-47eb&quot;</span></span>, &quot;<span class="hljs-attribute">name</span>&quot;: <span class="hljs-value"><span class="hljs-string">&quot;Full name&quot;</span> </span>}</span>
+</code></pre><h4 id="bulk-create-or-update">Bulk Create Or Update</h4>
+<pre><code><span class="hljs-request">PUT <span class="hljs-string">/oauth2/client</span> HTTP/1.1</span>
+<span class="hljs-attribute">Authorization</span>: <span class="hljs-string">Bearer {access_token}</span>
+
+<span class="json">[{ &quot;<span class="hljs-attribute">clientId</span>&quot;: <span class="hljs-value"><span class="hljs-string">&quot;4x33-23cs34d-3ss12&quot;</span></span>, &quot;<span class="hljs-attribute">clientSecret</span>&quot;: <span class="hljs-value"><span class="hljs-string">&quot;a0c7b741-b18b-47eb&quot;</span></span>, &quot;<span class="hljs-attribute">name</span>&quot;: <span class="hljs-value"><span class="hljs-string">&quot;Full name&quot;</span> </span>},
+ { &quot;<span class="hljs-attribute">clientId</span>&quot;: <span class="hljs-value"><span class="hljs-string">&quot;243f-sd23dde-sda23&quot;</span></span>, &quot;<span class="hljs-attribute">clientSecret</span>&quot;: <span class="hljs-value"><span class="hljs-string">&quot;a0c7b741-b18b-47eb&quot;</span></span>, &quot;<span class="hljs-attribute">name</span>&quot;: <span class="hljs-value"><span class="hljs-string">&quot;Full name&quot;</span> </span>}]</span>
+</code></pre><h4 id="delete">Delete</h4>
+<pre><code><span class="hljs-request">DELETE <span class="hljs-string">/oauth2/client/{clientId}</span> HTTP/1.1</span>
+<span class="hljs-attribute">Authorization</span>: <span class="hljs-string">Bearer {access_token}</span>
+</code></pre><h1 id="model-configuration">Model Configuration</h1>
+<h2 id="configuration">Configuration</h2>
+<p><code>*</code> - are mandatory</p>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th style="text-align:left">Type</th>
+<th style="text-align:left">Purpose           </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>url          <code>*</code></td>
+<td style="text-align:left">Definition</td>
+<td style="text-align:left">Serving endpoint. The final url will be <code>http://{app}:{port}/{baseUrl}/{url}</code> </td>
+</tr>
+<tr>
+<td>schema       <code>*</code></td>
+<td style="text-align:left">Definition</td>
+<td style="text-align:left">Define the schema as defined by mongoose. See <a href="#schema-definition">Schema Definition</a>   for details.</td>
+</tr>
+<tr>
+<td>projection</td>
+<td style="text-align:left">Behaviour</td>
+<td style="text-align:left">Coma separated list of fields that needs to be projected. Use <code>-</code> at the beginning of the fieldname to hide it. Usage: <code>projection: &apos;userId,name,roles,-password&apos;</code></td>
+</tr>
+<tr>
+<td>userSpace</td>
+<td style="text-align:left">Behaviour</td>
+<td style="text-align:left">Keep track of the user for each record and restrict access to the corresponding users. Usage: <code>userSpace: true</code>. Usage: <code>userSpace: {``field: &quot;_user&quot;``}</code></td>
+</tr>
+<tr>
+<td>configure</td>
+<td style="text-align:left">Function</td>
+<td style="text-align:left">Use this function to register <a href="http://mongoosejs.com/docs/middleware.html">middleware</a> or <a href="http://mongoosejs.com/docs/plugins.html">plugins</a>. Context of this function will contain the second parameter of &apos;defineModel&apos; (this object itself) <em>this.schema</em> - Schema defined by `schema, <em>this.model</em> - reference to <a href="http://mongoosejs.com/docs/models.html">mongoose.Model</a>, <em>this.modelSchema</em> - reference to <a href="http://mongoosejs.com/docs/guide.html">mongoose.Schema</a></td>
+</tr>
+</tbody>
+</table>
+<pre><code class="lang-js"><span class="hljs-comment">// define &quot;Todo&quot; model</span>
+.register(mongoRestifier.defineModel(<span class="hljs-string">&quot;Todo&quot;</span>, {
+
+   <span class="hljs-comment">/** schema definition (mandatory) **/</span>
+
+   schema: {  
+
+     <span class="hljs-comment">/** field definition **/</span>
+
+     field1: {
+
+       <span class="hljs-comment">/** type of the field **/</span>
+
+       <span class="hljs-keyword">type</span>: <span class="hljs-built_in">String</span> | <span class="hljs-built_in">Number</span> | <span class="hljs-built_in">Date</span>,
+
+       <span class="hljs-comment">/** validations **/</span>
+
+       required: <span class="hljs-literal">true</span>,                      <span class="hljs-comment">// check for null values </span>
+       required: [<span class="hljs-literal">true</span>, <span class="hljs-string">&apos;phone# required&apos;</span>], <span class="hljs-comment">// custom message</span>
+       <span class="hljs-keyword">enum</span>: [<span class="hljs-string">&apos;Coffee&apos;</span>, <span class="hljs-string">&apos;Tea&apos;</span>],             <span class="hljs-comment">// only if type = String</span>
+       minlength: <span class="hljs-built_in">number</span>,                   <span class="hljs-comment">// only if type = String</span>
+       maxlength: <span class="hljs-built_in">number</span>,                   <span class="hljs-comment">// only if type = String</span>
+       min: <span class="hljs-built_in">number</span>,                         <span class="hljs-comment">// only if type = Number</span>
+       max: <span class="hljs-built_in">number</span>,                         <span class="hljs-comment">// only if type = Number</span>
+
+       <span class="hljs-comment">/** custom validation **/</span>
+
+       validate: {
+          validator: <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">v</span>) </span>{
+            <span class="hljs-keyword">return</span> <span class="hljs-regexp">/\d{3}-\d{3}-\d{4}/</span>.test(v);
+          },
+          message: <span class="hljs-string">&apos;{VALUE} is not a valid phone number!&apos;</span>
+       },
+
+       <span class="hljs-comment">/** other options **/</span>
+
+       idField: <span class="hljs-built_in">boolean</span>,           <span class="hljs-comment">// replaces _id with field1. one and only one field can be id</span>
+       autoIncrement: <span class="hljs-built_in">boolean</span>,     <span class="hljs-comment">// only if type = Number</span>
+       startAt: <span class="hljs-built_in">number</span>,            <span class="hljs-comment">// only if type = Number and autoIncrement = true</span>
+       incrementBy: <span class="hljs-built_in">number</span>         <span class="hljs-comment">// only if type = Number and autoIncrement = true  </span>
+     }
+   },
+
+   url: <span class="hljs-built_in">String</span>,                   <span class="hljs-comment">// service endpoint eg: /todo</span>
+   userSpace: <span class="hljs-built_in">Boolean</span>,            <span class="hljs-comment">// true | { field: &quot;{your field name}&quot; }</span>
+
+   configure: <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params"></span>) </span>{
+     <span class="hljs-comment">// write your code here to customize this model further</span>
+
+     <span class="hljs-comment">// this.schema         - The second parameter of &apos;defineModel&apos; (this object itself)</span>
+     <span class="hljs-comment">// this.model          - reference to mongoose.Model</span>
+     <span class="hljs-comment">// this.modelSchema    - reference to mongoose.Schema </span>
+   }
+
+}));
+</code></pre>
+<h2 id="schema-definition">Schema Definition</h2>
+<p><code>*</code> - are mandatory
+<code>**</code> - additional feature than the ones supported by <a href="http://mongoosejs.com/docs/guide.html">mongoose</a></p>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th style="text-align:left">Type</th>
+<th style="text-align:left">Purpose           </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>{field}.type          <code>*</code></td>
+<td style="text-align:left">Definition</td>
+<td style="text-align:left">Valid values are <code>String</code>, <code>Number</code> and <code>Date</code> </td>
+</tr>
+<tr>
+<td>{field}.idField       <code>**</code></td>
+<td style="text-align:left">Behaviour</td>
+<td style="text-align:left">If set to <code>true</code>, system replaces _id with the given field. One and only one field can be set as id field. Usage: <code>idField: true</code> </td>
+</tr>
+<tr>
+<td>{field}.autoIncrement <code>**</code></td>
+<td style="text-align:left">Behaviour</td>
+<td style="text-align:left">If set to <code>true</code>, system increments value of the given field for every insertion. This validation can be applied only on <code>Number</code> fields . Usage: <code>autoIncrement: true</code> </td>
+</tr>
+<tr>
+<td>{field}.startAt       <code>**</code></td>
+<td style="text-align:left">Behaviour</td>
+<td style="text-align:left">Start autoIcrement at the given value. This configuration takes effect only if <code>autoIcrement</code> is set to <code>true</code>. Usage: <code>startAt: 1</code> </td>
+</tr>
+<tr>
+<td>{field}.incrementBy   <code>**</code></td>
+<td style="text-align:left">Behaviour</td>
+<td style="text-align:left">Start autoIcrement with the given steps. This configuration takes effect only if <code>autoIcrement</code> is set to <code>true</code>. Usage: <code>incrementBy: 1</code> </td>
+</tr>
+<tr>
+<td>{field}.default</td>
+<td style="text-align:left">Behaviour</td>
+<td style="text-align:left">Sets the given value as the default value of the field if not specified in the request. Usage: <code>default: Date.now</code>  </td>
+</tr>
+<tr>
+<td>{field}.required</td>
+<td style="text-align:left">Validation</td>
+<td style="text-align:left">If set to <code>true</code> adds a required validator. If a value is not specified while creating an entity, operation will be rejected with an error, unless &apos;default&apos; value is configured. Required can be configured as:. Usage: <code>required: true</code> or <code>required: [true, &apos;User phone number required&apos;]</code> This format is applicable to all validators except <code>validate</code> </td>
+</tr>
+<tr>
+<td>{field}.enum</td>
+<td style="text-align:left">Validation</td>
+<td style="text-align:left">Validates the value of a field against predefined enum values; This validation can be applied only on <code>String</code> fields. Usage: <code>enum: [&apos;Coffee&apos;, &apos;Tea&apos;]</code> </td>
+</tr>
+<tr>
+<td>{field}.minlength</td>
+<td style="text-align:left">Validation</td>
+<td style="text-align:left">Validates the length of the value to be minimum of given value; This validation can be applied only on <code>String</code> fields. Usage: <code>minlength: 5</code> </td>
+</tr>
+<tr>
+<td>{field}.maxlength</td>
+<td style="text-align:left">Validation</td>
+<td style="text-align:left">Validates the length of the value to be maximum of given value; This validation can be applied only on <code>String</code> fields. Usage: <code>maxlength: 5</code> </td>
+</tr>
+<tr>
+<td>{field}.min</td>
+<td style="text-align:left">Validation</td>
+<td style="text-align:left">Validates the value to be minimum of given value; This validation can be applied only on <code>Number</code> fields. Usage: <code>min: 5</code> </td>
+</tr>
+<tr>
+<td>{field}.max</td>
+<td style="text-align:left">Validation</td>
+<td style="text-align:left">Validates the value to be maximum of given value; This validation can be applied only on <code>Number</code> fields. Usage: <code>max: 5</code> </td>
+</tr>
+<tr>
+<td>{field}.validate</td>
+<td style="text-align:left">Validation</td>
+<td style="text-align:left">Helps in defining custom validation. <code>validate: { validator: function(v) { return /\d{3}-\d{3}-\d{4}/.test(v); }, message: &apos;{VALUE} is not a valid phone number!&apos;}</code></td>
+</tr>
+</tbody>
+</table>
+<p>Any other additional option supported by <a href="http://mongoosejs.com/docs/guide.html">mongoose schema</a></p>
+<h1 id="api-configuration">API Configuration</h1>
+<h2 id="options">Options</h2>
+<p>All values except <code>database.url</code> are predefined. Specify any value in <code>app.conf.json</code> or <code>app.conf.properties</code> only if you need to override them.</p>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th style="text-align:left">Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>database.url</td>
+<td style="text-align:left">Mongo DB url. Format:  <code>mongodb://localhost/{dbname}</code></td>
+</tr>
+<tr>
+<td>api.port</td>
+<td style="text-align:left">Port your server should start at; default: <code>3000</code></td>
+</tr>
+<tr>
+<td>api.baseUrl</td>
+<td style="text-align:left">Port and baseUrl defines your api url: <code>http://{host}:{port}/{baseUrl}/</code></td>
+</tr>
+<tr>
+<td>api.cors.enabled</td>
+<td style="text-align:left"><code>true</code> if you want to make <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Access_control_CORS">cross-origin HTTP request</a>. CORS is enabled by default.</td>
+</tr>
+<tr>
+<td>api.cors.allowed</td>
+<td style="text-align:left"><em>origin</em> - coma separated domain names; <code>*</code> - for any domain, <em>methods</em> - coma separated values of: <code>GET</code>, <code>POST</code>, <code>HEAD</code>, <code>POST</code>, <code>PUT</code> , <code>DELETE</code>, <em>headers</em> - all possible headers added by user or user agent </td>
+</tr>
+<tr>
+<td>api.oauth2.enabled</td>
+<td style="text-align:left"><code>true</code> to enable OAuth2 based authentication and authorization</td>
+</tr>
+<tr>
+<td>api.oauth2.default.user</td>
+<td style="text-align:left">To create a default user at startup, provide user attributes: <em>name</em> - Full name of the user; default: <code>Superuser</code>,  <em>userId</em> - Required for login; default: <code>superuser@system.com</code>,  <em>password</em> - Password must be base64 encode; default: <code>sysadmin</code> (TODO: use encryption) ,  <em>roles</em> -  the roles must be an array of string; default: [<code>ADMIN</code>]</td>
+</tr>
+<tr>
+<td>api.oauth2.default.client</td>
+<td style="text-align:left">To create a default client at startup, provide client attributes: <em>name</em>, <em>description</em>, <em>id</em>, <em>secret</em>,  <em>grantTypes</em> - valid values are <code>password</code> and <code>refresh_token</code> </td>
+</tr>
+<tr>
+<td>api.oauth2.rules</td>
+<td style="text-align:left">Array of tab separated values in the order:  <em>AuthType</em> - valid values are <code>None</code>, <code>Basic</code> and <code>Bearer</code>, <em>Roles</em> - coma separated values without space. eg: <code>ADMIN,USER</code>, <em>Methods</em> - coma separated values without space. eg: <code>GET,POST,PUT</code>,  <em>Url</em> - eg: <code>/api/user/**/*</code></td>
+</tr>
+<tr>
+<td>api.environment</td>
+<td style="text-align:left"><code>development</code> or <code>production</code></td>
+</tr>
+<tr>
+<td>logger.level</td>
+<td style="text-align:left">Valid values are <code>OFF</code>, <code>FATAL</code>, <code>ERROR</code>, <code>WARN</code>, <code>LOG</code>, <code>INFO</code>, <code>DEBUG</code>, <code>TRACE</code> and <code>ALL</code></td>
+</tr>
+<tr>
+<td>logger.log4js</td>
+<td style="text-align:left"><a href="https://www.npmjs.com/package/log4js#configuration">Log4j configuration</a></td>
+</tr>
+</tbody>
+</table>
+<h2 id="configuration-file">Configuration File</h2>
+<p>You may setup configuration in either of the two formats:</p>
+<ul>
+<li><code>json</code> - The file must have an extension <code>.json</code></li>
+<li><code>ini</code> - The file must have an extension <code>.properties</code></li>
+</ul>
+<h3 id="json-format-">JSON Format:</h3>
+<pre><code class="lang-json">{
+    &quot;<span class="hljs-attribute">database</span>&quot;: <span class="hljs-value">{
+        &quot;<span class="hljs-attribute">url</span>&quot;: <span class="hljs-value"><span class="hljs-string">&quot;mongodb://localhost/{dbname}&quot;</span>
+    </span>}</span>,
+    &quot;<span class="hljs-attribute">api</span>&quot;: <span class="hljs-value">{
+        &quot;<span class="hljs-attribute">port</span>&quot;: <span class="hljs-value"><span class="hljs-number">3000</span></span>,
+        &quot;<span class="hljs-attribute">baseUrl</span>&quot;: <span class="hljs-value"><span class="hljs-string">&quot;/api&quot;</span></span>,
+        &quot;<span class="hljs-attribute">environment</span>&quot;: <span class="hljs-value"><span class="hljs-string">&quot;development&quot;</span></span>,
+        &quot;<span class="hljs-attribute">cors</span>&quot;: <span class="hljs-value">{
+            &quot;<span class="hljs-attribute">enabled</span>&quot;: <span class="hljs-value"><span class="hljs-literal">true</span></span>,
+            &quot;<span class="hljs-attribute">allowed</span>&quot;: <span class="hljs-value">{
+                &quot;<span class="hljs-attribute">origin</span>&quot;: <span class="hljs-value"><span class="hljs-string">&quot;*&quot;</span></span>,
+                &quot;<span class="hljs-attribute">methods</span>&quot;: <span class="hljs-value"><span class="hljs-string">&quot;GET,PUT,POST,DELETE,OPTIONS&quot;</span></span>,
+                &quot;<span class="hljs-attribute">headers</span>&quot;: <span class="hljs-value"><span class="hljs-string">&quot;Origin, X-Requested-With, Content-Type, Accept, Authorization, Cache-Control&quot;</span>
+            </span>}
+        </span>}</span>,
+        &quot;<span class="hljs-attribute">oauth2</span>&quot;: <span class="hljs-value">{
+            &quot;<span class="hljs-attribute">enabled</span>&quot;: <span class="hljs-value"><span class="hljs-literal">true</span></span>,
+            &quot;<span class="hljs-attribute">default</span>&quot;: <span class="hljs-value">{
+                &quot;<span class="hljs-attribute">user</span>&quot;: <span class="hljs-value">{
+                    &quot;<span class="hljs-attribute">name</span>&quot;: <span class="hljs-value"><span class="hljs-string">&quot;Superuser&quot;</span></span>,
+                    &quot;<span class="hljs-attribute">userId</span>&quot;: <span class="hljs-value"><span class="hljs-string">&quot;superuser@system.com&quot;</span></span>,
+                    &quot;<span class="hljs-attribute">password</span>&quot;: <span class="hljs-value"><span class="hljs-string">&quot;c3lzYWRtaW4=&quot;</span></span>,
+                    &quot;<span class="hljs-attribute">roles</span>&quot;: <span class="hljs-value">[
+                        <span class="hljs-string">&quot;admin&quot;</span>
+                    ]
+                </span>}</span>,
+                &quot;<span class="hljs-attribute">client</span>&quot;: <span class="hljs-value">{
+                    &quot;<span class="hljs-attribute">name</span>&quot;: <span class="hljs-value"><span class="hljs-string">&quot;Master&quot;</span></span>,
+                    &quot;<span class="hljs-attribute">description</span>&quot;: <span class="hljs-value"><span class="hljs-string">&quot;This is a default client setup by the system&quot;</span></span>,
+                    &quot;<span class="hljs-attribute">id</span>&quot;: <span class="hljs-value"><span class="hljs-string">&quot;7d65d9b6-5cae-4db7-b19d-56cbdd25eaab&quot;</span></span>,
+                    &quot;<span class="hljs-attribute">secret</span>&quot;: <span class="hljs-value"><span class="hljs-string">&quot;a0c7b741-b18b-47eb-b6df-48a0bd3cde2e&quot;</span></span>,
+                    &quot;<span class="hljs-attribute">grantTypes</span>&quot;: <span class="hljs-value">[
+                        <span class="hljs-string">&quot;password&quot;</span>,
+                        <span class="hljs-string">&quot;refresh_token&quot;</span>
+                    ]
+                </span>}
+            </span>}</span>,
+            &quot;<span class="hljs-attribute">rules</span>&quot;: <span class="hljs-value">[
+                <span class="hljs-string">&quot;None        ,               OPTIONS             /api/oauth2/register&quot;</span>,
+                <span class="hljs-string">&quot;None        *               OPTIONS             /api/oauth2/client&quot;</span>,
+                <span class="hljs-string">&quot;None        *               OPTIONS             /api/oauth2/user&quot;</span>,
+                <span class="hljs-string">&quot;Basic       *               GET                 /api/oauth2/user&quot;</span>,
+                <span class="hljs-string">&quot;Bearer      ADMIN           *                   /api/oauth2/user&quot;</span>,
+                <span class="hljs-string">&quot;Bearer      ADMIN           *                   /api/oauth2/client&quot;</span>
+            ]
+        </span>}
+    </span>}</span>,
+    &quot;<span class="hljs-attribute">logger</span>&quot;: <span class="hljs-value">{
+        &quot;<span class="hljs-attribute">level</span>&quot;: <span class="hljs-value"><span class="hljs-string">&quot;DEBUG&quot;</span></span>,
+        &quot;<span class="hljs-attribute">log4j</span>&quot;: <span class="hljs-value">{
+            &quot;<span class="hljs-attribute">appenders</span>&quot;: <span class="hljs-value">[
+                {
+                    &quot;<span class="hljs-attribute">type</span>&quot;: <span class="hljs-value"><span class="hljs-string">&quot;console&quot;</span></span>,
+                    &quot;<span class="hljs-attribute">makers</span>&quot;: <span class="hljs-value">{}
+                </span>}
+            ]
+        </span>}
+    </span>}
+</span>}
+</code></pre>
+<h3 id="ini-format-">INI Format:</h3>
+<pre><code class="lang-ini">
+[database]
+url = mongodb:<span class="hljs-comment">//localhost/{dbname}</span>
+
+[api]
+port = <span class="hljs-number">3000</span>
+baseUrl = /api
+environment = development
+
+[api.cors]
+enabled = <span class="hljs-literal">true</span>
+allowed.origin = *
+allowed.methods = GET,PUT,POST,DELETE,OPTIONS
+allowed.headers = Origin, X-Requested-With, Content-Type, Accept, Authorization, Cache-Control
+
+[api.oauth2]
+enabled = <span class="hljs-literal">true</span>
+
+[api.oauth2.<span class="hljs-keyword">default</span>.user]
+name = Superuser
+userId = superuser@system.com
+password = c3lzYWRtaW4=
+roles<span class="hljs-number">.0</span> = admin
+
+[api.oauth2.<span class="hljs-keyword">default</span>.client]
+name = Master
+id = <span class="hljs-number">7</span>d65d9b6-<span class="hljs-number">5</span>cae-<span class="hljs-number">4</span>db7-b19d-<span class="hljs-number">56</span>cbdd25eaab
+secret = a0c7b741-b18b-<span class="hljs-number">47</span>eb-b6df-<span class="hljs-number">48</span>a0bd3cde2e
+grantTypes<span class="hljs-number">.0</span> = password
+grantTypes<span class="hljs-number">.1</span> = refresh_token
+
+[api.oauth2.rules]
+<span class="hljs-preprocessor"># ----- - ----------- --------------- ------------------- ------------------------</span>
+<span class="hljs-preprocessor"># index - AuthType    Roles           Methods             Url Pattern</span>
+<span class="hljs-preprocessor"># ----- - ----------- --------------- ------------------- ------------------------</span>
+      <span class="hljs-number">0</span> = None        *               OPTIONS             /api/oauth2/<span class="hljs-keyword">register</span>
+      <span class="hljs-number">1</span> = None        *               OPTIONS             /api/oauth2/client
+      <span class="hljs-number">2</span> = None        *               OPTIONS             /api/oauth2/user
+      <span class="hljs-number">3</span> = Basic       *               GET                 /api/oauth2/user
+      <span class="hljs-number">4</span> = Bearer      ADMIN           *                   /api/oauth2/user
+      <span class="hljs-number">5</span> = Bearer      ADMIN           *                   /api/oauth2/client
+<span class="hljs-preprocessor"># ----- - ----------- --------------- ------------------- ------------------------</span>
+
+[logger] 
+level = DEBUG
+log4j.appenders<span class="hljs-number">.0</span>.type = console
+
+<span class="hljs-preprocessor"># For logging into a file comment the <span class="hljs-keyword">line</span> above and uncomment two lines after this <span class="hljs-keyword">line</span></span>
+<span class="hljs-preprocessor"># log4j.appenders<span class="hljs-number">.0</span>.type = file</span>
+<span class="hljs-preprocessor"># log4j.appenders<span class="hljs-number">.0</span>.filename = logs/api.log</span>
+</code></pre>
+<h1 id="about">ABOUT</h1>
+<h2 id="angular2-integration">Angular2 Integration</h2>
+<p>This software was built with <a href="https://angular.io/">Angular 2</a> in mind. Client-side library is being build. Come back later.</p>
+<h2 id="sample-apps">Sample Apps</h2>
+<p>Come back later for sample apps</p>
+<h2 id="running-the-tests">Running the Tests</h2>
+<p>Do <code>npm install</code> to install all of the dependencies, ensure that <a href="http://mongodb.org">MongoDB</a> is installed, then to run the unit tests run:</p>
+<pre><code>$ npm <span class="hljs-built_in">test</span>
+</code></pre><h2 id="contributing">Contributing</h2>
+<p>Contributions are very welcome! Just send a pull request. Feel free to contact me or checkout my <a href="https://github.com/rintoj">Github</a> page.</p>
+<h2 id="author">Author</h2>
+<p><strong>Rinto Jose</strong> (rintoj) </p>
+<p>Follow me:
+  <a href="https://github.com/rintoj">Github</a>
+| <a href="https://www.facebook.com/rinto.jose">Facebook</a>
+| <a href="https://twitter.com/rintoj">Twitter</a>
+| <a href="https://plus.google.com/+RintoJoseMankudy">Google+</a>
+| <a href="https://youtube.com/+RintoJoseMankudy">Youtube</a></p>
+<h2 id="license">License</h2>
+<pre><code>The MIT License (MIT)
+
+Copyright (c) 2016 Rinto Jose (rintoj)
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the &quot;Software&quot;), to deal
+in the Software without restriction, including without limitation the rights
+to <span class="hljs-operator"><span class="hljs-keyword">use</span>, copy, <span class="hljs-keyword">modify</span>, <span class="hljs-keyword">merge</span>, publish, <span class="hljs-keyword">distribute</span>, sublicense, <span class="hljs-keyword">and</span>/<span class="hljs-keyword">or</span> sell
+copies <span class="hljs-keyword">of</span> the Software, <span class="hljs-keyword">and</span> <span class="hljs-keyword">to</span> permit persons <span class="hljs-keyword">to</span> whom the Software <span class="hljs-keyword">is</span>
+furnished <span class="hljs-keyword">to</span> <span class="hljs-keyword">do</span> so, subject <span class="hljs-keyword">to</span> the <span class="hljs-keyword">following</span> conditions:
+
+The above copyright <span class="hljs-keyword">notice</span> <span class="hljs-keyword">and</span> this permission <span class="hljs-keyword">notice</span> shall be included <span class="hljs-keyword">in</span>
+all copies <span class="hljs-keyword">or</span> substantial portions <span class="hljs-keyword">of</span> the Software.
+
+THE SOFTWARE <span class="hljs-keyword">IS</span> PROVIDED <span class="hljs-string">&quot;AS IS&quot;</span>, <span class="hljs-keyword">WITHOUT</span> WARRANTY <span class="hljs-keyword">OF</span> <span class="hljs-keyword">ANY</span> KIND, EXPRESS <span class="hljs-keyword">OR</span>
+IMPLIED, <span class="hljs-keyword">INCLUDING</span> BUT <span class="hljs-keyword">NOT</span> LIMITED <span class="hljs-keyword">TO</span> THE WARRANTIES <span class="hljs-keyword">OF</span> MERCHANTABILITY,
+FITNESS <span class="hljs-keyword">FOR</span> A PARTICULAR PURPOSE <span class="hljs-keyword">AND</span> NONINFRINGEMENT. <span class="hljs-keyword">IN</span> <span class="hljs-keyword">NO</span> <span class="hljs-keyword">EVENT</span> SHALL THE
+<span class="hljs-keyword">AUTHORS</span> <span class="hljs-keyword">OR</span> COPYRIGHT HOLDERS BE LIABLE <span class="hljs-keyword">FOR</span> <span class="hljs-keyword">ANY</span> CLAIM, DAMAGES <span class="hljs-keyword">OR</span> OTHER
+LIABILITY, WHETHER <span class="hljs-keyword">IN</span> AN <span class="hljs-keyword">ACTION</span> <span class="hljs-keyword">OF</span> CONTRACT, TORT <span class="hljs-keyword">OR</span> OTHERWISE, ARISING <span class="hljs-keyword">FROM</span>,
+<span class="hljs-keyword">OUT</span> <span class="hljs-keyword">OF</span> <span class="hljs-keyword">OR</span> <span class="hljs-keyword">IN</span> <span class="hljs-keyword">CONNECTION</span> <span class="hljs-keyword">WITH</span> THE SOFTWARE <span class="hljs-keyword">OR</span> THE <span class="hljs-keyword">USE</span> <span class="hljs-keyword">OR</span> OTHER DEALINGS <span class="hljs-keyword">IN</span>
+THE SOFTWARE.</span>
+</code></pre></article></section></section>
+  </body>
+
