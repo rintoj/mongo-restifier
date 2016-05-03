@@ -38,6 +38,9 @@
     "chai-http": "^1.0.0",
     "chai-sorted": "^0.1.0",
     "chai-things": "^0.2.0",
+    "gulp": "^3.9.1",
+    "gulp-markdown": "^1.2.0",
+    "gulp-markdown-docs": "^0.1.5",
     "mocha": "^2.4.5"
   },
   "author": "Rinto Jose (rintoj)",

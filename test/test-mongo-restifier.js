@@ -77,9 +77,9 @@ var instance = mongoRestifier('./test/api.test.conf.json')
 describe('mongo-restifier', function() {
 
   before(function(done) {
-    instance.models.Todo.model.remove({}, function(err, item) {
-      if (err) throw 'Could not remove all items from the model';
-      done();
+    // Drop the db and start all over again
+    mongoose.connect(instance.properties.database.url, function() {
+      mongoose.connection.db.dropDatabase(done);
     });
   });
 
@@ -1111,13 +1111,28 @@ describe('mongo-restifier', function() {
       aquireAccessToken(done);
     });
 
-    it('should CREATE a SINGLE USER with /api/oauth2/user PUT', function(done) {
+    it('should CREATE a SINGLE USER with /api/oauth2/user PUT without authorization', function(done) {
       chai.request(instance.app)
         .put('/api/oauth2/user')
-        .set('authorization', accessToken)
-        .send()
+        .send({
+          name: "Rinto Jose",
+          userId: "sample@user.com",
+          password: "ERd"
+        })
         .end(function(err, res) {
-          res.should.have.status(422);
+          console.log(res.body);
+          res.should.have.status(200);
+          res.should.be.json;
+          res.body.should.be.a('object');
+          res.body.should.have.property('status');
+          res.body.status.should.have.equal('created');
+          res.body.should.have.property('item');
+          res.body.item.should.have.property('userId');
+          res.body.item.should.have.property('createdAt');
+          res.body.item.should.have.property('updatedAt');
+          res.body.item.should.not.have.property('_id');
+          res.body.item.should.not.have.property('__v');
+          res.body.item.should.not.have.property('password');
           done();
         });
     });

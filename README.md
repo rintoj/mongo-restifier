@@ -210,6 +210,10 @@ DELETE /todo
 ```
 *NOTE: `DELETE /todo` deletes *everything*. `USE WITH CATION`
 
+OAuth2 API
+=====
+This software contains `OAuth2` services configured out-of-the-box
+
 Model Configuration
 ======
 
@@ -221,6 +225,7 @@ Model Configuration
 | ---------------- | :--------- | :------------------------------------------------
 | url          `*` | Definition | Serving endpoint. The final url will be `http://{app}:{port}/{baseUrl}/{url}` 
 | schema       `*` | Definition | Define the schema as defined by mongoose. See [Schema Definition](#schema-definition)   for details.
+| projection       | Behaviour  | Coma separated list of fields that needs to be projected. Use `-` at the beginning of the fieldname to hide it.<br> Usage: `projection: 'userId,name,roles,-password'`
 | userSpace        | Behaviour  | Keep track of the user for each record and restrict access to the corresponding users.<br> Usage: `userSpace: true` </br> Usage: `userSpace: {`<br>&nbsp;&nbsp;&nbsp;&nbsp;`field: "_user"`<br>`}`
 | configure        | Function   | Use this function to register [middleware](http://mongoosejs.com/docs/middleware.html) or [plugins](http://mongoosejs.com/docs/plugins.html). Context of this function will contain the second parameter of 'defineModel' (this object itself) <li> `this.schema` - Schema defined by `schema`</li><li> `this.model` - reference to [mongoose.Model](http://mongoosejs.com/docs/models.html) </li><li> `this.modelSchema` - reference to [mongoose.Schema](http://mongoosejs.com/docs/guide.html) 
 
@@ -282,7 +287,6 @@ Model Configuration
 }));
     
 ```
-
 ## Schema Definition
 `*` - are mandatory<br>
 `**` - additional feature than the ones supported by [mongoose](http://mongoosejs.com/docs/guide.html)
@@ -304,7 +308,6 @@ Model Configuration
 | {field}.validate          | Validation | Helps in defining custom validation. <br><br>`validate: { `<br>&nbsp;&nbsp;&nbsp;&nbsp;` validator: function(v) { `<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`   return /\d{3}-\d{3}-\d{4}/.test(v); `<br>&nbsp;&nbsp;&nbsp;&nbsp;` }, `<br>&nbsp;&nbsp;&nbsp;&nbsp;`message: '{VALUE} is not a valid phone number!' `<br>`}`
 
 Any other additional option supported by [mongoose schema](http://mongoosejs.com/docs/guide.html)
-
 
 API Configuration
 ======

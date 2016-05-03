@@ -24,16 +24,14 @@
  **/
 
 var uuid = require('uuid');
-// var User = require('./user');
 var Token = require('./token');
-// var Client = require('./client');
 var Base64 = require('../util/Base64');
 var logger = require('../util/logger');
 var express = require('express');
 var oauthserver = require('oauth2-server');
 var serviceModel = require('../core/service-model');
 
-
+// define user schema
 var userSm = serviceModel("User", {
 
   // api end point
@@ -41,13 +39,14 @@ var userSm = serviceModel("User", {
 
   // schema definition - supports everything that mongoose schema supports
   schema: {
-    name: String,
+    name: {
+      type: String,
+      required: true
+    },
     userId: {
       type: String,
       required: true,
-      index: {
-        unique: true
-      }
+      idField: true
     },
     password: {
       type: String,
@@ -61,26 +60,25 @@ var userSm = serviceModel("User", {
     }
   },
 
+  projection: '-password,-__v,-_id',
   timestamps: true
 
 });
-
 var User = userSm.context.model;
 
+// define client schema
 var clientSm = serviceModel("Client", {
 
   // api end point
-  url: '/user',
+  url: '/client',
 
   // schema definition - supports everything that mongoose schema supports
   schema: {
-    _id: {
+    clientId: {
       type: String,
       required: true,
       default: uuid.v4(),
-      index: {
-        unique: true
-      }
+      idField: true
     },
     clientSecret: {
       type: String,
@@ -114,6 +112,7 @@ var clientSm = serviceModel("Client", {
     }
   },
 
+  projection: '-clientSecret,-__v,-_id',
   timestamps: true
 
 });
@@ -179,10 +178,10 @@ var OAuth2Server = function OAuth2Server(app, baseUrl, properties) {
   // setup default client if specified
   if (properties.default && properties.default.client) {
     Client.remove({
-      _id: properties.default.client.id
+      clientId: properties.default.client.id
     }, function(error, item) {
       Client.create({
-          _id: properties.default.client.id,
+          clientId: properties.default.client.id,
           clientSecret: properties.default.client.secret,
           name: properties.default.client.name,
           description: properties.default.client.description,
@@ -190,7 +189,7 @@ var OAuth2Server = function OAuth2Server(app, baseUrl, properties) {
           active: true,
         },
         function(error, item) {
-          if (error) return callback(error);
+          if (error) return logger.debug('oauth2server:ERROR', error);
           logger.info('Created default client: "' + properties.default.client.name + '"');
         });
     });
@@ -274,7 +273,7 @@ var OAuth2Server = function OAuth2Server(app, baseUrl, properties) {
      */
     getClient: function(clientId, clientSecret, callback) {
       Client.findOne({
-        _id: clientId,
+        clientId: clientId,
         clientSecret: clientSecret,
         active: true
       }, function(error, item) {
@@ -293,7 +292,7 @@ var OAuth2Server = function OAuth2Server(app, baseUrl, properties) {
      */
     grantTypeAllowed: function grantTypeAllowed(clientId, grantType, callback) {
       Client.find({
-        _id: clientId,
+        clientId: clientId,
         active: true,
         grantType: {
           "$in": [grantType]
@@ -507,18 +506,9 @@ var OAuth2Server = function OAuth2Server(app, baseUrl, properties) {
         });
       }
 
-      // create user
-      User.create({
-        name: request.body.name,
-        userId: request.body.userId,
-        password: request.body.password,
-        roles: ['User'],
-        active: true
-      }, function(error, item) {
-        response.status(200);
-        return response.json(item);
-      })
-    })
+      request.query.createOnly = true;
+      userSm.context.service.save(request, response, next);
+    });
   });
   app.use(baseUrl + '/user', userRegRouter);
 
@@ -582,7 +572,7 @@ var OAuth2Server = function OAuth2Server(app, baseUrl, properties) {
           case 'Basic':
             var authorizationHeaders = Base64.decode(request.headers.authorization.replace('Basic ', '')).split(':');
             return Client.findOne({
-              _id: authorizationHeaders[0],
+              clientId: authorizationHeaders[0],
               clientSecret: authorizationHeaders[1],
               active: true
             }, function(error, item) {
