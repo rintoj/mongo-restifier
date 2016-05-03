@@ -22,20 +22,15 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-var app = require('express')();
 var chai = require('chai');
 var setup = require('./setup');
-var mongoose = require('mongoose');
 
 describe('OAuth2 Service', function() {
 
   var server = setup.instance.app;
 
   before(function(done) {
-    // Drop the db and start all over again
-    mongoose.connect(setup.instance.properties.database.url, function() {
-      mongoose.connection.db.dropDatabase(done);
-    });
+    setup.ready(done);
   });
 
   it('should ALLOW ACCESS to OPTIONS /api/todo without token', function(done) {

@@ -1,5 +1,7 @@
 var chai = require('chai');
+var chain = require('../src/util/chain');
 var should = chai.should();
+var mongoose = require('mongoose');
 
 var mongoRestifier = require('../src/index');
 
@@ -14,8 +16,11 @@ var AuthService = function AuthService() {
 
     self.accessToken;
     self.refreshToken;
+    self.startedUp = false;
+    self.startupInProgress = false;
     self.clientId = '7d65d9b6-5cae-4db7-b19d-56cbdd25eaab';
     self.clientSecret = 'a0c7b741-b18b-47eb-b6df-48a0bd3cde2e';
+    self.readyCallback = [];
 
     self.instance = mongoRestifier('./test/api.test.conf.json')
 
@@ -65,7 +70,7 @@ var AuthService = function AuthService() {
             .auth(self.clientId, self.clientSecret)
             .send(!useRefreshToken ? {
                 "grant_type": "password",
-                "username": "superuser@system.com",
+                "username": "testuser@system.com",
                 "password": "c3lzYWRtaW4="
             } : {
                 "grant_type": "refresh_token",
@@ -80,6 +85,58 @@ var AuthService = function AuthService() {
             });
 
         return self;
+    };
+
+    self.ready = function(callback) {
+        if (self.startedUp) {
+            callback();
+        } else {
+            self.readyCallback.push(callback);
+        }
+
+        if (self.startupInProgress) {
+            return this;
+        }
+
+        self.startupInProgress = true;
+
+        chain.start()
+            .add(function(callback) {
+                mongoose.createConnection(self.instance.properties.database.url, callback);
+            })
+            .add(function(callback) {
+                mongoose.connection.db.dropDatabase(callback);
+            })
+            .add(function(callback) {
+                mongoose.model('Client').remove({}, callback);
+            })
+            .add(function(callback) {
+                mongoose.model('Client').create({
+                    name: 'Test client',
+                    clientId: self.clientId,
+                    clientSecret: self.clientSecret
+                }, callback);
+            })
+            .add(function(callback) {
+                mongoose.model('User').create({
+                    name: "Sample User",
+                    userId: "testuser@system.com",
+                    password: "c3lzYWRtaW4=",
+                    "roles": ["admin"]
+                }, callback);
+            })
+            .add(function(callback) {
+                self.aquireAccessToken(callback);
+            })
+            .add(function(callback) {
+                self.startedUp = true;
+                self.readyCallback.map(function(callback) {
+                    callback();
+                });
+            })
+            .exec(function(responses) {
+                console.log(responses);
+            });
     };
 }
 
