@@ -26,6 +26,7 @@ var app = require('express')();
 var chai = require('chai');
 var should = chai.should();
 var mongoose = require('mongoose');
+var authService = require('./auth-service');
 var mongoRestifier = require('../src/index');
 
 // intial setup
@@ -83,212 +84,19 @@ describe('mongo-restifier', function() {
     });
   });
 
-  var accessToken, refreshToken;
-
-  var aquireAccessToken = function aquireAccessToken(callback, useRefreshToken) {
-    var request = chai.request(instance.app)
-      .post('/api/oauth2/token')
-      .set('content-type', 'application/x-www-form-urlencoded')
-      .auth('7d65d9b6-5cae-4db7-b19d-56cbdd25eaab', 'a0c7b741-b18b-47eb-b6df-48a0bd3cde2e')
-      .send(!useRefreshToken ? {
-        "grant_type": "password",
-        "username": "superuser@system.com",
-        "password": "c3lzYWRtaW4="
-      } : {
-        "grant_type": "refresh_token",
-        "refresh_token": refreshToken
-      })
-      .end(function(err, res) {
-        if (res.status === 200) {
-          res.should.be.json;
-          res.body.should.be.a('object');
-          res.body.should.have.property('access_token');
-          res.body.should.have.property('refresh_token');
-          accessToken = 'Bearer ' + res.body.access_token;
-          refreshToken = res.body.refresh_token;
-        }
-        if (typeof callback === 'function') callback(err, res);
-      });
-  };
-
-  describe('OAuth2 Service', function() {
-
-    it('should ALLOW ACCESS to OPTIONS /api/todo without token', function(done) {
-      chai.request(instance.app)
-        .options('/api/todo')
-        .end(function(err, res) {
-          res.should.have.status(200);
-          res.should.be.html;
-          res.text.should.equal('PUT,GET,POST,DELETE');
-          done();
-        });
-    });
-
-    it('should DENY ACCESS to GET /api/todo without token', function(done) {
-      chai.request(instance.app)
-        .get('/api/todo')
-        .end(function(err, res) {
-          res.should.have.status(401);
-          done();
-        });
-    });
-
-    it('should DENY ACCESS to POST /api/todo without token', function(done) {
-      chai.request(instance.app)
-        .post('/api/todo')
-        .end(function(err, res) {
-          res.should.have.status(401);
-          done();
-        });
-    });
-
-    it('should DENY ACCESS to PUT /api/todo without token', function(done) {
-      chai.request(instance.app)
-        .put('/api/todo')
-        .end(function(err, res) {
-          res.should.have.status(401);
-          done();
-        });
-    });
-
-    it('should DENY ACCESS to DELETE /api/todo without token', function(done) {
-      chai.request(instance.app)
-        .delete('/api/todo')
-        .end(function(err, res) {
-          res.should.have.status(401);
-          done();
-        });
-    });
-
-    it('should ISSUE TOKEN with POST /api/oauth2/token', function(done) {
-      aquireAccessToken(function(err, res) {
-        res.should.have.status(200);
-        res.should.be.json;
-        res.body.should.be.a('object');
-        res.body.should.have.property('token_type');
-        res.body.should.have.property('access_token');
-        res.body.should.have.property('expires_in');
-        res.body.should.have.property('refresh_token');
-        done();
-      });
-    });
-
-    it('should ALLOW ACCESS to OPTIONS /api/todo with token', function(done) {
-      chai.request(instance.app)
-        .options('/api/todo')
-        .set('authorization', accessToken)
-        .end(function(err, res) {
-          res.should.have.status(200);
-          res.should.be.html;
-          res.text.should.equal('PUT,GET,POST,DELETE');
-          done();
-        });
-    });
-
-    it('should ALLOW ACCESS to GET /api/todo with token', function(done) {
-      chai.request(instance.app)
-        .get('/api/todo')
-        .set('authorization', accessToken)
-        .end(function(err, res) {
-          res.should.have.status(200);
-          done();
-        });
-    });
-
-    it('should ALLOW ACCESS to POST /api/todo with token', function(done) {
-      chai.request(instance.app)
-        .post('/api/todo')
-        .set('authorization', accessToken)
-        .end(function(err, res) {
-          res.should.have.status(200);
-          done();
-        });
-    });
-
-    it('should ALLOW ACCESS to PUT /api/todo with token', function(done) {
-      chai.request(instance.app)
-        .put('/api/todo')
-        .set('authorization', accessToken)
-        .send({
-          "title": "Sample note"
-        })
-        .end(function(err, res) {
-          res.should.have.status(200);
-          done();
-        });
-    });
-
-    it('should ALLOW ACCESS to DELETE /api/todo with token', function(done) {
-      chai.request(instance.app)
-        .delete('/api/todo')
-        .set('authorization', accessToken)
-        .send({
-          "title": "Sample note"
-        })
-        .end(function(err, res) {
-          res.should.have.status(200);
-          done();
-        });
-    });
-
-    it('should REISSUE TOKEN when POST /api/oauth2/token is called with refresh_token', function(done) {
-      aquireAccessToken(function(err, res) {
-        res.should.have.status(200);
-        res.should.be.json;
-        res.body.should.be.a('object');
-        res.body.should.have.property('token_type');
-        res.body.should.have.property('access_token');
-        res.body.should.have.property('expires_in');
-        res.body.should.have.property('refresh_token');
-        done();
-      }, true);
-    });
-
-    it('should REVOKE TOKEN with POST /api/oauth2/revoke', function(done) {
-      chai.request(instance.app)
-        .post('/api/oauth2/revoke')
-        .set('authorization', accessToken)
-        .end(function(err, res) {
-          res.should.have.status(200);
-          res.should.be.json;
-          done();
-        });
-    });
-
-    it('should DENY ACCESS when a revoked token is used with GET /api/todo', function(done) {
-      chai.request(instance.app)
-        .get('/api/todo')
-        .set('content-type', 'application/json')
-        .set('authorization', accessToken)
-        .end(function(err, res) {
-          res.should.have.status(401);
-          res.should.be.json;
-          done();
-        });
-    });
-
-    it('should DENY ACCESS when POST /api/oauth2/token is called with revoked refresh_token', function(done) {
-      aquireAccessToken(function(err, res) {
-        res.should.have.status(401);
-        done();
-      }, true);
-    });
-
-  });
-
   describe('Todo Service', function() {
 
     var itemsCount = 0;
     var newIds = [];
 
     before(function(done) {
-      aquireAccessToken(done);
+      authService.aquireAccessToken(instance.app, done);
     });
 
-    it('should add a SINGLE item through /api/todo PUT', function(done) {
+    it('should add a SINGLE item when using PUT /api/todo', function(done) {
       chai.request(instance.app)
         .put('/api/todo')
-        .set('authorization', accessToken)
+        .set('authorization', authService.accessToken)
         .send({
           'title': 'Sample story'
         })
@@ -309,10 +117,10 @@ describe('mongo-restifier', function() {
         });
     });
 
-    it('should add MULTIPLE items through /api/todo PUT', function(done) {
+    it('should add MULTIPLE items when using PUT /api/todo', function(done) {
       chai.request(instance.app)
         .put('/api/todo')
-        .set('authorization', accessToken)
+        .set('authorization', authService.accessToken)
         .send([{
           'title': 'Sample story1'
         }, {
@@ -335,10 +143,10 @@ describe('mongo-restifier', function() {
         });
     });
 
-    it('should update a SINGLE item through /api/todo/{id} PUT', function(done) {
+    it('should update a SINGLE item when using PUT /api/todo/{id}', function(done) {
       chai.request(instance.app)
         .put('/api/todo/' + newIds[0])
-        .set('authorization', accessToken)
+        .set('authorization', authService.accessToken)
         .send({
           'title': 'Sample story1'
         })
@@ -355,10 +163,10 @@ describe('mongo-restifier', function() {
         });
     });
 
-    it('should update MULTIPLE items through /api/todo PUT', function(done) {
+    it('should update MULTIPLE items when using PUT /api/todo', function(done) {
       chai.request(instance.app)
         .put('/api/todo')
-        .set('authorization', accessToken)
+        .set('authorization', authService.accessToken)
         .send([{
           'index': newIds[0],
           'title': 'Sample story'
@@ -380,11 +188,11 @@ describe('mongo-restifier', function() {
 
     });
 
-    it('should NOT UPDATE items, if no change in properties, through /api/todo PUT', function(done) {
+    it('should NOT UPDATE items, if no change in properties, when using PUT /api/todo', function(done) {
 
       chai.request(instance.app)
         .put('/api/todo')
-        .set('authorization', accessToken)
+        .set('authorization', authService.accessToken)
         .send([{
           'index': newIds[0],
           'title': 'Sample story'
@@ -405,11 +213,11 @@ describe('mongo-restifier', function() {
         });
     });
 
-    it('should NOT CREATE, but only UPDATE items, with /api/todo?updateOnly=true PUT', function(done) {
+    it('should NOT CREATE, but only UPDATE items, when using PUT /api/todo?updateOnly=true', function(done) {
 
       chai.request(instance.app)
         .put('/api/todo?updateOnly=true')
-        .set('authorization', accessToken)
+        .set('authorization', authService.accessToken)
         .send([{
           'title': 'Sample story1'
         }, {
@@ -433,11 +241,11 @@ describe('mongo-restifier', function() {
         });
     });
 
-    it('should NOT UPDATE, but only Create items, with /api/todo?createOnly=true PUT', function(done) {
+    it('should NOT UPDATE, but only Create items, when using PUT /api/todo?createOnly=true', function(done) {
 
       chai.request(instance.app)
         .put('/api/todo?createOnly=true')
-        .set('authorization', accessToken)
+        .set('authorization', authService.accessToken)
         .send([{
           'title': 'Sample story1'
         }, {
@@ -461,10 +269,10 @@ describe('mongo-restifier', function() {
         });
     });
 
-    it('should REJECT WITH ERROR, when createOnly and updateOnly are used together with /api/todo PUT', function(done) {
+    it('should REJECT WITH ERROR, when createOnly and updateOnly are used together when using PUT /api/todo', function(done) {
       chai.request(instance.app)
         .put('/api/todo?updateOnly=true&createOnly=true')
-        .set('authorization', accessToken)
+        .set('authorization', authService.accessToken)
         .send([{
           'title': 'Sample story1'
         }, {
@@ -477,10 +285,10 @@ describe('mongo-restifier', function() {
         });
     });
 
-    it('should set createdAt and updatedAt when an item is created through /api/todo PUT', function(done) {
+    it('should set createdAt and updatedAt when an item is created when using PUT /api/todo', function(done) {
       chai.request(instance.app)
         .put('/api/todo')
-        .set('authorization', accessToken)
+        .set('authorization', authService.accessToken)
         .send({
           'title': 'Sample story'
         })
@@ -498,10 +306,10 @@ describe('mongo-restifier', function() {
         });
     });
 
-    it('should set _user when an item is created through /api/todo PUT', function(done) {
+    it('should set _user when an item is created when using PUT /api/todo', function(done) {
       chai.request(instance.app)
         .put('/api/todo?fields=_user')
-        .set('authorization', accessToken)
+        .set('authorization', authService.accessToken)
         .send({
           'title': 'Sample story'
         })
@@ -519,10 +327,10 @@ describe('mongo-restifier', function() {
         });
     });
 
-    it('should override _user when an item with _user set, is sent for creation through /api/todo PUT', function(done) {
+    it('should override _user when an item with _user set, is sent for creation when using PUT /api/todo', function(done) {
       chai.request(instance.app)
         .put('/api/todo?fields=_user')
-        .set('authorization', accessToken)
+        .set('authorization', authService.accessToken)
         .send({
           'title': 'Sample story',
           '_user': 'test'
@@ -541,10 +349,10 @@ describe('mongo-restifier', function() {
         });
     });
 
-    it('should override _user when an item with _user set, is sent for update through /api/todo/{id} PUT', function(done) {
+    it('should override _user when an item with _user set, is sent for update when using PUT /api/todo/{id}', function(done) {
       chai.request(instance.app)
         .put('/api/todo/' + newIds[0] + '?fields=_user')
-        .set('authorization', accessToken)
+        .set('authorization', authService.accessToken)
         .send({
           'title': 'Sample story',
           '_user': 'test'
@@ -564,10 +372,10 @@ describe('mongo-restifier', function() {
         });
     });
 
-    it('should list ALL todos on /api/todo GET', function(done) {
+    it('should list ALL todos when using GET /api/todo', function(done) {
       chai.request(instance.app)
         .get('/api/todo')
-        .set('authorization', accessToken)
+        .set('authorization', authService.accessToken)
         .end(function(err, res) {
           res.should.have.status(200);
           res.should.be.json;
@@ -577,10 +385,10 @@ describe('mongo-restifier', function() {
         });
     });
 
-    it('should list ALL todos without fields starting with _ on /api/todo GET', function(done) {
+    it('should list ALL todos without fields starting with _ when using GET /api/todo', function(done) {
       chai.request(instance.app)
         .get('/api/todo')
-        .set('authorization', accessToken)
+        .set('authorization', authService.accessToken)
         .end(function(err, res) {
           res.should.have.status(200);
           res.should.be.json;
@@ -593,10 +401,10 @@ describe('mongo-restifier', function() {
         });
     });
 
-    it('should list ALL todos with fields index and _user on /api/todo?fields=index,_user GET', function(done) {
+    it('should list ALL todos with fields index and _user when using GET /api/todo?fields=index,_user', function(done) {
       chai.request(instance.app)
         .get('/api/todo?fields=index,_user')
-        .set('authorization', accessToken)
+        .set('authorization', authService.accessToken)
         .end(function(err, res) {
           res.should.have.status(200);
           res.should.be.json;
@@ -612,10 +420,10 @@ describe('mongo-restifier', function() {
         });
     });
 
-    it('should list ALL todos sorted in ascending order on /api/todo?sort=index GET', function(done) {
+    it('should list ALL todos sorted in ascending order when using GET /api/todo?sort=index', function(done) {
       chai.request(instance.app)
         .get('/api/todo?sort=index')
-        .set('authorization', accessToken)
+        .set('authorization', authService.accessToken)
         .end(function(err, res) {
           res.should.have.status(200);
           res.should.be.json;
@@ -627,10 +435,10 @@ describe('mongo-restifier', function() {
         });
     });
 
-    it('should list ALL todos sorted in decending order on /api/todo?sort=-index GET', function(done) {
+    it('should list ALL todos sorted in decending order when using GET /api/todo?sort=-index', function(done) {
       chai.request(instance.app)
         .get('/api/todo?sort=-index')
-        .set('authorization', accessToken)
+        .set('authorization', authService.accessToken)
         .end(function(err, res) {
           res.should.have.status(200);
           res.should.be.json;
@@ -642,10 +450,10 @@ describe('mongo-restifier', function() {
         });
     });
 
-    it('should limit list to 2 items on /api/todo?limit=2 GET', function(done) {
+    it('should limit list to 2 items when using GET /api/todo?limit=2', function(done) {
       chai.request(instance.app)
         .get('/api/todo?limit=2')
-        .set('authorization', accessToken)
+        .set('authorization', authService.accessToken)
         .end(function(err, res) {
           res.should.have.status(200);
           res.should.be.json;
@@ -655,10 +463,10 @@ describe('mongo-restifier', function() {
         });
     });
 
-    it('should skip first 2 items on /api/todo?skip=2&limit=2 GET', function(done) {
+    it('should skip first 2 items when using GET /api/todo?skip=2&limit=2', function(done) {
       chai.request(instance.app)
         .get('/api/todo?limit=2')
-        .set('authorization', accessToken)
+        .set('authorization', authService.accessToken)
         .end(function(err, res) {
           res.should.have.status(200);
           res.should.be.json;
@@ -666,7 +474,7 @@ describe('mongo-restifier', function() {
           var firstItem = res.body[0];
           chai.request(instance.app)
             .get('/api/todo?skip=2&limit=2')
-            .set('authorization', accessToken)
+            .set('authorization', authService.accessToken)
             .end(function(err, res) {
               res.should.have.status(200);
               res.should.be.json;
@@ -678,10 +486,10 @@ describe('mongo-restifier', function() {
         });
     });
 
-    it('should return an item with given id /api/todo/{id} GET', function(done) {
+    it('should return an item with given id when using GET /api/todo/{id}', function(done) {
       chai.request(instance.app)
         .get('/api/todo?limit=2')
-        .set('authorization', accessToken)
+        .set('authorization', authService.accessToken)
         .end(function(err, res) {
           res.should.have.status(200);
           res.should.be.json;
@@ -689,7 +497,7 @@ describe('mongo-restifier', function() {
           var firstItem = res.body[0];
           chai.request(instance.app)
             .get('/api/todo/' + firstItem.index)
-            .set('authorization', accessToken)
+            .set('authorization', authService.accessToken)
             .end(function(err, res) {
               res.should.have.status(200);
               res.should.be.json;
@@ -702,10 +510,10 @@ describe('mongo-restifier', function() {
         });
     });
 
-    it('should return an item with given index /api/todo?index={index} GET', function(done) {
+    it('should return an item with given index when using GET /api/todo?index={index}', function(done) {
       chai.request(instance.app)
         .get('/api/todo?limit=2')
-        .set('authorization', accessToken)
+        .set('authorization', authService.accessToken)
         .end(function(err, res) {
           res.should.have.status(200);
           res.should.be.json;
@@ -713,7 +521,7 @@ describe('mongo-restifier', function() {
           var firstItem = res.body[0];
           chai.request(instance.app)
             .get('/api/todo?index=' + firstItem.index)
-            .set('authorization', accessToken)
+            .set('authorization', authService.accessToken)
             .end(function(err, res) {
               res.should.have.status(200);
               res.should.be.json;
@@ -726,10 +534,10 @@ describe('mongo-restifier', function() {
         });
     });
 
-    it('should list ALL todos on /api/todo POST', function(done) {
+    it('should list ALL todos when using POST /api/todo', function(done) {
       chai.request(instance.app)
         .post('/api/todo')
-        .set('authorization', accessToken)
+        .set('authorization', authService.accessToken)
         .end(function(err, res) {
           res.should.have.status(200);
           res.should.be.json;
@@ -739,11 +547,10 @@ describe('mongo-restifier', function() {
         });
     });
 
-
-    it('should list NO todos on /api/todo POST with body {status: hold}', function(done) {
+    it('should list NO todos when using POST /api/todo with body {status: hold}', function(done) {
       chai.request(instance.app)
         .post('/api/todo')
-        .set('authorization', accessToken)
+        .set('authorization', authService.accessToken)
         .send({
           status: 'hold'
         })
@@ -756,10 +563,10 @@ describe('mongo-restifier', function() {
         });
     });
 
-    it('should list ALL todos on /api/todo GET with body {status: hold}', function(done) {
+    it('should list ALL todos when using GET /api/todo with body {status: hold}', function(done) {
       chai.request(instance.app)
         .get('/api/todo')
-        .set('authorization', accessToken)
+        .set('authorization', authService.accessToken)
         .send({
           status: 'hold'
         })
@@ -774,10 +581,10 @@ describe('mongo-restifier', function() {
         });
     });
 
-    it('should list ALL todos without fields starting with _ on /api/todo POST', function(done) {
+    it('should list ALL todos without fields starting with _ when using POST /api/todo', function(done) {
       chai.request(instance.app)
         .post('/api/todo')
-        .set('authorization', accessToken)
+        .set('authorization', authService.accessToken)
         .end(function(err, res) {
           res.should.have.status(200);
           res.should.be.json;
@@ -790,10 +597,10 @@ describe('mongo-restifier', function() {
         });
     });
 
-    it('should list ALL todos with fields index and _user on /api/todo?fields=index,_user POST', function(done) {
+    it('should list ALL todos with fields index and _user when using POST /api/todo?fields=index,_user', function(done) {
       chai.request(instance.app)
         .post('/api/todo?fields=index,_user')
-        .set('authorization', accessToken)
+        .set('authorization', authService.accessToken)
         .end(function(err, res) {
           res.should.have.status(200);
           res.should.be.json;
@@ -809,10 +616,10 @@ describe('mongo-restifier', function() {
         });
     });
 
-    it('should list ALL todos sorted in ascending order on /api/todo?sort=index POST', function(done) {
+    it('should list ALL todos sorted in ascending order when using POST /api/todo?sort=index', function(done) {
       chai.request(instance.app)
         .post('/api/todo?sort=index')
-        .set('authorization', accessToken)
+        .set('authorization', authService.accessToken)
         .end(function(err, res) {
           res.should.have.status(200);
           res.should.be.json;
@@ -824,10 +631,10 @@ describe('mongo-restifier', function() {
         });
     });
 
-    it('should list ALL todos sorted in decending order on /api/todo?sort=-index POST', function(done) {
+    it('should list ALL todos sorted in decending order when using POST /api/todo?sort=-index', function(done) {
       chai.request(instance.app)
         .post('/api/todo?sort=-index')
-        .set('authorization', accessToken)
+        .set('authorization', authService.accessToken)
         .end(function(err, res) {
           res.should.have.status(200);
           res.should.be.json;
@@ -839,10 +646,10 @@ describe('mongo-restifier', function() {
         });
     });
 
-    it('should limit list to 2 items on /api/todo?limit=2 POST', function(done) {
+    it('should limit list to 2 items when using POST /api/todo?limit=2', function(done) {
       chai.request(instance.app)
         .post('/api/todo?limit=2')
-        .set('authorization', accessToken)
+        .set('authorization', authService.accessToken)
         .end(function(err, res) {
           res.should.have.status(200);
           res.should.be.json;
@@ -852,10 +659,10 @@ describe('mongo-restifier', function() {
         });
     });
 
-    it('should skip first 2 items on /api/todo?skip=2&limit=2 POST', function(done) {
+    it('should skip first 2 items when using POST /api/todo?skip=2&limit=2', function(done) {
       chai.request(instance.app)
         .post('/api/todo?limit=2')
-        .set('authorization', accessToken)
+        .set('authorization', authService.accessToken)
         .end(function(err, res) {
           res.should.have.status(200);
           res.should.be.json;
@@ -863,7 +670,7 @@ describe('mongo-restifier', function() {
           var firstItem = res.body[0];
           chai.request(instance.app)
             .post('/api/todo?skip=2&limit=2')
-            .set('authorization', accessToken)
+            .set('authorization', authService.accessToken)
             .end(function(err, res) {
               res.should.have.status(200);
               res.should.be.json;
@@ -875,10 +682,10 @@ describe('mongo-restifier', function() {
         });
     });
 
-    it('should return an item with given index /api/todo?index={index} POST', function(done) {
+    it('should return an item with given index when using /api/todo?index={index}', function(done) {
       chai.request(instance.app)
         .post('/api/todo?limit=2')
-        .set('authorization', accessToken)
+        .set('authorization', authService.accessToken)
         .end(function(err, res) {
           res.should.have.status(200);
           res.should.be.json;
@@ -886,7 +693,7 @@ describe('mongo-restifier', function() {
           var firstItem = res.body[0];
           chai.request(instance.app)
             .post('/api/todo?index=' + firstItem.index)
-            .set('authorization', accessToken)
+            .set('authorization', authService.accessToken)
             .end(function(err, res) {
               res.should.have.status(200);
               res.should.be.json;
@@ -899,10 +706,10 @@ describe('mongo-restifier', function() {
         });
     });
 
-    it('should update status of an item on /api/todo/{id} PUT {status=hold}', function(done) {
+    it('should update status of an item when using PUT /api/todo/{id} {status=hold}', function(done) {
       chai.request(instance.app)
         .get('/api/todo?limit=2')
-        .set('authorization', accessToken)
+        .set('authorization', authService.accessToken)
         .end(function(err, res) {
           res.should.have.status(200);
           res.should.be.json;
@@ -911,7 +718,7 @@ describe('mongo-restifier', function() {
           firstItem.status.should.not.be.equal('hold');
           chai.request(instance.app)
             .put('/api/todo/' + firstItem.index)
-            .set('authorization', accessToken)
+            .set('authorization', authService.accessToken)
             .send({
               status: 'hold'
             })
@@ -919,7 +726,7 @@ describe('mongo-restifier', function() {
               res.should.have.status(200);
               chai.request(instance.app)
                 .get('/api/todo/' + firstItem.index)
-                .set('authorization', accessToken)
+                .set('authorization', authService.accessToken)
                 .end(function(err, res) {
                   res.should.have.status(200);
                   res.should.be.json;
@@ -933,10 +740,10 @@ describe('mongo-restifier', function() {
         });
     });
 
-    it('should delete a SINGLE item when access /api/todo/{id} DELETE', function(done) {
+    it('should delete a SINGLE item when access when using DELETE /api/todo/{id}', function(done) {
       chai.request(instance.app)
         .delete('/api/todo/' + newIds[0])
-        .set('authorization', accessToken)
+        .set('authorization', authService.accessToken)
         .end(function(err, res) {
           res.should.have.status(200);
           res.should.be.json;
@@ -950,7 +757,7 @@ describe('mongo-restifier', function() {
           itemsCount--;
           chai.request(instance.app)
             .get('/api/todo')
-            .set('authorization', accessToken)
+            .set('authorization', authService.accessToken)
             .end(function(err, res) {
               res.should.have.status(200);
               res.should.be.json;
@@ -961,10 +768,10 @@ describe('mongo-restifier', function() {
         });
     });
 
-    it('should RETURN ITEMS with status = new through /api/todo?status=new GET', function(done) {
+    it('should RETURN ITEMS with status = new when using GET /api/todo?status=new', function(done) {
       chai.request(instance.app)
         .get('/api/todo?status=new')
-        .set('authorization', accessToken)
+        .set('authorization', authService.accessToken)
         .end(function(err, res) {
           res.should.have.status(200);
           res.should.be.json;
@@ -974,10 +781,10 @@ describe('mongo-restifier', function() {
         });
     });
 
-    it('should RETURN ITEMS with status = new through /api/todo?status=new POST', function(done) {
+    it('should RETURN ITEMS with status = new when using POST /api/todo?status=new', function(done) {
       chai.request(instance.app)
         .post('/api/todo?status=new')
-        .set('authorization', accessToken)
+        .set('authorization', authService.accessToken)
         .end(function(err, res) {
           res.should.have.status(200);
           res.should.be.json;
@@ -990,10 +797,10 @@ describe('mongo-restifier', function() {
         });
     });
 
-    it('should RETURN ITEMS with status = new through /api/todo POST', function(done) {
+    it('should RETURN ITEMS with status = new when using POST /api/todo', function(done) {
       chai.request(instance.app)
         .post('/api/todo')
-        .set('authorization', accessToken)
+        .set('authorization', authService.accessToken)
         .send({
           status: 'new'
         })
@@ -1006,10 +813,10 @@ describe('mongo-restifier', function() {
         });
     });
 
-    it('should RETURN ITEMS with a regular expression search through /api/todo POST', function(done) {
+    it('should RETURN ITEMS with a regular expression search when using POST /api/todo', function(done) {
       chai.request(instance.app)
         .post('/api/todo')
-        .set('authorization', accessToken)
+        .set('authorization', authService.accessToken)
         .send({
           title: {
             '$regex': '^S.*1$'
@@ -1024,11 +831,10 @@ describe('mongo-restifier', function() {
         });
     });
 
-
-    it('should DELETE ALL ITEMS with status = new through /api/todo DELETE', function(done) {
+    it('should DELETE ALL ITEMS with status = new when using DELETE /api/todo { status: new }', function(done) {
       chai.request(instance.app)
         .get('/api/todo?status=new')
-        .set('authorization', accessToken)
+        .set('authorization', authService.accessToken)
         .end(function(err, res) {
           res.should.have.status(200);
           res.should.be.json;
@@ -1036,7 +842,7 @@ describe('mongo-restifier', function() {
           var count = res.body.length;
           chai.request(instance.app)
             .delete('/api/todo')
-            .set('authorization', accessToken)
+            .set('authorization', authService.accessToken)
             .send({
               status: 'new'
             })
@@ -1054,23 +860,23 @@ describe('mongo-restifier', function() {
         });
     });
 
-    it('should return maximum of 100 records with /api/todo GET', function(done) {
+    it('should return maximum of 100 records when using GET /api/todo', function(done) {
       var items = [];
-      for (var i = 0; i <= 110; i++) {
+      for (var i = 0; i < 110; i++) {
         items.push({
           title: 'New title'
         });
       }
       chai.request(instance.app)
         .put('/api/todo')
-        .set('authorization', accessToken)
+        .set('authorization', authService.accessToken)
         .send(items)
         .end(function(err, res) {
           res.should.have.status(200);
           res.should.be.json;
           chai.request(instance.app)
             .get('/api/todo')
-            .set('authorization', accessToken)
+            .set('authorization', authService.accessToken)
             .end(function(err, res) {
               res.should.have.status(200);
               res.should.be.json;
@@ -1081,19 +887,33 @@ describe('mongo-restifier', function() {
         });
     });
 
-    it('should DELETE EVERYTHING with /api/todo DELETE with no parameters', function(done) {
+    it('should RETURN COUNT when using GET /api/todo?count=true', function(done) {
+      chai.request(instance.app)
+        .get('/api/todo?count=true')
+        .set('authorization', authService.accessToken)
+        .end(function(err, res) { 
+          res.should.have.status(200);
+          res.should.be.json;
+          res.body.should.be.deep.equal({
+            count: 111
+          });
+          done();
+        });
+    });
+
+    it('should DELETE EVERYTHING when using DELETE /api/todo with no parameters', function(done) {
       chai.request(instance.app)
         .delete('/api/todo')
-        .set('authorization', accessToken)
+        .set('authorization', authService.accessToken)
         .end(function(err, res) {
           res.should.have.status(200);
           res.should.be.json;
           res.body.should.be.a('object');
           res.body.should.have.property('deleted');
-          res.body.deleted.n.should.be.equal(112);
+          res.body.deleted.n.should.be.equal(111);
           chai.request(instance.app)
             .get('/api/todo')
-            .set('authorization', accessToken)
+            .set('authorization', authService.accessToken)
             .end(function(err, res) {
               res.should.have.status(200);
               res.should.be.json;
@@ -1103,24 +923,42 @@ describe('mongo-restifier', function() {
             });
         });
     });
+
+
   });
 
   describe('User Service', function() {
 
     before(function(done) {
-      aquireAccessToken(done);
+      authService.aquireAccessToken(instance.app, done);
     });
 
-    it('should CREATE a SINGLE USER with /api/oauth2/user PUT without authorization', function(done) {
+    it('should NOT CREATE USER without BASIC authorization when using PUT /api/oauth2/user', function(done) {
       chai.request(instance.app)
         .put('/api/oauth2/user')
         .send({
-          name: "Rinto Jose",
+          name: "Sample User",
           userId: "sample@user.com",
           password: "ERd"
         })
         .end(function(err, res) {
-          console.log(res.body);
+          res.should.have.status(401);
+          res.should.be.json;
+          res.body.should.be.a('object');
+          done();
+        });
+    });
+
+    it('should CREATE a SINGLE USER with BASIC authorization when using /api/oauth2/user PUT', function(done) {
+      chai.request(instance.app)
+        .put('/api/oauth2/user')
+        .auth(clientId, clientSecret)
+        .send({
+          name: "Sample User",
+          userId: "sample@user.com",
+          password: "ERd"
+        })
+        .end(function(err, res) {
           res.should.have.status(200);
           res.should.be.json;
           res.body.should.be.a('object');
@@ -1133,6 +971,336 @@ describe('mongo-restifier', function() {
           res.body.item.should.not.have.property('_id');
           res.body.item.should.not.have.property('__v');
           res.body.item.should.not.have.property('password');
+          done();
+        });
+    });
+
+    it('should NOT RETURN user without BASIC authorizatoin when using GET /api/oauth2/user/sample@user.com', function(done) {
+      chai.request(instance.app)
+        .get('/api/oauth2/user/sample@user.com')
+        .end(function(err, res) {
+          res.should.have.status(401);
+          res.should.be.json;
+          res.body.should.be.a('object');
+          done();
+        });
+    });
+
+    it('should RETURN user with BASIC authorizatoin when using GET /api/oauth2/user/sample@user.com', function(done) {
+      chai.request(instance.app)
+        .get('/api/oauth2/user/sample@user.com')
+        .auth(clientId, clientSecret)
+        .end(function(err, res) {
+          res.should.have.status(200);
+          res.should.be.json;
+          res.body.should.be.a('array');
+          res.body.should.have.length(1);
+          res.body.should.all.have.property('userId');
+          res.body.should.all.have.property('createdAt');
+          res.body.should.all.have.property('updatedAt');
+          res.body.should.all.not.have.property('_id');
+          res.body.should.all.not.have.property('__v');
+          res.body.should.all.not.have.property('password');
+          res.body[0].userId.should.be.equal('sample@user.com');
+          done();
+        });
+    });
+
+    it('should NOT CREATE MULTIPLE users without access token when using PUT /api/oauth2/user', function(done) {
+      chai.request(instance.app)
+        .put('/api/oauth2/user')
+        .auth(clientId, clientSecret)
+        .send([{
+          name: "Sample User",
+          userId: "sample1@user.com",
+          password: "ERd"
+        }, {
+          name: "Sample User",
+          userId: "sample2@user.com",
+          password: "ERd"
+        }])
+        .end(function(err, res) {
+          res.should.have.status(401);
+          res.should.be.json;
+          done();
+        });
+    });
+
+    it('should CREATE MULTIPLE users with access token when using PUT /api/oauth2/user', function(done) {
+      chai.request(instance.app)
+        .put('/api/oauth2/user')
+        .set('authorization', authService.accessToken)
+        .send([{
+          name: "Sample User",
+          userId: "sample1@user.com",
+          password: "ERd"
+        }, {
+          name: "Sample User",
+          userId: "sample2@user.com",
+          password: "ERd"
+        }])
+        .end(function(err, res) {
+          res.should.have.status(200);
+          res.should.be.json;
+          res.body.should.be.a('object');
+          res.body.should.have.property('status');
+          res.body.status.should.be.equal('saved');
+          res.body.should.have.property('result');
+          res.body.result.should.have.property('created');
+          res.body.result.created.should.be.equal(2);
+          res.body.result.should.have.property('newIds');
+          res.body.result.newIds.should.be.length(2);
+          res.body.result.newIds.should.be.deep.equal(['sample1@user.com', 'sample2@user.com']);
+          done();
+        });
+    });
+    
+    it('should RETURN COUNT when using GET /api/oauth2/user?count=true', function(done) {
+      chai.request(instance.app)
+        .get('/api/oauth2/user?count=true')
+        .set('authorization', authService.accessToken)
+        .end(function(err, res) { 
+          res.should.have.status(200);
+          res.should.be.json;
+          res.body.should.be.deep.equal({
+            count: 4
+          });
+          done();
+        });
+    });
+
+    it('should NOT DELETE MULTIPLE users without access token when using DELETE /api/oauth2/user', function(done) {
+      chai.request(instance.app)
+        .delete('/api/oauth2/user')
+        .send([{
+          name: "Sample User",
+          userId: "sample1@user.com",
+          password: "ERd"
+        }, {
+          name: "Sample User",
+          userId: "sample2@user.com",
+          password: "ERd"
+        }])
+        .end(function(err, res) {
+          res.should.have.status(401);
+          res.should.be.json;
+          done();
+        });
+    });
+
+    it('should DELETE MULTIPLE users with access token when using DELETE /api/oauth2/user', function(done) {
+      chai.request(instance.app)
+        .delete('/api/oauth2/user')
+        .set('authorization', authService.accessToken)
+        .send([{
+          name: "Sample User",
+          userId: "sample1@user.com",
+          password: "ERd"
+        }, {
+          name: "Sample User",
+          userId: "sample2@user.com",
+          password: "ERd"
+        }])
+        .end(function(err, res) {
+          res.should.have.status(200);
+          res.should.be.json;
+          res.body.should.be.deep.equal({
+            status: 'deleted',
+            deleted: {
+              ok: 1,
+              n: 4
+            }
+          });
+          done();
+        });
+    });
+
+  });
+  
+  describe('Client Service', function() {
+
+    before(function(done) {
+      authService.aquireAccessToken(instance.app, done);
+    });
+
+    it('should NOT CREATE CLEINT without access token when using PUT /api/oauth2/client', function(done) {
+      chai.request(instance.app)
+        .put('/api/oauth2/client')
+        .send({
+          name: "Sample Client",
+          clientId: "sample-client-id",
+          clientSecret: "ERd"
+        })
+        .end(function(err, res) {
+          res.should.have.status(401);
+          res.should.be.json;
+          res.body.should.be.a('object');
+          done();
+        });
+    });
+
+    it('should CREATE a SINGLE CLEINT with access token when using /api/oauth2/client PUT', function(done) {
+      chai.request(instance.app)
+        .put('/api/oauth2/client')
+        .set('authorization', authService.accessToken)
+        .send({
+          name: "Sample Client",
+          clientId: "sample-client-id",
+          clientSecret: "ERd"
+        })
+        .end(function(err, res) {
+          res.should.have.status(200);
+          res.should.be.json;
+          res.body.should.be.a('object');
+          res.body.should.have.property('status');
+          res.body.status.should.have.equal('created');
+          res.body.should.have.property('item');
+          res.body.item.should.have.property('clientId');
+          res.body.item.should.have.property('createdAt');
+          res.body.item.should.have.property('updatedAt');
+          res.body.item.should.not.have.property('_id');
+          res.body.item.should.not.have.property('__v');
+          res.body.item.should.not.have.property('clientSecret');
+          done();
+        });
+    });
+
+    it('should NOT RETURN CLEINT without access token when using GET /api/oauth2/client/sample-client-id', function(done) {
+      chai.request(instance.app)
+        .get('/api/oauth2/client/sample-client-id')
+        .end(function(err, res) {
+          res.should.have.status(401);
+          res.should.be.json;
+          res.body.should.be.a('object');
+          done();
+        });
+    });
+
+    it('should RETURN CLEINT with access token when using GET /api/oauth2/client/sample-client-id', function(done) {
+      chai.request(instance.app)
+        .get('/api/oauth2/client/sample-client-id')
+        .set('authorization', authService.accessToken)
+        .end(function(err, res) {
+          res.should.have.status(200);
+          res.should.be.json;
+          res.body.should.be.a('array');
+          res.body.should.have.length(1);
+          res.body.should.all.have.property('clientId');
+          res.body.should.all.have.property('createdAt');
+          res.body.should.all.have.property('updatedAt');
+          res.body.should.all.not.have.property('_id');
+          res.body.should.all.not.have.property('__v');
+          res.body.should.all.not.have.property('clientSecret');
+          res.body[0].clientId.should.be.equal('sample-client-id');
+          done();
+        });
+    });
+
+    it('should NOT CREATE MULTIPLE CLIENTS without access token when using PUT /api/oauth2/client', function(done) {
+      chai.request(instance.app)
+        .put('/api/oauth2/client')
+        .auth(clientId, clientSecret)
+        .send([{
+          name: "Sample Client",
+          clientId: "sample1-client-id",
+          clientSecret: "ERd"
+        }, {
+          name: "Sample Client",
+          clientId: "sample2-client-id",
+          clientSecret: "ERd"
+        }])
+        .end(function(err, res) {
+          res.should.have.status(401);
+          res.should.be.json;
+          done();
+        });
+    });
+
+    it('should CREATE MULTIPLE CLIENTS with access token when using PUT /api/oauth2/client', function(done) {
+      chai.request(instance.app)
+        .put('/api/oauth2/client')
+        .set('authorization', authService.accessToken)
+        .send([{
+          name: "Sample Client",
+          clientId: "sample1-client-id",
+          clientSecret: "ERd"
+        }, {
+          name: "Sample Client",
+          clientId: "sample2-client-id",
+          clientSecret: "ERd"
+        }])
+        .end(function(err, res) {
+          res.should.have.status(200);
+          res.should.be.json;
+          res.body.should.be.a('object');
+          res.body.should.have.property('status');
+          res.body.status.should.be.equal('saved');
+          res.body.should.have.property('result');
+          res.body.result.should.have.property('created');
+          res.body.result.created.should.be.equal(2);
+          res.body.result.should.have.property('newIds');
+          res.body.result.newIds.should.be.length(2);
+          res.body.result.newIds.should.be.deep.equal(['sample1-client-id', 'sample2-client-id']);
+          done();
+        });
+    });
+    
+    it('should RETURN COUNT of CLIENTS when using GET /api/oauth2/client?count=true', function(done) {
+      chai.request(instance.app)
+        .get('/api/oauth2/client?count=true')
+        .set('authorization', authService.accessToken)
+        .end(function(err, res) { 
+          res.should.have.status(200);
+          res.should.be.json;
+          res.body.should.be.deep.equal({
+            count: 4
+          });
+          done();
+        });
+    });
+
+    it('should NOT DELETE MULTIPLE CLIENTS without access token when using DELETE /api/oauth2/client', function(done) {
+      chai.request(instance.app)
+        .delete('/api/oauth2/client')
+        .send([{
+          name: "Sample Client",
+          clientId: "sample1-client-id",
+          clientSecret: "ERd"
+        }, {
+          name: "Sample Client",
+          clientId: "sample2-client-id",
+          clientSecret: "ERd"
+        }])
+        .end(function(err, res) {
+          res.should.have.status(401);
+          res.should.be.json;
+          done();
+        });
+    });
+
+    it('should DELETE MULTIPLE CLIENTS with access token when using DELETE /api/oauth2/client', function(done) {
+      chai.request(instance.app)
+        .delete('/api/oauth2/client')
+        .set('authorization', authService.accessToken)
+        .send([{
+          name: "Sample Client",
+          clientId: "sample1-client-id",
+          clientSecret: "ERd"
+        }, {
+          name: "Sample Client",
+          clientId: "sample2-client-id",
+          clientSecret: "ERd"
+        }])
+        .end(function(err, res) {
+          res.should.have.status(200);
+          res.should.be.json;
+          res.body.should.be.deep.equal({
+            status: 'deleted',
+            deleted: {
+              ok: 1,
+              n: 4
+            }
+          });
           done();
         });
     });

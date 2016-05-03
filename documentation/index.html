@@ -2002,6 +2002,9 @@ mongoRestifier(<span class="hljs-string">&apos;./api.conf.json&apos;</span>)
 </code></pre><h4 id="delete">Delete</h4>
 <pre><code><span class="hljs-request">DELETE <span class="hljs-string">/oauth2/user/{userId}</span> HTTP/1.1</span>
 <span class="hljs-attribute">Authorization</span>: <span class="hljs-string">Bearer {access_token}</span>
+</code></pre><p>Delete every user in the system. <em>NOTE: USE WITH CATION</em></p>
+<pre><code><span class="hljs-request">DELETE <span class="hljs-string">/oauth2/user</span> HTTP/1.1</span>
+<span class="hljs-attribute">Authorization</span>: <span class="hljs-string">Bearer {access_token}</span>
 </code></pre><h3 id="managing-clients">Managing Clients</h3>
 <h4 id="get">Get</h4>
 <pre><code>GET <span class="hljs-regexp">/oauth2/</span>client<span class="hljs-regexp">/{clientId} HTTP/</span><span class="hljs-number">1.1</span>
@@ -2019,6 +2022,9 @@ mongoRestifier(<span class="hljs-string">&apos;./api.conf.json&apos;</span>)
  { &quot;<span class="hljs-attribute">clientId</span>&quot;: <span class="hljs-value"><span class="hljs-string">&quot;243f-sd23dde-sda23&quot;</span></span>, &quot;<span class="hljs-attribute">clientSecret</span>&quot;: <span class="hljs-value"><span class="hljs-string">&quot;a0c7b741-b18b-47eb&quot;</span></span>, &quot;<span class="hljs-attribute">name</span>&quot;: <span class="hljs-value"><span class="hljs-string">&quot;Full name&quot;</span> </span>}]</span>
 </code></pre><h4 id="delete">Delete</h4>
 <pre><code><span class="hljs-request">DELETE <span class="hljs-string">/oauth2/client/{clientId}</span> HTTP/1.1</span>
+<span class="hljs-attribute">Authorization</span>: <span class="hljs-string">Bearer {access_token}</span>
+</code></pre><p>Delete every client in the system. <em>NOTE: USE WITH CATION</em></p>
+<pre><code><span class="hljs-request">DELETE <span class="hljs-string">/oauth2/client</span> HTTP/1.1</span>
 <span class="hljs-attribute">Authorization</span>: <span class="hljs-string">Bearer {access_token}</span>
 </code></pre><h1 id="model-configuration">Model Configuration</h1>
 <h2 id="configuration">Configuration</h2>

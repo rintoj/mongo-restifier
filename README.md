@@ -359,6 +359,12 @@ DELETE /oauth2/user/{userId} HTTP/1.1
 Authorization: Bearer {access_token}
 ```
 
+Delete every user in the system. *NOTE: USE WITH CATION*
+```
+DELETE /oauth2/user HTTP/1.1
+Authorization: Bearer {access_token}
+```
+
 ### Managing Clients
 
 #### Get
@@ -387,6 +393,12 @@ Authorization: Bearer {access_token}
 #### Delete
 ```
 DELETE /oauth2/client/{clientId} HTTP/1.1
+Authorization: Bearer {access_token}
+```
+
+Delete every client in the system. *NOTE: USE WITH CATION*
+```
+DELETE /oauth2/client HTTP/1.1
 Authorization: Bearer {access_token}
 ```
 

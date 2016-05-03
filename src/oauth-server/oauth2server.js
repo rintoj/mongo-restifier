@@ -87,15 +87,9 @@ var clientSm = serviceModel("Client", {
     },
     name: {
       type: String,
-      required: true,
-      index: {
-        unique: true
-      }
+      required: true
     },
-    description: {
-      type: String,
-      required: false
-    },
+    description: String,
     active: {
       type: Boolean,
       required: true,
@@ -486,29 +480,54 @@ var OAuth2Server = function OAuth2Server(app, baseUrl, properties) {
       return next();
     }
 
-    if (!request.body.userId || !request.body.password || !request.body.name) {
-      response.status(422);
+    if (!request.headers.authorization) {
+      response.status(401);
       return response.json({
-        status: 422,
-        message: 'Missing one of the attributes: userId, password or name!'
+        status: 401,
+        message: 'You are not authorized!'
       });
     }
 
-    // check if user exists
-    User.findOne({
-      userId: request.body.userId
+    var authorizationHeaders = Base64.decode(request.headers.authorization.replace('Basic ', '')).split(':');
+    return Client.findOne({
+      clientId: authorizationHeaders[0],
+      clientSecret: authorizationHeaders[1],
+      active: true
     }, function(error, item) {
-      if (error || item) {
-        response.status(409);
+      if (error || !item) {
+        response.status(401);
         return response.json({
-          status: 409,
-          message: 'User is already registered!'
+          status: 401,
+          message: 'You are not authorized!'
         });
       }
 
-      request.query.createOnly = true;
-      userSm.context.service.save(request, response, next);
+      if (!request.body.userId || !request.body.password || !request.body.name) {
+        response.status(422);
+        return response.json({
+          status: 422,
+          message: 'Missing one of the attributes: userId, password or name!'
+        });
+      }
+
+      // check if user exists
+      User.findOne({
+        userId: request.body.userId
+      }, function(error, item) {
+        if (error || item) {
+          response.status(409);
+          return response.json({
+            status: 409,
+            message: 'User is already registered!'
+          });
+        }
+
+        request.query.createOnly = true;
+        userSm.context.service.save(request, response, next);
+      });
+
     });
+
   });
   app.use(baseUrl + '/user', userRegRouter);
 

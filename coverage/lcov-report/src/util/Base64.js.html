@@ -1,0 +1,318 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>Code coverage report for src/util/Base64.js</title>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="../../prettify.css">
+    <link rel="stylesheet" href="../../base.css">
+    <style type='text/css'>
+        div.coverage-summary .sorter {
+            background-image: url(../../sort-arrow-sprite.png);
+        }
+    </style>
+</head>
+<body>
+<div class="header low">
+    <h1>Code coverage report for <span class="entity">src/util/Base64.js</span></h1>
+    <h2>
+        Statements: <span class="metric">2.86% <small>(2 / 70)</small></span> &nbsp;&nbsp;&nbsp;&nbsp;
+        Branches: <span class="metric">0% <small>(0 / 20)</small></span> &nbsp;&nbsp;&nbsp;&nbsp;
+        Functions: <span class="metric">0% <small>(0 / 4)</small></span> &nbsp;&nbsp;&nbsp;&nbsp;
+        Lines: <span class="metric">2.86% <small>(2 / 70)</small></span> &nbsp;&nbsp;&nbsp;&nbsp;
+        Ignored: <span class="metric"><span class="ignore-none">none</span></span> &nbsp;&nbsp;&nbsp;&nbsp;
+    </h2>
+    <div class="path"><a href="../../index.html">All files</a> &#187; <a href="index.html">src/util/</a> &#187; Base64.js</div>
+</div>
+<div class="body">
+<pre><table class="coverage">
+<tr><td class="line-count">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82
+83
+84
+85
+86
+87
+88
+89
+90
+91
+92</td><td class="line-coverage"><span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1</span></td><td class="text"><pre class="prettyprint lang-js">var Base64 = {
+  _keyStr: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=",
+  encode: <span class="fstat-no" title="function not covered" >function(e) {</span>
+<span class="cstat-no" title="statement not covered" >    var t = "";</span>
+<span class="cstat-no" title="statement not covered" >    var n, r, i, s, o, u, a;</span>
+<span class="cstat-no" title="statement not covered" >    var f = 0;</span>
+<span class="cstat-no" title="statement not covered" >    e = Base64._utf8_encode(e);</span>
+<span class="cstat-no" title="statement not covered" >    while (f &lt; e.length) {</span>
+<span class="cstat-no" title="statement not covered" >      n = e.charCodeAt(f++);</span>
+<span class="cstat-no" title="statement not covered" >      r = e.charCodeAt(f++);</span>
+<span class="cstat-no" title="statement not covered" >      i = e.charCodeAt(f++);</span>
+<span class="cstat-no" title="statement not covered" >      s = n &gt;&gt; 2;</span>
+<span class="cstat-no" title="statement not covered" >      o = (n &amp; 3) &lt;&lt; 4 | r &gt;&gt; 4;</span>
+<span class="cstat-no" title="statement not covered" >      u = (r &amp; 15) &lt;&lt; 2 | i &gt;&gt; 6;</span>
+<span class="cstat-no" title="statement not covered" >      a = i &amp; 63;</span>
+<span class="cstat-no" title="statement not covered" >      if (isNaN(r)) {</span>
+<span class="cstat-no" title="statement not covered" >        u = a = 64</span>
+      } else <span class="cstat-no" title="statement not covered" >if (isNaN(i)) {</span>
+<span class="cstat-no" title="statement not covered" >        a = 64</span>
+      }
+<span class="cstat-no" title="statement not covered" >      t = t + this._keyStr.charAt(s) + this._keyStr.charAt(o) + this._keyStr.charAt(u) + this._keyStr.charAt(a)</span>
+    }
+<span class="cstat-no" title="statement not covered" >    return t</span>
+  },
+  decode: <span class="fstat-no" title="function not covered" >function(e) {</span>
+<span class="cstat-no" title="statement not covered" >    var t = "";</span>
+<span class="cstat-no" title="statement not covered" >    var n, r, i;</span>
+<span class="cstat-no" title="statement not covered" >    var s, o, u, a;</span>
+<span class="cstat-no" title="statement not covered" >    var f = 0;</span>
+<span class="cstat-no" title="statement not covered" >    e = e.replace(/[^A-Za-z0-9+/=]/g, "");</span>
+<span class="cstat-no" title="statement not covered" >    while (f &lt; e.length) {</span>
+<span class="cstat-no" title="statement not covered" >      s = this._keyStr.indexOf(e.charAt(f++));</span>
+<span class="cstat-no" title="statement not covered" >      o = this._keyStr.indexOf(e.charAt(f++));</span>
+<span class="cstat-no" title="statement not covered" >      u = this._keyStr.indexOf(e.charAt(f++));</span>
+<span class="cstat-no" title="statement not covered" >      a = this._keyStr.indexOf(e.charAt(f++));</span>
+<span class="cstat-no" title="statement not covered" >      n = s &lt;&lt; 2 | o &gt;&gt; 4;</span>
+<span class="cstat-no" title="statement not covered" >      r = (o &amp; 15) &lt;&lt; 4 | u &gt;&gt; 2;</span>
+<span class="cstat-no" title="statement not covered" >      i = (u &amp; 3) &lt;&lt; 6 | a;</span>
+<span class="cstat-no" title="statement not covered" >      t = t + String.fromCharCode(n);</span>
+<span class="cstat-no" title="statement not covered" >      if (u != 64) {</span>
+<span class="cstat-no" title="statement not covered" >        t = t + String.fromCharCode(r)</span>
+      }
+<span class="cstat-no" title="statement not covered" >      if (a != 64) {</span>
+<span class="cstat-no" title="statement not covered" >        t = t + String.fromCharCode(i)</span>
+      }
+    }
+<span class="cstat-no" title="statement not covered" >    t = Base64._utf8_decode(t);</span>
+<span class="cstat-no" title="statement not covered" >    return t</span>
+  },
+  _utf8_encode: <span class="fstat-no" title="function not covered" >function(e) {</span>
+<span class="cstat-no" title="statement not covered" >    e = e.replace(/rn/g, "n");</span>
+<span class="cstat-no" title="statement not covered" >    var t = "";</span>
+<span class="cstat-no" title="statement not covered" >    for (var n = 0; n &lt; e.length; n++) {</span>
+<span class="cstat-no" title="statement not covered" >      var r = e.charCodeAt(n);</span>
+<span class="cstat-no" title="statement not covered" >      if (r &lt; 128) {</span>
+<span class="cstat-no" title="statement not covered" >        t += String.fromCharCode(r)</span>
+      } else <span class="cstat-no" title="statement not covered" >if (r &gt; 127 &amp;&amp; r &lt; 2048) {</span>
+<span class="cstat-no" title="statement not covered" >        t += String.fromCharCode(r &gt;&gt; 6 | 192);</span>
+<span class="cstat-no" title="statement not covered" >        t += String.fromCharCode(r &amp; 63 | 128)</span>
+      } else {
+<span class="cstat-no" title="statement not covered" >        t += String.fromCharCode(r &gt;&gt; 12 | 224);</span>
+<span class="cstat-no" title="statement not covered" >        t += String.fromCharCode(r &gt;&gt; 6 &amp; 63 | 128);</span>
+<span class="cstat-no" title="statement not covered" >        t += String.fromCharCode(r &amp; 63 | 128)</span>
+      }
+    }
+<span class="cstat-no" title="statement not covered" >    return t</span>
+  },
+  _utf8_decode: <span class="fstat-no" title="function not covered" >function(e) {</span>
+<span class="cstat-no" title="statement not covered" >    var t = "";</span>
+<span class="cstat-no" title="statement not covered" >    var n = 0;</span>
+<span class="cstat-no" title="statement not covered" >    var r = c1 = c2 = 0;</span>
+<span class="cstat-no" title="statement not covered" >    while (n &lt; e.length) {</span>
+<span class="cstat-no" title="statement not covered" >      r = e.charCodeAt(n);</span>
+<span class="cstat-no" title="statement not covered" >      if (r &lt; 128) {</span>
+<span class="cstat-no" title="statement not covered" >        t += String.fromCharCode(r);</span>
+<span class="cstat-no" title="statement not covered" >        n++</span>
+      } else <span class="cstat-no" title="statement not covered" >if (r &gt; 191 &amp;&amp; r &lt; 224) {</span>
+<span class="cstat-no" title="statement not covered" >        c2 = e.charCodeAt(n + 1);</span>
+<span class="cstat-no" title="statement not covered" >        t += String.fromCharCode((r &amp; 31) &lt;&lt; 6 | c2 &amp; 63);</span>
+<span class="cstat-no" title="statement not covered" >        n += 2</span>
+      } else {
+<span class="cstat-no" title="statement not covered" >        c2 = e.charCodeAt(n + 1);</span>
+<span class="cstat-no" title="statement not covered" >        c3 = e.charCodeAt(n + 2);</span>
+<span class="cstat-no" title="statement not covered" >        t += String.fromCharCode((r &amp; 15) &lt;&lt; 12 | (c2 &amp; 63) &lt;&lt; 6 | c3 &amp; 63);</span>
+<span class="cstat-no" title="statement not covered" >        n += 3</span>
+      }
+    }
+<span class="cstat-no" title="statement not covered" >    return t</span>
+  }
+}
+&nbsp;
+module.exports = Base64;</pre></td></tr>
+</table></pre>
+
+</div>
+<div class="footer">
+    <div class="meta">Generated by <a href="http://istanbul-js.org/" target="_blank">istanbul</a> at Tue May 03 2016 15:22:54 GMT+0530 (IST)</div>
+</div>
+<script src="../../prettify.js"></script>
+<script>
+window.onload = function () {
+        if (typeof prettyPrint === 'function') {
+            prettyPrint();
+        }
+};
+</script>
+<script src="../../sorter.js"></script>
+</body>
+</html>

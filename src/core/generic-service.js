@@ -328,7 +328,9 @@ module.exports = function ServiceEndpoint(model, options) {
     }
 
     // set limit
-    query.limit((request.query.limit && !isNaN(request.query.limit) && parseInt(request.query.limit) > 0) ? parseInt(request.query.limit) : 100);
+    if (!request.query.count) {
+      query.limit((request.query.limit && !isNaN(request.query.limit) && parseInt(request.query.limit) > 0) ? parseInt(request.query.limit) : 100);
+    }
 
     // set skip
     if (request.query.skip && !isNaN(request.query.skip) && parseInt(request.query.skip) > 0) {
