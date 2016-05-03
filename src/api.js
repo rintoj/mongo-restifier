@@ -29,11 +29,11 @@ var mongoRestifier = require('./index');
 // configure your api
 mongoRestifier('./src/api.conf.json')
 
-// define "Story" model
-.register(mongoRestifier.defineModel("Story", {
+// define "Todo" model
+.register(mongoRestifier.defineModel("Todo", {
 
   // api end point
-  url: '/story',
+  url: '/todo',
 
   // schema definition - supports everything that mongoose schema supports
   schema: {

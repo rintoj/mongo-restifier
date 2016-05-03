@@ -1104,4 +1104,23 @@ describe('mongo-restifier', function() {
         });
     });
   });
+
+  describe('User Service', function() {
+
+    before(function(done) {
+      aquireAccessToken(done);
+    });
+
+    it('should CREATE a SINGLE USER with /api/oauth2/user PUT', function(done) {
+      chai.request(instance.app)
+        .put('/api/oauth2/user')
+        .set('authorization', accessToken)
+        .send()
+        .end(function(err, res) {
+          res.should.have.status(422);
+          done();
+        });
+    });
+
+  });
 });

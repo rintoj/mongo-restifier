@@ -24,14 +24,101 @@
  **/
 
 var uuid = require('uuid');
-var User = require('./user');
+// var User = require('./user');
 var Token = require('./token');
-var Client = require('./client');
+// var Client = require('./client');
 var Base64 = require('../util/Base64');
 var logger = require('../util/logger');
 var express = require('express');
 var oauthserver = require('oauth2-server');
-var ServiceEndpoint = require('../core/generic-service');
+var serviceModel = require('../core/service-model');
+
+
+var userSm = serviceModel("User", {
+
+  // api end point
+  url: '/user',
+
+  // schema definition - supports everything that mongoose schema supports
+  schema: {
+    name: String,
+    userId: {
+      type: String,
+      required: true,
+      index: {
+        unique: true
+      }
+    },
+    password: {
+      type: String,
+      required: true
+    },
+    roles: [],
+    active: {
+      type: Boolean,
+      required: true,
+      default: true
+    }
+  },
+
+  timestamps: true
+
+});
+
+var User = userSm.context.model;
+
+var clientSm = serviceModel("Client", {
+
+  // api end point
+  url: '/user',
+
+  // schema definition - supports everything that mongoose schema supports
+  schema: {
+    _id: {
+      type: String,
+      required: true,
+      default: uuid.v4(),
+      index: {
+        unique: true
+      }
+    },
+    clientSecret: {
+      type: String,
+      required: true,
+      default: uuid.v4()
+    },
+    name: {
+      type: String,
+      required: true,
+      index: {
+        unique: true
+      }
+    },
+    description: {
+      type: String,
+      required: false
+    },
+    active: {
+      type: Boolean,
+      required: true,
+      default: false
+    },
+    grantType: {
+      type: Array,
+      required: true,
+      default: ["password", "refresh_token"]
+    },
+    expires: {
+      type: Date,
+      default: new Date(+new Date() + 365 * 24 * 60 * 60 * 1000)
+    }
+  },
+
+  timestamps: true
+
+});
+
+var Client = clientSm.context.model;
 
 /**
  * OAuth2Server enables oAuth 2 security to the given path. This implementation is based on 'npm-oauth2-server' module
@@ -67,7 +154,7 @@ var OAuth2Server = function OAuth2Server(app, baseUrl, properties) {
           .replace(/\?/g, '[^/]?') + '/?$')
       });
     }
-    
+
     logger.debug("RULES: ", JSON.stringify(rules, null, 4));
   }
 
@@ -396,10 +483,14 @@ var OAuth2Server = function OAuth2Server(app, baseUrl, properties) {
   var userRegRouter = express.Router();
   userRegRouter.put('/', function(request, response, next) {
 
+    if (request.body instanceof Array) {
+      return next();
+    }
+
     if (!request.body.userId || !request.body.password || !request.body.name) {
-      response.status(400);
+      response.status(422);
       return response.json({
-        status: 400,
+        status: 422,
         message: 'Missing one of the attributes: userId, password or name!'
       });
     }
@@ -429,7 +520,7 @@ var OAuth2Server = function OAuth2Server(app, baseUrl, properties) {
       })
     })
   });
-  app.use(baseUrl + '/register', userRegRouter);
+  app.use(baseUrl + '/user', userRegRouter);
 
   // apply auth rules and authorization
   app.use(function(request, response, next) {
@@ -514,43 +605,23 @@ var OAuth2Server = function OAuth2Server(app, baseUrl, properties) {
     app.authorize(request, response, next);
   });
 
-  // create service end point for managing clients
-  client = new ServiceEndpoint(Client);
-  client.bind();
-  app.use(baseUrl + '/client', client.router);
-
-  // create service end point for managing clients
-  user = new ServiceEndpoint(User, {
-    // post process each response and remove password from each
-    postprocess: function(requeset, response, error, item) {
-      if (item && item.password) {
-        item.password = undefined;
-        delete item.password;
-      }
-      if (item instanceof Array) {
-        for (var index in item) {
-          item[index].password = undefined;
-          delete item[index].password;
-        }
-      }
-    }
-  });
-  user.bind();
-  app.use(baseUrl + '/user', user.router);
+  userSm.register(app, baseUrl, true);
+  clientSm.register(app, baseUrl, true);
 
   // Overrides default error handler
   app.use(function(error, req, res, next) {
 
-    res.status(401);
-    if (error && error.error_description === "The access token is not found") {
+    if (error && (error.code === 400 || error.message == 'Invalid access token!' || error.message == 'Invalid refresh token!')) {
+      res.status(401);
       return res.json({
         code: 401,
-        error: "Unauthorized!"
+        error: error.message || "You are not authorized to access this resource!"
       });
     }
 
     if (error) {
       logger.debug('oauth2server:ERROR', error);
+      res.status(error.code === 200 ? 400 : error.code);
       return res.json({
         error: error.message || 'Unexcepted error occured!'
       });

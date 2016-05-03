@@ -60,9 +60,6 @@ var createContext = function(name, options) {
  * @param context The context of the service
  */
 var ServiceModel = function ServiceModel(context) {
-  
-  // set current context
-  this.context = context;
 
   // basic validation
   if (!context.name || context.name === '') {
@@ -176,18 +173,21 @@ var ServiceModel = function ServiceModel(context) {
   // bind all the routes
   context.service.bind();
 
+  // defined current context;
+  this.context = context;
+
   /**
    * Register this model as a service
    * 
    * @param app Express application instance
    * @param baseUrl The base url for the api
    */
-  this.register = function register(app, baseUrl) {
+  this.register = function register(app, baseUrl, noErrorHandler) {
 
     // register the router
     app.use((baseUrl ? baseUrl : "") + (context.url ? context.url : ""), context.service.router);
 
-    if (!preconfigured) {
+    if (!preconfigured && noErrorHandler !== true) {
 
       // register an error hanlder for generic-model if not registered already for this app
       app.use(function(error, request, response, next) {
