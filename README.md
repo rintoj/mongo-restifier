@@ -500,7 +500,7 @@ All values except `database.url` are predefined. Specify any value in `app.conf.
 | api.cors.allowed          | *origin* - coma separated domain names; `*` - for any domain, *methods* - coma separated values of: `GET`, `POST`, `HEAD`, `POST`, `PUT` , `DELETE`, *headers* - all possible headers added by user or user agent 
 | api.oauth2.enabled        | `true` to enable OAuth2 based authentication and authorization
 | api.oauth2.default.user   | To create a default user at startup, provide user attributes: *name* - Full name of the user; default: `Superuser`,  *userId* - Required for login; default: `superuser@system.com`,  *password* - Password must be base64 encode; default: `sysadmin` (TODO: use encryption) ,  *roles* -  the roles must be an array of string; default: [`ADMIN`]
-| api.oauth2.default.client | To create a default client at startup, provide client attributes: *name*, *description*, *id*, *secret*,  *grantTypes* - valid values are `password` and `refresh_token` 
+| api.oauth2.default.client | To create a default client at startup, provide client attributes: *name*, *description*, *id*, *secret*, *grantTypes* - valid values are `password` and `refresh_token` 
 | api.oauth2.rules          | Array of tab separated values in the order:  *AuthType* - valid values are `None`, `Basic` and `Bearer`, *Roles* - coma separated values without space. eg: `ADMIN,USER`, *Methods* - coma separated values without space. eg: `GET,POST,PUT`,  *Url* - eg: `/api/user/**/*`
 | api.environment           | `development` or `production`
 | logger.level              | Valid values are `OFF`, `FATAL`, `ERROR`, `WARN`, `LOG`, `INFO`, `DEBUG`, `TRACE` and `ALL`
