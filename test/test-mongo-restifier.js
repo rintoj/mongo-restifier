@@ -5,7 +5,7 @@
  * Copyright (c) 2016 rintoj
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the " Software "), to deal
+ * of this software and associated documentation files (the " Software ", to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
@@ -23,6 +23,7 @@
  * SOFTWARE.
  */
 var chai = require('chai');
+var chain = require('chain-async');
 var should = chai.should();
 var mongoose = require('mongoose');
 var mongoRestifier = require('../src/index');
@@ -82,7 +83,7 @@ describe('mongo-resifier', function() {
   var clientId = '7d65d9b6-5cae-4db7-b19d-56cbdd25eaab';
   var clientSecret = 'a0c7b741-b18b-47eb-b6df-48a0bd3cde2e';
 
-  var aquireAccessToken = function aquireAccessToken(callback, useRefreshToken) {
+  var aquireAccessToken = function aquireAccessToken(callback, useRefreshToken, user) {
 
     var request = chai.request(instance.app)
       .post('/api/oauth2/token')
@@ -90,8 +91,8 @@ describe('mongo-resifier', function() {
       .auth(clientId, clientSecret)
       .send(!useRefreshToken ? {
         "grant_type": "password",
-        "username": "superuser@system.com",
-        "password": "c3lzYWRtaW4="
+        "username": (user && user.userId) || "superuser@system.com",
+        "password": (user && user.password) || "c3lzYWRtaW4="
       } : {
         "grant_type": "refresh_token",
         "refresh_token": refreshToken
@@ -1115,10 +1116,8 @@ describe('mongo-resifier', function() {
         });
     });
 
-
-
   });
-  
+
   describe('User Service', function() {
 
     it('should NOT CREATE USER without BASIC authorization when using PUT /api/oauth2/user', function(done) {
@@ -1251,7 +1250,7 @@ describe('mongo-resifier', function() {
           res.should.have.status(200);
           res.should.be.json;
           res.body.should.be.deep.equal({
-            count: 4
+            count: 5
           });
           done();
         });
@@ -1296,16 +1295,88 @@ describe('mongo-resifier', function() {
             status: 'deleted',
             deleted: {
               ok: 1,
-              n: 4
+              n: 5
             }
           });
           done();
         });
     });
 
+    it('should DENY ACCESS if user is without ADMIN access when using POST,PUT,DELETE /api/oauth2/user ', function(done) {
+
+      chain.series([
+        function(callback) {
+          chai.request(instance.app)
+            .put('/api/oauth2/user')
+            .auth(clientId, clientSecret)
+            .send({
+              name: "Sample User",
+              userId: "testuser@user.com",
+              password: "ERd",
+              roles: ["user"]
+            })
+            .end(function(err, res) {
+              res.should.have.status(200);
+              callback();
+            });
+        },
+        function(callback) {
+          aquireAccessToken(function(err, res) {
+            res.should.have.status(200);
+            callback();
+          }, false, {
+            userId: "testuser@user.com",
+            password: "ERd",
+          });
+        },
+        function(callback) {
+          chai.request(instance.app)
+            .post('/api/oauth2/user')
+            .set('authorization', accessToken)
+            .end(function(err, res) {
+              res.should.have.status(401);
+              callback();
+            });
+        },
+        function(callback) {
+          chai.request(instance.app)
+            .put('/api/oauth2/user')
+            .send([{
+              name: "Sample User",
+              userId: "testuser-new@user.com",
+              password: "ERd",
+              roles: ["user"]
+            }])
+            .set('authorization', accessToken)
+            .end(function(err, res) {
+              res.should.have.status(401);
+              callback();
+            });
+        },
+        function(callback) {
+          chai.request(instance.app)
+            .put('/api/oauth2/user')
+            .send([{
+              name: "Sample User",
+              userId: "testuser-new@user.com",
+              password: "ERd",
+              roles: ["user"]
+            }])
+            .set('authorization', accessToken)
+            .end(function(err, res) {
+              res.should.have.status(401);
+              callback();
+            });
+        }
+      ], function(error, response) {
+        if (error) throw error;
+        done();
+      });
+    });
+
   });
 
-  describe('Client Service', function() {
+  xdescribe('Client Service', function() {
 
     it('should NOT CREATE CLEINT without access token when using PUT /api/oauth2/client', function(done) {
       chai.request(instance.app)
@@ -1490,5 +1561,5 @@ describe('mongo-resifier', function() {
     });
 
   });
-  
+
 });
