@@ -41,7 +41,7 @@ var propertiesReader = require('./util/propertiesReader');
 
 mongoRestifier = function mongoRestifier(propertyFile) {
   
-  var properties = propertiesReader('./src/conf/api.conf.properties');
+  var properties = propertiesReader(__dirname + '/conf/api.conf.properties');
   if (propertyFile) properties.load(propertyFile);
 
   // setup nodejs api server using express.js
