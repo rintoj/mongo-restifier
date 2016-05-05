@@ -32,52 +32,9 @@ chai.use(require('chai-http'));
 chai.use(require('chai-sorted'));
 chai.use(require('chai-things'));
 
-// mongoose.createConnection(instance.properties.database.url, function() {
-//   mongoose.connection.db.dropDatabase(done);
-// });
-
-var instance = mongoRestifier('./test/api.test.conf.json')
-
-// define "Todo" model
-.register(mongoRestifier.defineModel("Todo", {
-
-  // api end point
-  url: '/todo',
-
-  // schema definition - supports everything that mongoose schema supports
-  schema: {
-
-    index: {
-      type: Number,
-      required: true,
-      min: 1,
-      autoIncrement: true,
-      idField: true
-    },
-    title: {
-      type: String,
-      required: true
-    },
-    description: String,
-    status: {
-      type: String,
-      required: true,
-      default: 'new',
-      enum: ['new', 'progress', 'done', 'hold']
-    }
-  },
-
-  userSpace: {
-    field: "_user"
-  },
-  timestamps: true
-
-}))
-
-.startup();
-
 describe('mongo-resifier', function() {
 
+  var instance;
   var accessToken;
   var refreshToken;
   var clientId = '7d65d9b6-5cae-4db7-b19d-56cbdd25eaab';
@@ -108,6 +65,69 @@ describe('mongo-resifier', function() {
     return this;
   };
 
+  before(function(done) {
+
+    mongoose.createConnection('mongodb://localhost/test', function() {
+      var commands = [];
+      Object.keys(mongoose.connection.collections).forEach(function(collectionName) {
+        console.log(collectionName);
+        commands.push(function(callback) {
+          mongoose.connection.collections[collectionName].drop();
+          callback();
+        });
+      });
+
+      commands.push(function createModel(callback) {
+        instance = mongoRestifier('./test/api.test.conf.json')
+
+        // define "Todo" model
+        .register(mongoRestifier.defineModel("Todo", {
+
+          // api end point
+          url: '/todo',
+
+          // schema definition - supports everything that mongoose schema supports
+          schema: {
+
+            index: {
+              type: Number,
+              required: true,
+              min: 1,
+              autoIncrement: true,
+              idField: true
+            },
+            title: {
+              type: String,
+              required: true
+            },
+            description: String,
+            status: {
+              type: String,
+              required: true,
+              default: 'new',
+              enum: ['new', 'progress', 'done', 'hold']
+            }
+          },
+
+          userSpace: {
+            field: "_user"
+          },
+          timestamps: true
+
+        }))
+
+        .startup();
+
+        callback();
+      });
+
+      chain.series(commands, function() {
+        done();
+      });
+
+    });
+
+  });
 
   describe('OAuth2 Service', function() {
 
@@ -275,8 +295,6 @@ describe('mongo-resifier', function() {
   });
 
   describe('Todo Service', function() {
-
-    var server = instance.app;
 
     var itemsCount = 0;
     var newIds = [];
@@ -1120,6 +1138,10 @@ describe('mongo-resifier', function() {
 
   describe('User Service', function() {
 
+    before(function(done) {
+      aquireAccessToken(done);
+    });
+
     it('should NOT CREATE USER without BASIC authorization when using PUT /api/oauth2/user', function(done) {
       chai.request(instance.app)
         .put('/api/oauth2/user')
@@ -1161,6 +1183,7 @@ describe('mongo-resifier', function() {
           done();
         });
     });
+
 
     it('should NOT RETURN user without BASIC authorizatoin when using GET /api/oauth2/user/sample@user.com', function(done) {
       chai.request(instance.app)
@@ -1225,6 +1248,10 @@ describe('mongo-resifier', function() {
           name: "Sample User",
           userId: "sample2@user.com",
           password: "ERd"
+        }, {
+          name: "Sample User",
+          userId: "sample3@user.com",
+          password: "ERd"
         }])
         .end(function(err, res) {
           res.should.have.status(200);
@@ -1234,10 +1261,10 @@ describe('mongo-resifier', function() {
           res.body.status.should.be.equal('saved');
           res.body.should.have.property('result');
           res.body.result.should.have.property('created');
-          res.body.result.created.should.be.equal(2);
+          res.body.result.created.should.be.equal(3);
           res.body.result.should.have.property('newIds');
-          res.body.result.newIds.should.be.length(2);
-          res.body.result.newIds.should.be.deep.equal(['sample1@user.com', 'sample2@user.com']);
+          res.body.result.newIds.should.be.length(3);
+          res.body.result.newIds.should.be.deep.equal(['sample1@user.com', 'sample2@user.com', 'sample3@user.com']);
           done();
         });
     });
@@ -1249,9 +1276,36 @@ describe('mongo-resifier', function() {
         .end(function(err, res) {
           res.should.have.status(200);
           res.should.be.json;
-          res.body.should.be.deep.equal({
-            count: 5
-          });
+          res.body.should.be.a('object');
+          res.body.should.have.property('count');
+          res.body.count.should.be.equal(5);
+          done();
+        });
+    });
+
+    it('should DELETE SINGLE user with access token when using DELETE /api/oauth2/user/{id}', function(done) {
+      chai.request(instance.app)
+        .delete('/api/oauth2/user/sample1@user.com')
+        .set('authorization', accessToken)
+        .end(function(err, res) {
+          res.should.have.status(200);
+          res.should.be.json;
+          res.body.should.be.a('object');
+          res.body.should.have.property('status');
+          res.body.status.should.be.equal('deleted');
+          res.body.should.have.property('item');
+          res.body.item.should.be.a('object');
+          res.body.item.should.have.property('updatedAt');
+          res.body.item.should.have.property('createdAt');
+          res.body.item.should.have.property('name');
+          res.body.item.name.should.be.equal('Sample User');
+          res.body.item.should.have.property('userId');
+          res.body.item.userId.should.be.equal('sample1@user.com');
+          res.body.item.should.have.property('active');
+          res.body.item.active.should.be.equal(true);
+          res.body.item.should.have.property('roles');
+          res.body.item.roles.should.be.a('array');
+          res.body.item.roles.should.be.length(0);
           done();
         });
     });
@@ -1259,15 +1313,11 @@ describe('mongo-resifier', function() {
     it('should NOT DELETE MULTIPLE users without access token when using DELETE /api/oauth2/user', function(done) {
       chai.request(instance.app)
         .delete('/api/oauth2/user')
-        .send([{
-          name: "Sample User",
-          userId: "sample1@user.com",
-          password: "ERd"
-        }, {
-          name: "Sample User",
-          userId: "sample2@user.com",
-          password: "ERd"
-        }])
+        .send({
+          userId: {
+            "$in": ["sample2@user.com", "sample3@user.com"]
+          }
+        })
         .end(function(err, res) {
           res.should.have.status(401);
           res.should.be.json;
@@ -1275,9 +1325,10 @@ describe('mongo-resifier', function() {
         });
     });
 
-    it('should DELETE MULTIPLE users with access token when using DELETE /api/oauth2/user', function(done) {
+
+    it('should NOT DELETE MULTIPLE USERES when using DELETE /api/oauth2/user when array is sent instead of query object in body', function(done) {
       chai.request(instance.app)
-        .delete('/api/oauth2/user')
+        .delete('/api/oauth2/client')
         .set('authorization', accessToken)
         .send([{
           name: "Sample User",
@@ -1287,17 +1338,43 @@ describe('mongo-resifier', function() {
           name: "Sample User",
           userId: "sample2@user.com",
           password: "ERd"
+        }, {
+          name: "Sample User",
+          userId: "sample3@user.com",
+          password: "ERd"
         }])
+        .end(function(err, res) {
+          res.should.have.status(422);
+          res.body.should.be.a('object');
+          res.body.should.have.property('status');
+          res.body.status.should.be.equal(422);
+          res.body.should.have.property('message');
+          res.body.message.should.be.equal('Invalid request; body of this request cannot be an array!');
+          done();
+        });
+    });
+
+    it('should DELETE MULTIPLE users with access token when using DELETE /api/oauth2/user', function(done) {
+      chai.request(instance.app)
+        .delete('/api/oauth2/user')
+        .set('authorization', accessToken)
+        .send({
+          userId: {
+            "$in": ["sample2@user.com", "sample3@user.com"]
+          }
+        })
         .end(function(err, res) {
           res.should.have.status(200);
           res.should.be.json;
-          res.body.should.be.deep.equal({
-            status: 'deleted',
-            deleted: {
-              ok: 1,
-              n: 5
-            }
-          });
+          res.body.should.be.a('object');
+          res.body.should.have.property('status');
+          res.body.status.should.be.equal('deleted');
+          res.body.should.have.property('deleted');
+          res.body.deleted.should.be.a('object');
+          res.body.deleted.should.have.property('ok');
+          res.body.deleted.ok.should.be.equal(1);
+          res.body.deleted.should.have.property('n');
+          res.body.deleted.n.should.be.equal(2);
           done();
         });
     });
@@ -1376,7 +1453,11 @@ describe('mongo-resifier', function() {
 
   });
 
-  xdescribe('Client Service', function() {
+  describe('Client Service', function() {
+
+    before(function(done) {
+      aquireAccessToken(done);
+    });
 
     it('should NOT CREATE CLEINT without access token when using PUT /api/oauth2/client', function(done) {
       chai.request(instance.app)
@@ -1533,7 +1614,7 @@ describe('mongo-resifier', function() {
         });
     });
 
-    it('should DELETE MULTIPLE CLIENTS with access token when using DELETE /api/oauth2/client', function(done) {
+    it('should NOT DELETE MULTIPLE CLIENTS when using DELETE /api/oauth2/client when array is sent instead of query object in body', function(done) {
       chai.request(instance.app)
         .delete('/api/oauth2/client')
         .set('authorization', accessToken)
@@ -1547,15 +1628,37 @@ describe('mongo-resifier', function() {
           clientSecret: "ERd"
         }])
         .end(function(err, res) {
+          res.should.have.status(422);
+          res.body.should.be.a('object');
+          res.body.should.have.property('status');
+          res.body.status.should.be.equal(422);
+          res.body.should.have.property('message');
+          res.body.message.should.be.equal('Invalid request; body of this request cannot be an array!');
+
+          done();
+        });
+    });
+
+    it('should DELETE MULTIPLE CLIENTS with access token when using DELETE /api/oauth2/client when query object in body', function(done) {
+      chai.request(instance.app)
+        .delete('/api/oauth2/client')
+        .set('authorization', accessToken)
+        .send({
+          clientId: {
+            $in: ['sample1-client-id', 'sample2-client-id']
+          }
+        })
+        .end(function(err, res) {
           res.should.have.status(200);
-          res.should.be.json;
-          res.body.should.be.deep.equal({
-            status: 'deleted',
-            deleted: {
-              ok: 1,
-              n: 4
-            }
-          });
+          res.body.should.be.a('object');
+          res.body.should.have.property('status');
+          res.body.status.should.be.equal('deleted');
+          res.body.should.have.property('deleted');
+          res.body.deleted.should.be.a('object');
+          res.body.deleted.should.have.property('ok');
+          res.body.deleted.ok.should.be.equal(1);
+          res.body.deleted.should.have.property('n');
+          res.body.deleted.n.should.be.equal(2);
           done();
         });
     });

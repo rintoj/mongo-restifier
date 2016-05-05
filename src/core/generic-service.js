@@ -253,13 +253,15 @@ module.exports = function ServiceEndpoint(model, options) {
    */
   var projection = function projection(request) {
     // set projection
+    var fields = [];
     if (request.query.fields) {
-      return request.query.fields.replace(/,/g, ' ')
-    } else if (options.projection) {
-      return options.projection.replace(/,/g, ' ');
+       fields = fields.concat(request.query.fields.split(','));
+    }
+    if (options.projection) {
+      fields = fields.concat(options.projection.split(','));
     }
 
-    return undefined;
+    return fields.join(' ');
   };
 
   /**
@@ -459,7 +461,13 @@ module.exports = function ServiceEndpoint(model, options) {
    * @param next Next hook as function
    */
   this.deleteAll = function deleteAll(request, response, next) {
-    var query = merge.recursive(true, request.query, request.body);
+    if(request.body instanceof Array) {
+      return respond(response, 422, {
+        status: 422,
+        message: 'Invalid request; body of this request cannot be an array!'
+      });
+    }
+    var query =  merge.recursive(true, request.query, request.body);
     model.remove(query, function(error, result) {
       if (error) return next(error);
       send(response, {

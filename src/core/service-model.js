@@ -87,7 +87,7 @@ var ServiceModel = function ServiceModel(context) {
     return item.indexOf("_") === 0;
   }).concat(["__v"]).map(function(item) {
     return "-" + item;
-  }).join(" ");
+  }).join(",");
 
   // Get and validate id field
   var idField;
