@@ -40,7 +40,7 @@ var propertiesReader = require('./util/propertiesReader');
 // read properties.
 
 mongoRestifier = function mongoRestifier(propertyFile) {
-  
+
   var properties = propertiesReader(__dirname + '/conf/api.conf.properties');
   if (propertyFile) properties.load(propertyFile);
 
@@ -59,8 +59,11 @@ mongoRestifier = function mongoRestifier(propertyFile) {
   logger.debug("Configuration: " + JSON.stringify(properties, null, 4));
 
   // basic api configuration
-  app.use(bodyParser.json());
+  app.use(bodyParser.json({
+    limit: '50mb'
+  }));
   app.use(bodyParser.urlencoded({
+    limit: '50mb',
     extended: true
   }));
   app.use(cookieParser());
