@@ -28,7 +28,7 @@ var ServiceEndpoint = require('./generic-service');
 var autoIncrement = require('mongoose-auto-increment');
 
 var autoIncrementRegistered = false;
-var preconfigured = false;
+var preConfigured = false;
 
 var createContext = function(name, options) {
 
@@ -187,9 +187,9 @@ var ServiceModel = function ServiceModel(context) {
     // register the router
     app.use((baseUrl ? baseUrl : "") + (context.url ? context.url : ""), context.service.router);
 
-    if (!preconfigured && noErrorHandler !== true) {
+    if (!preConfigured && noErrorHandler !== true) {
 
-      // register an error hanlder for generic-model if not registered already for this app
+      // register an error handler for generic-model if not registered already for this app
       app.use(function(error, request, response, next) {
 
         if (error && error.errors) {
@@ -213,7 +213,7 @@ var ServiceModel = function ServiceModel(context) {
           error: error
         });
       });
-      preconfigured = true;
+      preConfigured = true;
     }
   }
 };
