@@ -1,5 +1,11 @@
 {
    "database": {
        "url": "mongodb://localhost/pathway"
+   },
+   "api": {
+       "port": 4000,
+       "oauth2": {
+           "enabled": false
+       }
    }
 }

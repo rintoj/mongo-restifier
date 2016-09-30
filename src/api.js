@@ -39,10 +39,8 @@ mongoRestifier('./src/api.conf.json')
   schema: {
 
     index: {
-      type: Number,
+      type: String,
       required: true,
-      min: 1,
-      autoIncrement: true,
       idField: true
     },
     title: {
@@ -58,9 +56,9 @@ mongoRestifier('./src/api.conf.json')
     }
   },
 
-  userSpace: {
-    field: "_user"
-  },
+  // userSpace: {
+  //   field: "_user"
+  // },
   timestamps: true
 
 }))

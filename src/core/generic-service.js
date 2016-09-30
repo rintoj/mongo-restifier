@@ -23,6 +23,7 @@
  * SOFTWARE.
  */
 var _ = require('lodash');
+var uuid = require('uuid');
 var merge = require('merge');
 var express = require('express');
 var Promise = require('mpromise');
@@ -81,7 +82,7 @@ module.exports = function ServiceEndpoint(model, options) {
 
     // if multi request do this
     if (multi) {
-      var newIds = result[0].map(function(item) {
+      var newIds = result[0].map(function (item) {
         return item._id;
       });
       return response.json({
@@ -108,7 +109,7 @@ module.exports = function ServiceEndpoint(model, options) {
 
     // if single request, the request was update and the item was NOT modified
     return respond(response, 304, {
-      status: "nochange"
+      status: "no change"
     });
   }
 
@@ -162,21 +163,21 @@ module.exports = function ServiceEndpoint(model, options) {
     }
 
     var id = idField();
-    var ids = _.map(items, function(item) {
+    var ids = _.map(items, function (item) {
       return item[id]
-    }).filter(function(item) {
+    }).filter(function (item) {
       return item !== undefined;
     });
 
-    model.find().where("_id").in(ids).select("_id").exec(function(error, result) {
+    model.find().where("_id").in(ids).select("_id").exec(function (error, result) {
       if (error) return promise.reject(error);
 
       // find existing ids
-      segregatedItems.existingIds = _.map(result, function(item) {
+      segregatedItems.existingIds = _.map(result, function (item) {
         return item._id;
       });
 
-      items.forEach(function(item) {
+      items.forEach(function (item) {
         segregatedItems[segregatedItems.existingIds.indexOf(item[id]) >= 0 ? "existing" : "new"].push(item);
       });
 
@@ -201,7 +202,7 @@ module.exports = function ServiceEndpoint(model, options) {
       promise.fulfill([]);
       return promise;
     }
-    model.create(items, function(error, bulkResponse) {
+    model.create(items, function (error, bulkResponse) {
       if (error) return promise.reject(error);
       promise.fulfill(bulkResponse);
     });
@@ -227,7 +228,7 @@ module.exports = function ServiceEndpoint(model, options) {
     var id = idField();
 
     // prepare the bulk upload request
-    _.each(items, function(item) {
+    _.each(items, function (item) {
       bulk.find({
         _id: item[id]
       }).updateOne({
@@ -236,7 +237,7 @@ module.exports = function ServiceEndpoint(model, options) {
     });
 
     // execute the query
-    bulk.execute(function(error, result) {
+    bulk.execute(function (error, result) {
       if (error) return promise.reject(error);
       promise.fulfill(result);
     });
@@ -255,7 +256,7 @@ module.exports = function ServiceEndpoint(model, options) {
     // set projection
     var fields = [];
     if (request.query.fields) {
-       fields = fields.concat(request.query.fields.split(','));
+      fields = fields.concat(request.query.fields.split(','));
     }
     if (options.projection) {
       fields = fields.concat(options.projection.split(','));
@@ -285,10 +286,10 @@ module.exports = function ServiceEndpoint(model, options) {
     }
 
     // split and get include and exclude fields
-    var selection = _((projection || '').split(' ')).partition(function(item) {
+    var selection = _((projection || '').split(' ')).partition(function (item) {
       return item.indexOf("-") !== 0;
-    }).map(function(item) {
-      return _.map(item, function(i) {
+    }).map(function (item) {
+      return _.map(item, function (i) {
         return i.replace(/^-/, '');
       });
     }).value();
@@ -302,7 +303,7 @@ module.exports = function ServiceEndpoint(model, options) {
       pickFields = fields;
     }
 
-    return (item instanceof Array) ? item.map(function(i) {
+    return (item instanceof Array) ? item.map(function (i) {
       return _(i.toJSON ? i.toJSON() : i).pick(pickFields).value();
     }) : _(item).pick(pickFields).value();
   };
@@ -312,7 +313,7 @@ module.exports = function ServiceEndpoint(model, options) {
    * 
    * @private
    * @param request Http request
-   * @param multi True for muliselect query
+   * @param multi True for multi-select query
    * @returns Returns an instance of query
    */
   var createQuery = function createQuery(request, multi) {
@@ -366,7 +367,7 @@ module.exports = function ServiceEndpoint(model, options) {
    */
   this.list = function list(request, response, next) {
     request.body = {}; // ignore any body content because this is GET 
-    createQuery(request, true).exec(function(error, items) {
+    createQuery(request, true).exec(function (error, items) {
       if (error) return next(error);
       response.json(request.query.count ? {
         count: items
@@ -382,7 +383,7 @@ module.exports = function ServiceEndpoint(model, options) {
    * @param next Next hook as function
    */
   this.query = function query(request, response, next) {
-    createQuery(request, true).exec(function(error, items) {
+    createQuery(request, true).exec(function (error, items) {
       if (error) return next(error);
       response.json(request.query.count ? {
         count: items
@@ -401,7 +402,7 @@ module.exports = function ServiceEndpoint(model, options) {
     request.body = {
       _id: request.params.id
     };
-    createQuery(request, true).exec(function(error, item) {
+    createQuery(request, true).exec(function (error, item) {
       if (error) return next(error);
       send(response, select(projection(request), item), undefined, request.params.id);
     });
@@ -426,28 +427,38 @@ module.exports = function ServiceEndpoint(model, options) {
       });
     }
 
+    // auto generate id
+    if (options.idField.type === String) {
+      items = items.map(function (item) {
+        if (item[options.idField.name] === undefined) {
+          item[options.idField.name] = uuid();
+        }
+        return item;
+      });
+    }
+
     // attach user
     if (options.userField) {
-      items = items.map(function(item) {
+      items = items.map(function (item) {
         item[options.userField] = request.user.userId;
         return item;
       });
     }
 
-    segregateExisting(items).then(function(segregateItems) {
+    segregateExisting(items).then(function (segregateItems) {
         var promises = [];
 
         promises.push(bulkCreate(request.query.updateOnly ? [] : segregateItems.new));
         promises.push(bulkUpdate(request.query.createOnly ? [] : segregateItems.existing));
 
-        Promise.when.apply(Promise, promises).then(function(result) {
+        Promise.when.apply(Promise, promises).then(function (result) {
           sendBulkResult(request, response, result, multi);
-        }, function(error) {
+        }, function (error) {
           next(error);
         });
 
       },
-      function(error) {
+      function (error) {
         next(error);
       });
 
@@ -461,14 +472,14 @@ module.exports = function ServiceEndpoint(model, options) {
    * @param next Next hook as function
    */
   this.deleteAll = function deleteAll(request, response, next) {
-    if(request.body instanceof Array) {
+    if (request.body instanceof Array) {
       return respond(response, 422, {
         status: 422,
         message: 'Invalid request; body of this request cannot be an array!'
       });
     }
-    var query =  merge.recursive(true, request.query, request.body);
-    model.remove(query, function(error, result) {
+    var query = merge.recursive(true, request.query, request.body);
+    model.remove(query, function (error, result) {
       if (error) return next(error);
       send(response, {
         status: "deleted",
@@ -490,7 +501,7 @@ module.exports = function ServiceEndpoint(model, options) {
     }
     model.findByIdAndUpdate(request.params.id, request.body, {
       runValidators: true
-    }, function(error, item) {
+    }, function (error, item) {
       if (error) return next(error);
       send(response, select(projection(request), item), "updated", request.params.id);
     });
@@ -504,7 +515,7 @@ module.exports = function ServiceEndpoint(model, options) {
    * @param next Next hook as function
    */
   this.deleteById = function deleteById(request, response, next) {
-    model.findByIdAndRemove(request.params.id, function(error, item) {
+    model.findByIdAndRemove(request.params.id, function (error, item) {
       if (error) return next(error);
       send(response, select(projection(request), item), "deleted", request.params.id);
     });
