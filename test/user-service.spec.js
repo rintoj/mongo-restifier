@@ -23,7 +23,7 @@
  * SOFTWARE.
  */
 var chai = require('chai');
-var util = require('./conf/test-util');
+var util = require('./conf/util');
 var chain = require('chain-async');
 
 describe('User service', function () {

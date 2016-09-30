@@ -23,7 +23,7 @@
  * SOFTWARE.
  */
 var chai = require('chai');
-var util = require('./conf/test-util');
+var util = require('./conf/util');
 
 describe('oAuth2 service', function () {
 

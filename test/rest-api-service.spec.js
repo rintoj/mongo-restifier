@@ -23,7 +23,8 @@
  * SOFTWARE.
  */
 var chai = require('chai');
-var util = require('./conf/test-util');
+var util = require('./conf/util');
+var should = chai.should();
 
 describe('Rest Api service', function () {
 
@@ -105,6 +106,32 @@ describe('Rest Api service', function () {
                 res.body.item.id.should.be.a('string');
                 res.body.item.id.should.not.be.equal('');
                 res.body.item.title.should.be.equal('Sample story');
+                done();
+            });
+    });
+
+    it('should generate id for when MULTIPLE items are added using PUT /api/task', function (done) {
+        chai.request(util.instance.app)
+            .put('/api/task')
+            .set('authorization', util.accessToken)
+            .send([{
+                'title': 'Sample story'
+            }, {
+                'title': 'Sample story2'
+            }])
+            .end(function (err, res) {
+                res.should.have.status(200);
+                res.should.be.json;
+                res.body.should.be.a('object');
+                res.body.should.have.property('status');
+                res.body.status.should.be.equal('saved');
+                res.body.should.have.property('result');
+                res.body.result.should.have.property('created');
+                res.body.result.created.should.be.equal(2);
+                res.body.result.newIds[0].should.a('string');
+                res.body.result.newIds[0].should.be.not.equal('');
+                res.body.result.newIds[1].should.a('string');
+                res.body.result.newIds[1].should.be.not.equal('');
                 done();
             });
     });
