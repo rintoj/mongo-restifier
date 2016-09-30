@@ -3,6 +3,10 @@
 
 Easy to use [RESTful API](http://www.restapitutorial.com/lessons/whatisrest.html#) for [MongoDB](https://www.mongodb.org/)  with build-in [OAuth2](http://oauth.net/2/) provider. 
 
+## Versions 
+
+Check [change log](./CHANGELOG.md) to know more about versions.
+
 ## Features
 
 * Easy to use apification using **[Mongoose](http://mongoosejs.com/)** and **[Express](https://www.npmjs.com/package/express)**
