@@ -4,7 +4,7 @@
         "baseUrl": "/api",
         "environment": "development",
         "cors": {
-            "enabled": true,
+            "enable": true,
             "allowed": {
                 "origin": "*",
                 "methods": "GET,PUT,POST,DELETE,OPTIONS",
@@ -12,7 +12,7 @@
             }
         },
         "oauth2": {
-            "enabled": true,
+            "enable": true,
             "default": {
                 "user": {
                     "name": "Superuser",

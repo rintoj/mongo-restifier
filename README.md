@@ -1,20 +1,17 @@
 
 # mongo-restifier
 
-Easy to use [RESTful API](http://www.restapitutorial.com/lessons/whatisrest.html#) for [MongoDB](https://www.mongodb.org/)  with build-in [OAuth2](http://oauth.net/2/) provider. 
-
-## Versions 
-
-Check [change log](./CHANGELOG.md) to know more about versions.
+Easy to use [RESTful API](http://www.restapitutorial.com/lessons/whatisrest.html#) for [MongoDB](https://www.mongodb.org/) with build-in [OAuth2](http://oauth.net/2/) implementation. 
 
 ## Features
 
-* Easy to use apification using **[Mongoose](http://mongoosejs.com/)** and **[Express](https://www.npmjs.com/package/express)**
-* Build in **[OAuth2](http://oauth.net/2/)** API implementation
+* Easy to use apification using json based models
 * Strict implementation of **[RESTful API](http://www.restapitutorial.com/lessons/whatisrest.html#)**
 * **[Bulk upload and updates](#bulk-create-or-update)** supported
 * **[Cross domain resource sharing (CORS)](https://developer.mozilla.org/en-US/docs/Web/HTTP/Access_control_CORS)** is enabled by default
 * Schema based collections and **[advanced querying](#advanced-query)** options
+* Build-in **[OAuth2](http://oauth.net/2/)** API implementation
+* Build on **[Mongoose](http://mongoosejs.com/)** and **[Express](https://www.npmjs.com/package/express)**
 
 ## Installation
 
@@ -23,6 +20,10 @@ This module is installed via npm:
 ```bash
 $ npm install mongo-restifier --save
 ```
+
+## Versions 
+
+Check [change log](./CHANGELOG.md) to know more about versions.
 
 ## Get Started
 The following example serves the `Todo` model on a RESTful API.
@@ -53,9 +54,12 @@ The following example serves the `Todo` model on a RESTful API.
   mongoRestifier('./api.conf.json')
 
   // define "Todo" model
-  .register(mongoRestifier.defineModel("Todo", {
+  .registerModel({
 
-      // api end point
+      // mandatory
+      name: 'Todo',
+
+      // api end point (optional)
       url: '/todo',
 
       // schema definition - supports everything that mongoose schema supports
@@ -73,7 +77,7 @@ The following example serves the `Todo` model on a RESTful API.
         status: String,
       }
 
-  }))
+  })
   
   // ... more models can be added here
 
@@ -81,7 +85,7 @@ The following example serves the `Todo` model on a RESTful API.
   .startup();
   ```
 
-5. Create configruation file **api.conf.json**
+5. Create configuration file **api.conf.json**
   ```json
   {
       "database": {
@@ -95,37 +99,30 @@ The following example serves the `Todo` model on a RESTful API.
   $ node app.js
   ``` 
 
-REST API
-========
+# REST API
+
 
 ### Query
 ```
 GET /todo HTTP/1.1
-Authorization: Bearer {access_token}
 ```
 ```                         
 GET /todo/{id} HTTP/1.1
-Authorization: Bearer {access_token}
 ```
 ```                    
 GET /todo?{field}={value} HTTP/1.1
-Authorization: Bearer {access_token}
 ```
 ```         
 GET /todo?fields={field1},-{field2} HTTP/1.1
-Authorization: Bearer {access_token}
 ```
 ```   
 GET /todo?sort={field1},-{field2} HTTP/1.1
-Authorization: Bearer {access_token}
 ```
 ```
 GET /todo?count=true HTTP/1.1
-Authorization: Bearer {access_token}
 ```
 ``` 
 GET /todo?limit=10&skip=10 HTTP/1.1
-Authorization: Bearer {access_token}
 ```
 
 Querying takes in the following parameters:
@@ -142,43 +139,36 @@ Querying takes in the following parameters:
 ### Advanced Query
 ```
 POST /todo HTTP/1.1
-Authorization: Bearer {access_token}
 
 {title: "Your title", "status": "new" }
 ```
 ```
 POST /todo HTTP/1.1
-Authorization: Bearer {access_token}
 
 { "status": { "$in": ["new", "hold"] }}
 ```
 ```
 POST /todo HTTP/1.1
-Authorization: Bearer {access_token}
 
 {"index": { "$gte": 1, "$lte": 100 }}
 ```
 ```
 POST /todo HTTP/1.1
-Authorization: Bearer {access_token}
  
 { "$or" : [{ "index": 100 }, { "index": 101 }] }
 ```
 ```
 POST /todo HTTP/1.1
-Authorization: Bearer {access_token}
  
 { "$and": [{ "index": { "$ne": 100 }}, { "index": { "$lt": 120 }}] }
 ```
 ```
 POST /todo HTTP/1.1
-Authorization: Bearer {access_token}
 
 { "title": { "$regex": "^S.mple.*"} }
 ```
 ```
 POST /todo HTTP/1.1
-Authorization: Bearer {access_token}
 
 { "index": { "$exists": true }}
 ```
@@ -211,31 +201,26 @@ Use `POST` to perform advanced queries. Query parameters remain same as of `GET`
 ### Create or Update
 ```
 PUT /todo HTTP/1.1
-Authorization: Bearer {access_token}
 
 { "title": "Your title", "status": "new" }
 ```
 ```
 PUT /todo/{id} HTTP/1.1
-Authorization: Bearer {access_token}
          
 { "title": "Your title", "status": "new" }
 ```
 ```
 PUT /todo HTTP/1.1
-Authorization: Bearer {access_token}
 
 { "id": "abc", "title": "Your title" }
 ```
 ```
 PUT /todo?createOnly=true HTTP/1.1
-Authorization: Bearer {access_token}
 
 { "id": "abc", "title": "Your title" }
 ```
 ```   
 PUT /todo?updateOnly=true HTTP/1.1
-Authorization: Bearer {access_token}
 
 { "id": "abc", "title": "Your title" }
 ```
@@ -248,25 +233,21 @@ Authorization: Bearer {access_token}
 ### Bulk Create or Update
 ```
 PUT /todo HTTP/1.1
-Authorization: Bearer {access_token}
 
 [{ "title": "Your title"}, { "title": "Your title"}]
 ```
 ```               
 PUT /todo HTTP/1.1
-Authorization: Bearer {access_token}
 
 [{ "id": "2sd233", "title": "Sample"}, { "id": "2sd234", "title": "Sample"}]
 ```
 ```
 PUT /todo?createOnly=true HTTP/1.1
-Authorization: Bearer {access_token}
 
 [{ "id": "2sd233", "title": "Your title"}]         
 ```
 ```
 PUT /todo?updateOnly=true HTTP/1.1
-Authorization: Bearer {access_token}
 
 [{ "id": "2sd233", "title": "Your title"}]                         
 ```
@@ -276,25 +257,129 @@ Authorization: Bearer {access_token}
 ### Delete
 ```
 DELETE /todo/{id} HTTP/1.1
-Authorization: Bearer {access_token}
 ```
 ```
 DELETE /todo HTTP/1.1
-Authorization: Bearer {access_token}
 
 { "status": "new" }
 ```
 ```
 DELETE /todo HTTP/1.1
-Authorization: Bearer {access_token}
 ```
 *NOTE: `DELETE /todo` deletes everything. `USE WITH CATION`*
 
-OAuth2 API
-=====
-This module contains **[OAuth2](http://oauth.net/2/)** services configured out-of-box for `password` and `refresh_token` grant types. In this section we will discuss how to use them. To know about how to configure see [API Configuration](#api-configuration) section.
+# Model Configuration
 
-### Using the password grant type
+## Configuration
+
+`*` - are mandatory
+
+| Option           | Type       | Purpose           
+| ---------------- | :--------- | :------------------------------------------------
+| name         `*` | Definition | Name of the model. Collection's name will be derived from this. Therefor no special characters (including space) other than `_` is allowed. Eg: name `Todo` will result in collection name `todos`. 
+| schema       `*` | Definition | Define the schema as defined by mongoose. See [Schema Definition](#schema-definition)   for details.
+| url              | Definition | Serving endpoint. If not defined, this will be derived from name. Eg: name `Todo` will result in url `/todo`. The final url will be `http://{app}:{port}/{baseUrl}/{url}` 
+| projection       | Behaviour  | Coma separated list of fields that needs to be projected. Use `-` at the beginning of the fieldname to hide it. Usage: `projection: 'userId,name,roles,-password'`
+| userSpace        | Behaviour  | Keep track of the user for each record and restrict access to the corresponding users. `api.oauth2.enable` must be `true` to use this option, otherwise the startup will fail with an error message. Usage: `userSpace: true` or `userSpace: {field: "_user"}`
+| configure        | Function   | Use this function to register [middleware](http://mongoosejs.com/docs/middleware.html) or [plugins](http://mongoosejs.com/docs/plugins.html). Context of this function will contain the second parameter of 'defineModel' (this object itself) *this.schema* - Schema defined by `schema, *this.model* - reference to [mongoose.Model](http://mongoosejs.com/docs/models.html), *this.modelSchema* - reference to [mongoose.Schema](http://mongoosejs.com/docs/guide.html)
+
+```js
+...
+// define "Todo" model
+.registerModel({
+  
+    // mandatory
+    name: 'Todo',
+
+    /** schema definition (mandatory) **/
+    schema: {  
+     
+        /** field definition **/
+        field1: {
+        
+            /** type of the field **/
+            type: String | Number | Date,
+
+            /** validations **/
+            required: true,                      // check for null values 
+            required: [true, 'phone# required'], // custom message
+            enum: ['Coffee', 'Tea'],             // only if type = String
+            minlength: Number,                   // only if type = String
+            maxlength: Number,                   // only if type = String
+            min: Number,                         // only if type = Number
+            max: Number,                         // only if type = Number
+
+            /** custom validation **/
+            validate: {
+                validator: function(v) {
+                    return /\d{3}-\d{3}-\d{4}/.test(v);
+                },
+                message: '{VALUE} is not a valid phone number!'
+            },
+            
+            /** other options **/
+            idField: Boolean,           // replaces _id with field1. one and only one field can be id
+            autoIncrement: Boolean,     // only if type = Number
+            startAt: Number,            // only if type = Number and autoIncrement = true
+            incrementBy: Number         // only if type = Number and autoIncrement = true  
+        }
+    },
+   
+    url: String,                   // service endpoint eg: /todo
+    userSpace: Boolean,            // true | { field: "{your field name}" } only if api.oauth2.enable = true
+    
+    configure: function() {
+        // write your code here to customize this model further
+        
+        // this.schema         - The second parameter of 'defineModel' (this object itself)
+        // this.model          - reference to mongoose.Model
+        // this.modelSchema    - reference to mongoose.Schema 
+    }
+   
+})
+...
+```
+## Schema Definition
+`*` - are mandatory
+`**` - additional feature than the ones supported by [mongoose](http://mongoosejs.com/docs/guide.html)
+
+| Option                    | Type       | Purpose           
+| ------------------------- |:---------- | :------------------------------------------------
+| {field}.type          `*` | Definition | Valid values are `String`, `Number` and `Date` 
+| {field}.idField       `**`| Behaviour  | If set to `true`, system replaces _id with the given field. One and only one field can be set as id field. Usage: `idField: true` 
+| {field}.autoIncrement `**`| Behaviour  | If set to `true`, system increments value of the given field for every insertion. This validation can be applied only on `Number` fields . Usage: `autoIncrement: true` 
+| {field}.startAt       `**`| Behaviour  | Start autoIcrement at the given value. This configuration takes effect only if `autoIcrement` is set to `true`. Usage: `startAt: 1` 
+| {field}.incrementBy   `**`| Behaviour  | Start autoIcrement with the given steps. This configuration takes effect only if `autoIcrement` is set to `true`. Usage: `incrementBy: 1` 
+| {field}.default           | Behaviour  | Sets the given value as the default value of the field if not specified in the request. Usage: `default: Date.now`  
+| {field}.required          | Validation | If set to `true` adds a required validator. If a value is not specified while creating an entity, operation will be rejected with an error, unless 'default' value is configured. Required can be configured as:. Usage: `required: true` or `required: [true, 'User phone number required']` This format is applicable to all validators except `validate` 
+| {field}.enum              | Validation | Validates the value of a field against predefined enum values; This validation can be applied only on `String` fields. Usage: `enum: ['Coffee', 'Tea']` 
+| {field}.minlength         | Validation | Validates the length of the value to be minimum of given value; This validation can be applied only on `String` fields. Usage: `minlength: 5` 
+| {field}.maxlength         | Validation | Validates the length of the value to be maximum of given value; This validation can be applied only on `String` fields. Usage: `maxlength: 5` 
+| {field}.min               | Validation | Validates the value to be minimum of given value; This validation can be applied only on `Number` fields. Usage: `min: 5` 
+| {field}.max               | Validation | Validates the value to be maximum of given value; This validation can be applied only on `Number` fields. Usage: `max: 5` 
+| {field}.validate          | Validation | Helps in defining custom validation. `validate: { validator: function(v) { return /\d{3}-\d{3}-\d{4}/.test(v); }, message: '{VALUE} is not a valid phone number!'}`
+
+Any other additional option supported by [mongoose schema](http://mongoosejs.com/docs/guide.html)
+
+
+# OAuth2 API
+
+This module contains **[OAuth2](http://oauth.net/2/)** services configured out-of-box for `password` and `refresh_token` grant types. In this section we will discuss how to use them.
+
+Add the following code in configuration json to enable oauth:
+```
+{
+    "api": {
+        "oauth2": {
+            "enable": true
+        }
+    }
+}
+```
+
+To know more about how to configure see [API Configuration](#api-configuration) section.
+
+## Using the password grant type
 First you must create a client and a user. A default client and user are configured at startup (see [API Configuration](#api-configuration) for details). Additionally users and clients can be created using build in apis `/oauth2/user` and `/oauth2/client`.
 
 To obtain a token you should POST to /oauth2/token. You should include your client credentials in the `Authorization` header (`"Basic " + client_id:client_secret base64'd`), and then `grant_type` (`password`), `username` and `password` in the request body, for example:
@@ -320,7 +405,7 @@ Content-Type: application/json;charset=UTF-8
 }
 ```
 
-### Using the refresh_token grant type
+## Using the refresh_token grant type
 
 Send a request with previously obtained `refresh_token` to extend grant and expect the same output as the previous call.
 
@@ -332,15 +417,15 @@ Content-Type: application/x-www-form-urlencoded
 grant_type=refresh_token&refresh_token=tGzv3JOkF0XG5Qx2TlKWIA
 ```
 
-### Managing Users
+## Managing Users
 
-#### Get
+### Get
 ```
 GET /oauth2/user/{userId} HTTP/1.1
 Authorization: Basic base64{clientId:clientSecret}
 ```
 
-#### Create User
+### Create User
 ```
 PUT /oauth2/user HTTP/1.1
 Authorization: Basic base64{clientId:clientSecret}
@@ -348,7 +433,7 @@ Authorization: Basic base64{clientId:clientSecret}
 { "userId": "emailid", "password": "base64(plaintext)", "name": "Full name" }
 ```
 
-#### Bulk Create Or Update
+### Bulk Create Or Update
 ```
 PUT /oauth2/user HTTP/1.1
 Authorization: Bearer {access_token}
@@ -357,7 +442,7 @@ Authorization: Bearer {access_token}
  { "userId": "user2@system.com", "password": "base64(plaintext)", "name": "Full name" }]
 ```
 
-#### Delete
+### Delete
 ```
 DELETE /oauth2/user/{userId} HTTP/1.1
 Authorization: Bearer {access_token}
@@ -369,15 +454,15 @@ DELETE /oauth2/user HTTP/1.1
 Authorization: Bearer {access_token}
 ```
 
-### Managing Clients
+## Managing Clients
 
-#### Get
+### Get
 ```
 GET /oauth2/client/{clientId} HTTP/1.1
 Authorization: Basic base64{clientId:clientSecret}
 ```
 
-#### Create Client
+### Create Client
 ```
 PUT /oauth2/client HTTP/1.1
 Authorization: Basic base64{clientId:clientSecret}
@@ -385,7 +470,7 @@ Authorization: Basic base64{clientId:clientSecret}
 { "clientId": "24x43f-sd23dde-sda23", "clientSecret": "a0c7b741-b18b-47eb", "name": "Full name" }
 ```
 
-#### Bulk Create Or Update
+### Bulk Create Or Update
 ```
 PUT /oauth2/client HTTP/1.1
 Authorization: Bearer {access_token}
@@ -394,7 +479,7 @@ Authorization: Bearer {access_token}
  { "clientId": "243f-sd23dde-sda23", "clientSecret": "a0c7b741-b18b-47eb", "name": "Full name" }]
 ```
 
-#### Delete
+### Delete
 ```
 DELETE /oauth2/client/{clientId} HTTP/1.1
 Authorization: Bearer {access_token}
@@ -406,101 +491,6 @@ DELETE /oauth2/client HTTP/1.1
 Authorization: Bearer {access_token}
 ```
 
-Model Configuration
-======
-
-## Configuration
-
-`*` - are mandatory
-
-| Option           | Type       | Purpose           
-| ---------------- | :--------- | :------------------------------------------------
-| url          `*` | Definition | Serving endpoint. The final url will be `http://{app}:{port}/{baseUrl}/{url}` 
-| schema       `*` | Definition | Define the schema as defined by mongoose. See [Schema Definition](#schema-definition)   for details.
-| projection       | Behaviour  | Coma separated list of fields that needs to be projected. Use `-` at the beginning of the fieldname to hide it. Usage: `projection: 'userId,name,roles,-password'`
-| userSpace        | Behaviour  | Keep track of the user for each record and restrict access to the corresponding users. Usage: `userSpace: true`. Usage: `userSpace: {``field: "_user"``}`
-| configure        | Function   | Use this function to register [middleware](http://mongoosejs.com/docs/middleware.html) or [plugins](http://mongoosejs.com/docs/plugins.html). Context of this function will contain the second parameter of 'defineModel' (this object itself) *this.schema* - Schema defined by `schema, *this.model* - reference to [mongoose.Model](http://mongoosejs.com/docs/models.html), *this.modelSchema* - reference to [mongoose.Schema](http://mongoosejs.com/docs/guide.html)
-
-```js
-// define "Todo" model
-.register(mongoRestifier.defineModel("Todo", {
-  
-   /** schema definition (mandatory) **/
-   
-   schema: {  
-     
-     /** field definition **/
-     
-     field1: {
-       
-       /** type of the field **/
-       
-       type: String | Number | Date,
-
-       /** validations **/
-       
-       required: true,                      // check for null values 
-       required: [true, 'phone# required'], // custom message
-       enum: ['Coffee', 'Tea'],             // only if type = String
-       minlength: number,                   // only if type = String
-       maxlength: number,                   // only if type = String
-       min: number,                         // only if type = Number
-       max: number,                         // only if type = Number
-
-       /** custom validation **/
-       
-       validate: {
-          validator: function(v) {
-            return /\d{3}-\d{3}-\d{4}/.test(v);
-          },
-          message: '{VALUE} is not a valid phone number!'
-       },
-        
-       /** other options **/
-       
-       idField: boolean,           // replaces _id with field1. one and only one field can be id
-       autoIncrement: boolean,     // only if type = Number
-       startAt: number,            // only if type = Number and autoIncrement = true
-       incrementBy: number         // only if type = Number and autoIncrement = true  
-     }
-   },
-   
-   url: String,                   // service endpoint eg: /todo
-   userSpace: Boolean,            // true | { field: "{your field name}" }
-   
-   configure: function() {
-     // write your code here to customize this model further
-     
-     // this.schema         - The second parameter of 'defineModel' (this object itself)
-     // this.model          - reference to mongoose.Model
-     // this.modelSchema    - reference to mongoose.Schema 
-   }
-   
-}));
-    
-```
-## Schema Definition
-`*` - are mandatory
-`**` - additional feature than the ones supported by [mongoose](http://mongoosejs.com/docs/guide.html)
-
-| Option                    | Type       | Purpose           
-| ------------------------- |:---------- | :------------------------------------------------
-| {field}.type          `*` | Definition | Valid values are `String`, `Number` and `Date` 
-| {field}.idField       `**`| Behaviour  | If set to `true`, system replaces _id with the given field. One and only one field can be set as id field. Usage: `idField: true` 
-| {field}.autoIncrement `**`| Behaviour  | If set to `true`, system increments value of the given field for every insertion. This validation can be applied only on `Number` fields . Usage: `autoIncrement: true` 
-| {field}.startAt       `**`| Behaviour  | Start autoIcrement at the given value. This configuration takes effect only if `autoIcrement` is set to `true`. Usage: `startAt: 1` 
-| {field}.incrementBy   `**`| Behaviour  | Start autoIcrement with the given steps. This configuration takes effect only if `autoIcrement` is set to `true`. Usage: `incrementBy: 1` 
-| {field}.default           | Behaviour  | Sets the given value as the default value of the field if not specified in the request. Usage: `default: Date.now`  
-| {field}.required          | Validation | If set to `true` adds a required validator. If a value is not specified while creating an entity, operation will be rejected with an error, unless 'default' value is configured. Required can be configured as:. Usage: `required: true` or `required: [true, 'User phone number required']` This format is applicable to all validators except `validate` 
-| {field}.enum              | Validation | Validates the value of a field against predefined enum values; This validation can be applied only on `String` fields. Usage: `enum: ['Coffee', 'Tea']` 
-| {field}.minlength         | Validation | Validates the length of the value to be minimum of given value; This validation can be applied only on `String` fields. Usage: `minlength: 5` 
-| {field}.maxlength         | Validation | Validates the length of the value to be maximum of given value; This validation can be applied only on `String` fields. Usage: `maxlength: 5` 
-| {field}.min               | Validation | Validates the value to be minimum of given value; This validation can be applied only on `Number` fields. Usage: `min: 5` 
-| {field}.max               | Validation | Validates the value to be maximum of given value; This validation can be applied only on `Number` fields. Usage: `max: 5` 
-| {field}.validate          | Validation | Helps in defining custom validation. `validate: { validator: function(v) { return /\d{3}-\d{3}-\d{4}/.test(v); }, message: '{VALUE} is not a valid phone number!'}`
-
-Any other additional option supported by [mongoose schema](http://mongoosejs.com/docs/guide.html)
-
 # API Configuration
 
 ## Options
@@ -510,11 +500,11 @@ All values except `database.url` are predefined. Specify any value in `app.conf.
 | Option                    | Purpose
 | --------------------------|:-------------------------------------------------------
 | database.url              | Mongo DB url. Format:  `mongodb://localhost/{dbname}`
-| api.port                  | Port your server should start at; default: `3000`
+| api.port                  | Port your server should start at; default: `5858`
 | api.baseUrl               | Port and baseUrl defines your api url: `http://{host}:{port}/{baseUrl}/`
-| api.cors.enabled          | `true` if you want to make [cross-origin HTTP request](https://developer.mozilla.org/en-US/docs/Web/HTTP/Access_control_CORS). CORS is enabled by default.
+| api.cors.enable           | `true` if you want to make [cross-origin HTTP request](https://developer.mozilla.org/en-US/docs/Web/HTTP/Access_control_CORS). CORS is enabled by default.
 | api.cors.allowed          | *origin* - coma separated domain names; `*` - for any domain, *methods* - coma separated values of: `GET`, `POST`, `HEAD`, `POST`, `PUT` , `DELETE`, *headers* - all possible headers added by user or user agent 
-| api.oauth2.enabled        | `true` to enable OAuth2 based authentication and authorization
+| api.oauth2.enable         | `true` to enable OAuth2 based authentication and authorization. (`false` by default)
 | api.oauth2.default.user   | To create a default user at startup, provide user attributes: *name* - Full name of the user; default: `Superuser`,  *userId* - Required for login; default: `superuser@system.com`,  *password* - Password must be base64 encode; default: `sysadmin` (TODO: use encryption) ,  *roles* -  the roles must be an array of string; default: [`ADMIN`]
 | api.oauth2.default.client | To create a default client at startup, provide client attributes: *name*, *description*, *id*, *secret*, *grantTypes* - valid values are `password` and `refresh_token` 
 | api.oauth2.rules          | Array of tab separated values in the order:  *AuthType* - valid values are `None`, `Basic` and `Bearer`, *Roles* - coma separated values without space. eg: `ADMIN,USER`, *Methods* - coma separated values without space. eg: `GET,POST,PUT`,  *Url* - eg: `/api/user/**/*`
@@ -537,11 +527,11 @@ You may setup configuration in either of the two formats:
         "url": "mongodb://localhost/{dbname}"
     },
     "api": {
-        "port": 3000,
+        "port": 5858,
         "baseUrl": "/api",
         "environment": "development",
         "cors": {
-            "enabled": true,
+            "enable": true,
             "allowed": {
                 "origin": "*",
                 "methods": "GET,PUT,POST,DELETE,OPTIONS",
@@ -549,7 +539,7 @@ You may setup configuration in either of the two formats:
             }
         },
         "oauth2": {
-            "enabled": true,
+            "enable": true,
             "default": {
                 "user": {
                     "name": "Superuser",
@@ -602,18 +592,18 @@ You may setup configuration in either of the two formats:
 url = mongodb://localhost/{dbname}
 
 [api]
-port = 3000
+port = 5858
 baseUrl = /api
 environment = development
 
 [api.cors]
-enabled = true
+enable = true
 allowed.origin = *
 allowed.methods = GET,PUT,POST,DELETE,OPTIONS
 allowed.headers = Origin, X-Requested-With, Content-Type, Accept, Authorization, Cache-Control
 
 [api.oauth2]
-enabled = true
+enable = true
 
 [api.oauth2.default.user]
 name = Superuser
@@ -655,18 +645,19 @@ ABOUT
 ## Angular2 Integration
 This software was built with [Angular 2](https://angular.io/) in mind. Client-side library is being build. Come back later.
 
-## Sample Apps
-Come back later for sample apps
+## Sample
+
+Check `src/api.js` and `api.conf.json` to understand the usage.
 
 ## Running the Tests
-Do `npm install` to install all of the dependencies, ensure that [MongoDB](http://mongodb.org) is installed, then to run the unit tests run:
+Do `npm install` to install all of the dependencies, ensure that [MongoDB](http://mongodb.org) is installed and running, then to run unit tests use:
 
 ```
 $ npm test
 ```
 
 ## Contributing
-Contributions are very welcome! Just send a pull request. Feel free to contact me or checkout my [Github](https://github.com/rintoj) page.
+Contributions are very welcome! Just send a pull request. Feel free to [contact me](mailto:rintoj@gmail.com) or checkout my [Github](https://github.com/rintoj) page.
 
 ## Author
 

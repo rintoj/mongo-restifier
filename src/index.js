@@ -69,7 +69,7 @@ var mongoRestifier = function mongoRestifier(propertyFile) {
     app.use(cookieParser());
 
     // enable Cross-Orgin-Resource-Sharing - CORS
-    if (properties.api.cors.enabled === true) {
+    if (properties.api.cors.enable === true) {
         app.use(function (req, res, next) {
             res.header('Access-Control-Allow-Origin', properties.api.cors.allowed.origin);
             res.header('Access-Control-Allow-Methods', properties.api.cors.allowed.methods);
@@ -82,7 +82,7 @@ var mongoRestifier = function mongoRestifier(propertyFile) {
     }
 
     // enable authentication module
-    if (properties.api.oauth2 && properties.api.oauth2.enabled === true) {
+    if (properties.api.oauth2 && properties.api.oauth2.enable === true) {
         // create oauth2 server
         app.oauth2 = new OAuth2Server(app, properties.api.baseUrl + '/oauth2', properties.api.oauth2);
     }

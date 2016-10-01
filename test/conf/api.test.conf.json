@@ -3,7 +3,9 @@
         "url": "mongodb://localhost/test"
     },
     "api": {
-        "port": 3001
+        "oauth2": {
+            "enable": true
+        }
     },
     "logger": {
         "level": "OFF"

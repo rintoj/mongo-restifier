@@ -65,7 +65,7 @@ var ServiceModel = function ServiceModel(context, properties) {
     // setting up user specific collection
     var userField;
     if (context.userSpace === true || typeof context.userSpace === 'object') {
-        if (properties && !(properties.api && properties.api.oauth2 && properties.api.oauth2.enabled === true)) {
+        if (properties && !(properties.api && properties.api.oauth2 && properties.api.oauth2.enable === true)) {
             throw '"userSpace" cannot be set for "' + context.name + '" because oauth is disabled';
         }
         userField = "_user";
@@ -181,7 +181,7 @@ var ServiceModel = function ServiceModel(context, properties) {
     this.register = function register(app, baseUrl, noErrorHandler) {
 
         // register the router
-        app.use((baseUrl ? baseUrl : "") + (context.url ? context.url : ""), context.service.router);
+        app.use((baseUrl ? baseUrl : "") + (context.url ? context.url : '/' + context.name.toLowerCase()), context.service.router);
 
         if (!preConfigured && noErrorHandler !== true) {
 
