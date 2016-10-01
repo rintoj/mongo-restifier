@@ -32,34 +32,34 @@ mongoRestifier('./src/api.conf.json')
 // define "Todo" model
 .register(mongoRestifier.defineModel("Todo", {
 
-  // api end point
-  url: '/todo',
+    // api end point
+    url: '/todo',
 
-  // schema definition - supports everything that mongoose schema supports
-  schema: {
+    // schema definition - supports everything that mongoose schema supports
+    schema: {
 
-    index: {
-      type: String,
-      required: true,
-      idField: true
+        index: {
+            type: String,
+            required: true,
+            idField: true
+        },
+        title: {
+            type: String,
+            required: true
+        },
+        description: String,
+        status: {
+            type: String,
+            required: true,
+            default: 'new',
+            enum: ['new', 'progress', 'done', 'hold']
+        }
     },
-    title: {
-      type: String,
-      required: true
-    },
-    description: String,
-    status: {
-      type: String,
-      required: true,
-      default: 'new',
-      enum: ['new', 'progress', 'done', 'hold']
-    }
-  },
 
-  // userSpace: {
-  //   field: "_user"
-  // },
-  timestamps: true
+    userSpace: {
+        field: "_user"
+    },
+    timestamps: true
 
 }))
 

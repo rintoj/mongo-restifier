@@ -31,11 +31,11 @@ var PropertiesReader = require('properties-reader');
 
 function processValue(value) {
 
-  if (/^{.+}$/.test((value + "").trim())) {
-    return JSON.parse(value);
-  }
+    if (/^{.+}$/.test((value + "").trim())) {
+        return JSON.parse(value);
+    }
 
-  return value;
+    return value;
 }
 
 /**
@@ -46,38 +46,38 @@ function processValue(value) {
  */
 module.exports = function propertiesReader(propertiesFile) {
 
-  // application properites
-  var properties = {
+    // application properties
+    var properties = {
 
-    load: function(file) {
+        load: function (file) {
 
-      var self = this;
-      if (!file) {
-        return self;
-      }
+            var self = this;
+            if (!file) {
+                return self;
+            }
 
-      var extension = file.split(".").slice(-1).join();
+            var extension = file.split(".").slice(-1).join();
 
-      // load '.json' file
-      if (extension !== "properties") {
-        var content = JSON.parse(fs.readFileSync(file, 'utf-8'));
-        self = merge.recursive(self, content);
-        return self;
-      }
+            // load '.json' file
+            if (extension !== "properties") {
+                var content = JSON.parse(fs.readFileSync(file, 'utf-8'));
+                self = merge.recursive(self, content);
+                return self;
+            }
 
-      // read '.properties' file
-      var reader = PropertiesReader(file)
-      reader.each(function(key, value) {
-        if (key === "load") {
-          throw "Configuration can not have a key 'load'!";
+            // read '.properties' file
+            var reader = PropertiesReader(file)
+            reader.each(function (key, value) {
+                if (key === "load") {
+                    throw "Configuration can not have a key 'load'!";
+                }
+                objectPath.set(self, key, processValue(reader.get(key)));
+            });
+
+            return self;
         }
-        objectPath.set(self, key, processValue(reader.get(key)));
-      });
+    };
 
-      return self;
-    }
-  };
-
-  // return the object structure
-  return properties.load(propertiesFile);
+    // return the object structure
+    return properties.load(propertiesFile);
 };
