@@ -30,7 +30,10 @@ var mongoRestifier = require('./index');
 mongoRestifier('./src/api.conf.json')
 
 // define "Todo" model
-.register(mongoRestifier.defineModel("Todo", {
+.registerModel({
+
+    // name (mandatory)
+    name: 'Todo',
 
     // api end point
     url: '/todo',
@@ -61,7 +64,7 @@ mongoRestifier('./src/api.conf.json')
     // },
     timestamps: true
 
-}))
+})
 
 
 // and finally startup your server

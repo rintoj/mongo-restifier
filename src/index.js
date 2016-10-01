@@ -39,7 +39,7 @@ var propertiesReader = require('./util/propertiesReader');
 
 // read properties.
 
-mongoRestifier = function mongoRestifier(propertyFile) {
+var mongoRestifier = function mongoRestifier(propertyFile) {
 
     var properties = propertiesReader(__dirname + '/conf/api.conf.properties');
     if (propertyFile) properties.load(propertyFile);
@@ -87,7 +87,8 @@ mongoRestifier = function mongoRestifier(propertyFile) {
         app.oauth2 = new OAuth2Server(app, properties.api.baseUrl + '/oauth2', properties.api.oauth2);
     }
 
-    var register = function register(model) {
+    var registerModel = function (modelConfig) {
+        var model = serviceModel(modelConfig, properties);
         model.register(app, properties.api.baseUrl, this);
         this.models[model.context.name] = model.context;
         return this;
@@ -150,11 +151,9 @@ mongoRestifier = function mongoRestifier(propertyFile) {
         models: {},
         app: app,
         properties: properties,
-        register: register,
+        registerModel: registerModel,
         startup: startup
     };
 };
-
-mongoRestifier.defineModel = serviceModel;
 
 module.exports = mongoRestifier;

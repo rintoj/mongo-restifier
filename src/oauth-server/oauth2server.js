@@ -32,7 +32,10 @@ var oauthserver = require('oauth2-server');
 var serviceModel = require('../core/service-model');
 
 // define user schema
-var userSm = serviceModel("User", {
+var userSm = serviceModel({
+
+    // users model    
+    name: 'User',
 
     // api end point
     url: '/user',
@@ -67,7 +70,10 @@ var userSm = serviceModel("User", {
 var User = userSm.context.model;
 
 // define client schema
-var clientSm = serviceModel("Client", {
+var clientSm = serviceModel({
+
+    // service model    
+    name: 'Client',
 
     // api end point
     url: '/client',

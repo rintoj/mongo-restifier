@@ -55,7 +55,8 @@ module.exports = {
             commands.push(function createModel(callback) {
 
                 self.instance = mongoRestifier('./test/conf/api.test.conf.json')
-                    .register(mongoRestifier.defineModel("Todo", {
+                    .registerModel({
+                        name: 'Todo',
                         url: '/todo',
                         schema: {
                             index: {
@@ -82,9 +83,10 @@ module.exports = {
                             field: "_user"
                         },
                         timestamps: true
-                    }))
+                    })
 
-                .register(mongoRestifier.defineModel("Task", {
+                .registerModel({
+                    name: 'Task',
                     url: '/task',
                     schema: {
                         id: {
@@ -97,7 +99,7 @@ module.exports = {
                         },
                         description: String
                     }
-                }))
+                })
 
                 .startup();
 

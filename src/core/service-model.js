@@ -30,25 +30,18 @@ var autoIncrement = require('mongoose-auto-increment');
 var autoIncrementRegistered = false;
 var preConfigured = false;
 
-var createContext = function (name, options) {
+var createContext = function (model) {
 
     var context = {};
-    var fields = Object.keys(options || {});
+    var fields = Object.keys(model || {});
 
     // create readonly context
     fields.forEach(function (name) {
         Object.defineProperty(context, name, {
             get: function () {
-                return options[name] && (typeof options[name] === 'function' ? options[name].call(context) : options[name]);
+                return model[name] && (typeof model[name] === 'function' ? model[name].call(context) : model[name]);
             }
         });
-    });
-
-    // set name to the context
-    Object.defineProperty(context, "name", {
-        get: function () {
-            return name;
-        }
     });
 
     return context;
@@ -59,7 +52,7 @@ var createContext = function (name, options) {
  * 
  * @param context The context of the service
  */
-var ServiceModel = function ServiceModel(context) {
+var ServiceModel = function ServiceModel(context, properties) {
 
     // basic validation
     if (!context.name || context.name === '') {
@@ -72,6 +65,9 @@ var ServiceModel = function ServiceModel(context) {
     // setting up user specific collection
     var userField;
     if (context.userSpace === true || typeof context.userSpace === 'object') {
+        if (properties && !(properties.api && properties.api.oauth2 && properties.api.oauth2.enabled === true)) {
+            throw '"userSpace" cannot be set for "' + context.name + '" because oauth is disabled';
+        }
         userField = "_user";
         if (typeof context.userSpace === 'object' && context.userSpace.field) {
             userField = context.userSpace.field;
@@ -262,6 +258,6 @@ var ServiceModel = function ServiceModel(context) {
  * 
  * @returns (description)
  */
-module.exports = function defineModel(name, options) {
-    return new ServiceModel(createContext(name, options));
+module.exports = function defineModel(model, properties) {
+    return new ServiceModel(createContext(model), properties);
 };
