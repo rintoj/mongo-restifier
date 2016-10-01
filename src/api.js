@@ -56,9 +56,9 @@ mongoRestifier('./src/api.conf.json')
         }
     },
 
-    userSpace: {
-        field: "_user"
-    },
+    // userSpace: {
+    //     field: "_user"
+    // },
     timestamps: true
 
 }))

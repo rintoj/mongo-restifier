@@ -26,7 +26,7 @@ var _ = require('lodash');
 var uuid = require('uuid');
 var merge = require('merge');
 var express = require('express');
-var Promise = require('mpromise');
+var Promise = require('es6-promise').Promise;
 
 /**
  * Creates service end point with GET, POST, PUT and DELETE methods
@@ -144,46 +144,45 @@ module.exports = function ServiceEndpoint(model, options) {
      */
     var segregateExisting = function segregateExisting(items) {
 
-        var promise = new Promise();
+        return new Promise(function (resolve, reject) {
 
-        if (!(items instanceof Array)) {
-            items = [items];
-        }
+            if (!(items instanceof Array)) {
+                items = [items];
+            }
 
-        var segregatedItems = {
-            new: [],
-            existing: [],
-            existingIds: []
-        };
+            var segregatedItems = {
+                new: [],
+                existing: [],
+                existingIds: []
+            };
 
-        if (items.length === 0) {
-            promise.fulfill(segregatedItems);
-            return promise;
-        }
+            if (items.length === 0) {
+                return resolve(segregatedItems);
+            }
 
-        var id = idField();
-        var ids = _.map(items, function (item) {
-            return item[id]
-        }).filter(function (item) {
-            return item !== undefined;
-        });
-
-        model.find().where("_id").in(ids).select("_id").exec(function (error, result) {
-            if (error) return promise.reject(error);
-
-            // find existing ids
-            segregatedItems.existingIds = _.map(result, function (item) {
-                return item._id;
+            var id = idField();
+            var ids = _.map(items, function (item) {
+                return item[id]
+            }).filter(function (item) {
+                return item !== undefined;
             });
 
-            items.forEach(function (item) {
-                segregatedItems[segregatedItems.existingIds.indexOf(item[id]) >= 0 ? "existing" : "new"].push(item);
+            model.find().where("_id").in(ids).select("_id").exec(function (error, result) {
+                if (error) return reject(error);
+
+                // find existing ids
+                segregatedItems.existingIds = _.map(result, function (item) {
+                    return item._id;
+                });
+
+                items.forEach(function (item) {
+                    segregatedItems[segregatedItems.existingIds.indexOf(item[id]) >= 0 ? "existing" : "new"].push(item);
+                });
+
+                resolve(segregatedItems);
             });
 
-            promise.fulfill(segregatedItems);
         });
-
-        return promise;
     };
 
     /**
@@ -196,16 +195,17 @@ module.exports = function ServiceEndpoint(model, options) {
      * @returns Returns a Promise
      */
     var bulkCreate = function bulkCreate(items) {
-        var promise = new Promise();
-        if (items.length === 0) {
-            promise.fulfill([]);
-            return promise;
-        }
-        model.create(items, function (error, bulkResponse) {
-            if (error) return promise.reject(error);
-            promise.fulfill(bulkResponse);
+        return new Promise(function (resolve, reject) {
+
+            if (items.length === 0) {
+                return resolve([]);
+            }
+            model.create(items, function (error, bulkResponse) {
+                if (error) return reject(error);
+                resolve(bulkResponse);
+            });
+
         });
-        return promise;
     };
 
     /**
@@ -216,32 +216,31 @@ module.exports = function ServiceEndpoint(model, options) {
      * @returns Returns a Promise
      */
     var bulkUpdate = function bulkUpdate(items) {
-        var promise = new Promise();
+        return new Promise(function (resolve, reject) {
 
-        if (items.length === 0) {
-            promise.fulfill({});
-            return promise;
-        }
+            if (items.length === 0) {
+                return resolve({});
+            }
 
-        var bulk = model.collection.initializeUnorderedBulkOp();
-        var id = idField();
+            var bulk = model.collection.initializeUnorderedBulkOp();
+            var id = idField();
 
-        // prepare the bulk upload request
-        _.each(items, function (item) {
-            bulk.find({
-                _id: item[id]
-            }).updateOne({
-                $set: item
+            // prepare the bulk upload request
+            _.each(items, function (item) {
+                bulk.find({
+                    _id: item[id]
+                }).updateOne({
+                    $set: item
+                });
             });
-        });
 
-        // execute the query
-        bulk.execute(function (error, result) {
-            if (error) return promise.reject(error);
-            promise.fulfill(result);
-        });
+            // execute the query
+            bulk.execute(function (error, result) {
+                if (error) return reject(error);
+                resolve(result);
+            });
 
-        return promise;
+        });
     }
 
     /**
@@ -450,7 +449,7 @@ module.exports = function ServiceEndpoint(model, options) {
                 promises.push(bulkCreate(request.query.updateOnly ? [] : segregateItems.new));
                 promises.push(bulkUpdate(request.query.createOnly ? [] : segregateItems.existing));
 
-                Promise.when.apply(Promise, promises).then(function (result) {
+                Promise.all(promises).then(function (result) {
                     sendBulkResult(request, response, result, multi);
                 }, function (error) {
                     next(error);
