@@ -58,6 +58,9 @@ var ServiceModel = function ServiceModel(context, properties) {
     if (!context.name || context.name === '') {
         throw '"name" is mandatory!';
     }
+    if (!(/^[a-zA-Z_]+$/.test(context.name))) {
+        throw '"' + context.name + '" must contain only alphabets and "_"';
+    }
     if (!context.schema || context.schema === '') {
         throw '"schema" is mandatory!';
     }
@@ -159,12 +162,13 @@ var ServiceModel = function ServiceModel(context, properties) {
     context.service = new ServiceEndpoint(context.model, {
         userField: userField,
         idField: idField,
-        projection: context.projection
+        projection: context.projection,
+        history: context.history
     });
 
     // if setup required do so here
     if (typeof context.configure === 'function') {
-        console.log('setup done!');
+        // setup done!
     }
     // bind all the routes
     context.service.bind();
