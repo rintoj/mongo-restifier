@@ -23,7 +23,7 @@ $ npm install mongo-restifier --save
 
 ## Versions 
 
-Check [change log](./CHANGELOG.md) to know more about versions.
+Check [change log](https://github.com/rintoj/mongo-restifier/blob/master/CHANGELOG.md) to know more about versions.
 
 ## Get Started
 The following example serves the `Todo` model on a RESTful API.
@@ -561,7 +561,10 @@ You may setup configuration in either of the two formats:
                 }
             },
             "rules": [
-                "None        ,               OPTIONS             /api/oauth2/register",
+             /* ----------- --------------- ------------------- ------------------------
+                 AuthType    Roles           Methods             Url Pattern
+                ----------- --------------- ------------------- ------------------------ */
+                "None        *               OPTIONS             /api/oauth2/register",
                 "None        *               OPTIONS             /api/oauth2/client",
                 "None        *               OPTIONS             /api/oauth2/user",
                 "Basic       *               GET                 /api/oauth2/user",
