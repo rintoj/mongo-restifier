@@ -5,7 +5,7 @@
             "name": "launch",
             "type": "node",
             "request": "launch",
-            "program": "${workspaceRoot}/src/api.js",
+            "program": "${workspaceRoot}/demo/api.js",
             "stopOnEntry": false,
             "args": [],
             "cwd": "${workspaceRoot}",

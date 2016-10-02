@@ -200,8 +200,9 @@ describe('Rest Api service', function () {
                 res.body.should.have.property('status');
                 res.body.status.should.be.equal('saved');
                 res.body.should.have.property('result');
-                res.body.result.should.have.property('updated');
-                res.body.result.updated.should.be.equal(0);
+                res.body.result.should.not.have.property('updated');
+                res.body.result.should.have.property('unchanged');
+                res.body.result.unchanged.should.be.equal(2);
                 done();
             });
     });

@@ -77,7 +77,7 @@ module.exports = function ServiceEndpoint(model, options) {
      *               element as the status from bulk update operation
      * @param multi Boolean value. True if the bulk operation was performed on more than one item
      */
-    var sendBulkResult = function sendBulkResult(request, response, result, multi) {
+    var sendBulkResult = function sendBulkResult(request, response, result, unchangedItems, multi) {
 
         // if multi request do this
         if (multi) {
@@ -88,6 +88,7 @@ module.exports = function ServiceEndpoint(model, options) {
                 status: "saved",
                 result: {
                     updated: result[1].nModified,
+                    unchanged: unchangedItems,
                     created: newIds.length,
                     newIds: newIds
                 }
@@ -135,14 +136,31 @@ module.exports = function ServiceEndpoint(model, options) {
         return options.idField ? options.idField.name : "_id";
     }
 
+    var hasExactItem = function (collection, item) {
+        if (item === undefined || collection === undefined) {
+            return false;
+        }
+        var id = idField();
+        var target = collection.find(function (i) {
+            return i[id] === item[id];
+        });
+
+        if (target === undefined) {
+            return false;
+        }
+        return Object.keys(item).every(function (property) {
+            return JSON.stringify(target[property]) === JSON.stringify(item[property]);
+        });
+    }
+
     /**
      * Identify existing items from the given set of items
      * 
      * @private
      * @param items Array of items (objects)
-     * @returns Returns an object with 'new', 'existing' and 'existingIds' attributes as arrays
+     * @returns Returns an object with 'newItems', 'changedItems' and 'existingIds' attributes as arrays
      */
-    var segregateExisting = function segregateExisting(items) {
+    var categorize = function categorize(items) {
 
         return new Promise(function (resolve, reject) {
 
@@ -151,8 +169,9 @@ module.exports = function ServiceEndpoint(model, options) {
             }
 
             var segregatedItems = {
-                new: [],
-                existing: [],
+                newItems: [],
+                changedItems: [],
+                unchangedItems: [],
                 existingIds: []
             };
 
@@ -167,7 +186,7 @@ module.exports = function ServiceEndpoint(model, options) {
                 return item !== undefined;
             });
 
-            model.find().where("_id").in(ids).select("_id").exec(function (error, result) {
+            model.find().where("_id").in(ids).exec(function (error, result) {
                 if (error) return reject(error);
 
                 // find existing ids
@@ -175,8 +194,15 @@ module.exports = function ServiceEndpoint(model, options) {
                     return item._id;
                 });
 
-                items.forEach(function (item) {
-                    segregatedItems[segregatedItems.existingIds.indexOf(item[id]) >= 0 ? "existing" : "new"].push(item);
+                items.forEach(function (item, index) {
+                    var target = "newItems";
+                    if (segregatedItems.existingIds.indexOf(item[id]) >= 0) {
+                        target = "changedItems";
+                        if (hasExactItem(result, item)) {
+                            target = "unchangedItems";
+                        }
+                    }
+                    segregatedItems[target].push(item);
                 });
 
                 resolve(segregatedItems);
@@ -222,17 +248,21 @@ module.exports = function ServiceEndpoint(model, options) {
                 return resolve({});
             }
 
-            var bulk = model.collection.initializeUnorderedBulkOp();
             var id = idField();
+            var bulk = model.collection.initializeUnorderedBulkOp();
 
             // prepare the bulk upload request
             _.each(items, function (item) {
                 bulk.find({
                     _id: item[id]
                 }).updateOne({
-                    $set: item
+                    $set: item,
+                    $inc: {
+                        __v: 1
+                    }
                 });
             });
+
 
             // execute the query
             bulk.execute(function (error, result) {
@@ -426,14 +456,14 @@ module.exports = function ServiceEndpoint(model, options) {
             });
         }
 
-        segregateExisting(items).then(function (segregateItems) {
+        categorize(items).then(function (categories) {
             var promises = [];
 
-            promises.push(bulkCreate(request.query.updateOnly ? [] : segregateItems.new));
-            promises.push(bulkUpdate(request.query.createOnly ? [] : segregateItems.existing));
+            promises.push(bulkCreate(request.query.updateOnly ? [] : categories.newItems));
+            promises.push(bulkUpdate(request.query.createOnly ? [] : categories.changedItems));
 
             Promise.all(promises).then(function (result) {
-                sendBulkResult(request, response, result, multi);
+                sendBulkResult(request, response, result, categories.unchangedItems.length, multi);
             }, function (error) {
                 next(error);
             });

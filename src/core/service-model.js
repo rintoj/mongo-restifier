@@ -115,6 +115,7 @@ var ServiceModel = function ServiceModel(context, properties) {
 
     // create model
     context.model = mongoose.model(context.name, context.modelSchema);
+    context.historyModel = mongoose.model(context.name + '_history', context.modelSchema);
 
     // setup auto-increment feature
     if (!autoIncrementRegistered) {
@@ -163,7 +164,8 @@ var ServiceModel = function ServiceModel(context, properties) {
         userField: userField,
         idField: idField,
         projection: context.projection,
-        history: context.history
+        history: context.history,
+        historyModel: context.historyModel
     });
 
     // if setup required do so here
