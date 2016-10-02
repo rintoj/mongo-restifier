@@ -114,8 +114,18 @@ var ServiceModel = function ServiceModel(context, properties) {
     });
 
     // create model
-    context.model = mongoose.model(context.name, context.modelSchema);
-    context.historyModel = mongoose.model(context.name + '_history', context.modelSchema);
+    context.model = mongoose.model(context.name, context.modelSchema, context.name.toLowerCase());
+    if (context.history === true) {
+
+        // create schema
+        context.historyModelSchema = new mongoose.Schema(Object.assign({
+            _originalId: idField.type
+        }, context.schema), {
+            strict: true,
+            timestamps: context.timestamps
+        });
+        context.historyModel = mongoose.model(context.name.toLowerCase() + '_history', context.historyModelSchema, context.name.toLowerCase() + '_history');
+    }
 
     // setup auto-increment feature
     if (!autoIncrementRegistered) {
@@ -164,7 +174,6 @@ var ServiceModel = function ServiceModel(context, properties) {
         userField: userField,
         idField: idField,
         projection: context.projection,
-        history: context.history,
         historyModel: context.historyModel
     });
 

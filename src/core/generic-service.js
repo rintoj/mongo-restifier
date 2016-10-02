@@ -27,11 +27,18 @@ var uuid = require('uuid');
 var merge = require('merge');
 var express = require('express');
 var Promise = require('es6-promise').Promise;
+var HistoryService = require('./history-service');
 
 /**
  * Creates service end point with GET, POST, PUT and DELETE methods
  * 
  * @param model Mongoose model to be used by the service
+ */
+/**
+ * 
+ * 
+ * @param {any} model
+ * @param {any} options
  */
 module.exports = function ServiceEndpoint(model, options) {
 
@@ -40,8 +47,14 @@ module.exports = function ServiceEndpoint(model, options) {
     }
 
     options = options || {};
+    var historyService;
 
     this.router = express.Router();
+    if (options.historyModel != undefined) {
+        historyService = new HistoryService(model, options.historyModel, {
+            idField: options.idField ? options.idField.name : '_id'             
+        });
+    }
 
     /**
      * Send response back to client. If item is not found return 404
@@ -136,7 +149,14 @@ module.exports = function ServiceEndpoint(model, options) {
         return options.idField ? options.idField.name : "_id";
     }
 
-    var hasExactItem = function (collection, item) {
+    /**
+     * Check if the item has changed from the item exists in collection 
+     * 
+     * @param {any} collection
+     * @param {any} item
+     * @returns
+     */
+    var hasChanged = function hasChanged(collection, item) {
         if (item === undefined || collection === undefined) {
             return false;
         }
@@ -198,7 +218,7 @@ module.exports = function ServiceEndpoint(model, options) {
                     var target = "newItems";
                     if (segregatedItems.existingIds.indexOf(item[id]) >= 0) {
                         target = "changedItems";
-                        if (hasExactItem(result, item)) {
+                        if (hasChanged(result, item)) {
                             target = "unchangedItems";
                         }
                     }
@@ -249,26 +269,34 @@ module.exports = function ServiceEndpoint(model, options) {
             }
 
             var id = idField();
-            var bulk = model.collection.initializeUnorderedBulkOp();
+            var promise = historyService != undefined ?
+                historyService.createHistory(items.map(function (i) {
+                    return i[id];
+                })) : Promise.resolve();
 
-            // prepare the bulk upload request
-            _.each(items, function (item) {
-                bulk.find({
-                    _id: item[id]
-                }).updateOne({
-                    $set: item,
-                    $inc: {
-                        __v: 1
-                    }
+            promise.then(function () {
+
+                var bulk = model.collection.initializeUnorderedBulkOp();
+
+                // prepare the bulk upload request
+                _.each(items, function (item) {
+                    bulk.find({
+                        _id: item[id]
+                    }).updateOne({
+                        $set: item,
+                        $inc: {
+                            __v: 1
+                        }
+                    });
                 });
-            });
 
 
-            // execute the query
-            bulk.execute(function (error, result) {
-                if (error) return reject(error);
-                resolve(result);
-            });
+                // execute the query
+                bulk.execute(function (error, result) {
+                    if (error) return reject(error);
+                    resolve(result);
+                });
+            }, reject);
 
         });
     }
