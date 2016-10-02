@@ -4,7 +4,7 @@
   "description": "A restful apification library for MongoDB with build-in oAuth2 based authentication and authorization",
   "main": "src/index.js",
   "scripts": {
-    "start": "node src/api.js",
+    "start": "node demo/api.js",
     "test": "./node_modules/mocha/bin/mocha",
     "debug-test": "./node_modules/mocha/bin/mocha --debug-brk"
   },

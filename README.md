@@ -45,7 +45,7 @@ The following example serves the `Todo` model on a RESTful API.
   $ npm install mongo-restifier --save
   ```
 
-4. Create file **app.js** and copy the following code
+4. Create file **api.js** and copy the following code
   ```js
   // import
   var mongoRestifier = require('mongo-restifier');
@@ -96,7 +96,7 @@ The following example serves the `Todo` model on a RESTful API.
 
 6. And finally run
   ```bash
-  $ node app.js
+  $ node api.js
   ``` 
 
 # REST API
@@ -648,9 +648,9 @@ ABOUT
 ## Angular2 Integration
 This software was built with [Angular 2](https://angular.io/) in mind. Client-side library is being build. Come back later.
 
-## Sample
+## Sample Code
 
-Check `src/api.js` and `api.conf.json` to understand the usage.
+Check `demo/api.js` and `demo/api.conf.json` to understand the usage. `npm start` on this repository will run the api.
 
 ## Running the Tests
 Do `npm install` to install all of the dependencies, ensure that [MongoDB](http://mongodb.org) is installed and running, then to run unit tests use:

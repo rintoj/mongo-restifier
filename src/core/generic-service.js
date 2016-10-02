@@ -191,7 +191,7 @@ module.exports = function ServiceEndpoint(model, options) {
      * TODO: Improve the performance by calling model.collection.insert
      * 
      * @private
-     * @param items Items to be bulk inserted. The items must be pre-validated for its non-existance
+     * @param items Items to be bulk inserted. The items must be pre-validated for its non-existence
      * @returns Returns a Promise
      */
     var bulkCreate = function bulkCreate(items) {
@@ -212,7 +212,7 @@ module.exports = function ServiceEndpoint(model, options) {
      * Perform a bulk update operation.
      * 
      * @private
-     * @param items Items to be bulk inserted. The items must be pre-validated for its existance
+     * @param items Items to be bulk inserted. The items must be pre-validated for its existence
      * @returns Returns a Promise
      */
     var bulkUpdate = function bulkUpdate(items) {
@@ -390,23 +390,6 @@ module.exports = function ServiceEndpoint(model, options) {
     };
 
     /**
-     * Return an item from the model as defined by http request
-     * 
-     * @param request  Http request as object
-     * @param response Http response as object
-     * @param next Next hook as function
-     */
-    this.getById = function getById(request, response, next) {
-        request.body = {
-            _id: request.params.id
-        };
-        createQuery(request, true).exec(function (error, item) {
-            if (error) return next(error);
-            send(response, select(projection(request), item), undefined, request.params.id);
-        });
-    }
-
-    /**
      * Save one or more items. The existing items will be updated and the new
      * items will be created.
      * 
@@ -421,7 +404,7 @@ module.exports = function ServiceEndpoint(model, options) {
         if (request.query.updateOnly && request.query.createOnly) {
             return respond(response, 422, {
                 status: 422,
-                message: 'Should not use both insertOnly and updateOnly together!'
+                message: 'Should not use both insertOnly and updateOnly flags together!'
             });
         }
 
@@ -444,21 +427,20 @@ module.exports = function ServiceEndpoint(model, options) {
         }
 
         segregateExisting(items).then(function (segregateItems) {
-                var promises = [];
+            var promises = [];
 
-                promises.push(bulkCreate(request.query.updateOnly ? [] : segregateItems.new));
-                promises.push(bulkUpdate(request.query.createOnly ? [] : segregateItems.existing));
+            promises.push(bulkCreate(request.query.updateOnly ? [] : segregateItems.new));
+            promises.push(bulkUpdate(request.query.createOnly ? [] : segregateItems.existing));
 
-                Promise.all(promises).then(function (result) {
-                    sendBulkResult(request, response, result, multi);
-                }, function (error) {
-                    next(error);
-                });
-
-            },
-            function (error) {
+            Promise.all(promises).then(function (result) {
+                sendBulkResult(request, response, result, multi);
+            }, function (error) {
                 next(error);
             });
+
+        }, function (error) {
+            next(error);
+        });
 
     };
 
@@ -485,6 +467,23 @@ module.exports = function ServiceEndpoint(model, options) {
             }, undefined, request.params.id);
         });
     };
+
+    /**
+     * Return an item from the model as defined by http request
+     * 
+     * @param request  Http request as object
+     * @param response Http response as object
+     * @param next Next hook as function
+     */
+    this.getById = function getById(request, response, next) {
+        request.body = {
+            _id: request.params.id
+        };
+        createQuery(request, true).exec(function (error, item) {
+            if (error) return next(error);
+            send(response, select(projection(request), item), undefined, request.params.id);
+        });
+    }
 
     /**
      * Select and update an item as defined by http request

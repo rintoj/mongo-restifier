@@ -24,10 +24,11 @@
  **/
 
 // import
-var mongoRestifier = require('./index');
+// This must be 'mongo-restifier' if npm install - s mongo- restifier is done
+var mongoRestifier = require('../src/index');
 
 // configure your api
-mongoRestifier('./src/api.conf.json')
+mongoRestifier('./demo/api.conf.json')
 
 // define "Todo" model
 .registerModel({
