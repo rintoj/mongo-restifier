@@ -39,7 +39,7 @@ module.exports = {
 
     setup: function (done) {
         var self = this;
-        if (self.instance !== undefined) {
+        if (self.instance != undefined) {
             done();
             return self;
         }
@@ -98,7 +98,9 @@ module.exports = {
                             required: true
                         },
                         description: String
-                    }
+                    },
+
+                    history: true
                 })
 
                 .startup();

@@ -495,10 +495,9 @@ describe('Rest Api service', function () {
                     .end(function (err, res) {
                         res.should.have.status(200);
                         res.should.be.json;
-                        res.body.should.be.a('array');
-                        res.body.should.all.have.property('index');
-                        res.body.should.have.length(1);
-                        res.body[0].should.be.deep.equal(firstItem);
+                        res.body.should.be.a('object');
+                        res.body.should.have.property('index');
+                        res.body.should.be.deep.equal(firstItem);
                         done();
                     });
             });
@@ -724,10 +723,9 @@ describe('Rest Api service', function () {
                             .end(function (err, res) {
                                 res.should.have.status(200);
                                 res.should.be.json;
-                                res.body.should.be.a('array');
-                                res.body.should.all.have.property('status');
-                                res.body.should.have.length(1);
-                                res.body[0].status.should.be.equal('hold');
+                                res.body.should.be.a('object');
+                                res.body.should.have.property('status');
+                                res.body.status.should.be.equal('hold');
                                 done();
                             });
                     });

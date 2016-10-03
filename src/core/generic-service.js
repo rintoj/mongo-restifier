@@ -52,7 +52,7 @@ module.exports = function ServiceEndpoint(model, options) {
     this.router = express.Router();
     if (options.historyModel != undefined) {
         historyService = new HistoryService(model, options.historyModel, {
-            idField: options.idField ? options.idField.name : '_id'             
+            idField: options.idField ? options.idField.name : '_id'
         });
     }
 
@@ -539,7 +539,7 @@ module.exports = function ServiceEndpoint(model, options) {
         };
         createQuery(request, true).exec(function (error, item) {
             if (error) return next(error);
-            send(response, select(projection(request), item), undefined, request.params.id);
+            send(response, select(projection(request), item[0]), undefined, request.params.id);
         });
     }
 
@@ -576,6 +576,51 @@ module.exports = function ServiceEndpoint(model, options) {
         });
     };
 
+    /**
+     * List versions if history is enabled
+     * 
+     * @param request  Http request as object
+     * @param response Http response as object
+     * @param next Next hook as function
+     */
+    this.listVersions = function listVersions(request, response, next) {
+        historyService.list(request.params.id).then(function (items) {
+            send(response, items);
+        }, function (error) {
+            next(error);
+        });
+    };
+
+    /**
+     * List versions if history is enabled
+     * 
+     * @param request  Http request as object
+     * @param response Http response as object
+     * @param next Next hook as function
+     */
+    this.findVersion = function findVersion(request, response, next) {
+        historyService.findVersion(request.params.id, request.params.version).then(function (item) {
+            send(response, item);
+        }, function (error) {
+            next(error);
+        });
+    };
+
+    /**
+     * List versions if history is enabled
+     * 
+     * @param request  Http request as object
+     * @param response Http response as object
+     * @param next Next hook as function
+     */
+    this.findLatestVersion = function findLatestVersion(request, response, next) {
+        historyService.findLatest(request.params.id).then(function (items) {
+            send(response, items);
+        }, function (error) {
+            next(error);
+        });
+    };
+
     this.bind = function bind() {
 
         /* PUT / */
@@ -598,6 +643,17 @@ module.exports = function ServiceEndpoint(model, options) {
 
         /* DELETE /:id */
         this.router.delete('/:id', this.deleteById);
+
+        if (options.historyModel) {
+            /* GET /:id/version */
+            this.router.get('/:id/version', this.listVersions);
+
+            /* GET /:id/version/latest */
+            this.router.get('/:id/version/latest', this.findLatestVersion);
+
+            /* GET /:id/version/:version */
+            this.router.get('/:id/version/:version', this.findVersion);
+        }
 
         // enable method chaining
         return this;
