@@ -231,7 +231,7 @@ describe('Rest Api history service', function () {
                     taskDone();
                 });
         });
-        
+
         tests.push(function (taskDone) {
             chai.request(util.instance.app)
                 .put('/api/task')
@@ -253,6 +253,78 @@ describe('Rest Api history service', function () {
                     res.should.be.json;
                     res.body.should.be.a('array');
                     res.body.should.be.length(1);
+                    taskDone();
+                });
+        });
+
+        chain.series(tests, done);
+    });
+
+    it('should return a specific version when GET /api/task/version/{number} is used', function (done) {
+        chai.request(util.instance.app)
+            .get('/api/task/item1/version/1')
+            .end(function (err, res) {
+                res.should.have.status(200);
+                res.should.be.json;
+                res.body.should.be.a('object');
+                res.body.should.have.property('title');
+                res.body.title.should.be.equal('Sample story 10');
+                res.body.should.have.property('id');
+                res.body.id.should.be.equal('item1');
+                res.body.should.have.property('history');
+                res.body.history.should.be.a('object');
+                res.body.history.should.have.property('id');
+                res.body.history.id.should.be.equal('item1');
+                res.body.history.should.have.property('version');
+                res.body.history.version.should.be.equal(1);
+                done();
+            });
+    });
+
+    it('should DELETE a specific version when DELETE /api/task/version/{number} is used', function (done) {
+        var tests = [];
+
+        tests.push(function (taskDone) {
+            chai.request(util.instance.app)
+                .put('/api/task')
+                .send([{
+                    'id': 'item1',
+                    'title': 'Sample story 123'
+                }])
+                .end(function (err, res) {
+                    res.should.have.status(200);
+                    res.should.be.json;
+                    res.body.should.be.a('object');
+                    res.body.should.have.property('status');
+                    res.body.status.should.be.equal('saved');
+                    taskDone();
+                });
+        });
+
+        tests.push(function (taskDone) {
+            chai.request(util.instance.app)
+                .delete('/api/task/item1/version/1')
+                .end(function (err, res) {
+                    res.should.have.status(200);
+                    res.should.be.json;
+                    res.body.should.be.a('object');
+                    res.body.should.have.property('deleted');
+                    res.body.deleted.should.be.equal(true);
+                    taskDone();
+                });
+        });
+
+        tests.push(function (taskDone) {
+            chai.request(util.instance.app)
+                .get('/api/task/item1/version')
+                .end(function (err, res) {
+                    res.should.have.status(200);
+                    res.should.be.json;
+                    res.body.should.be.a('array');
+                    res.body.should.be.length(2);
+                    res.body.should.all.have.property('history');
+                    res.body[0].history.version.should.be.equal(0);
+                    res.body[1].history.version.should.be.equal(2);
                     taskDone();
                 });
         });

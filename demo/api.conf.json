@@ -4,7 +4,7 @@
    },
    "api": {
        "oauth2": {
-           "enable": true
+           "enable": false
        }
    }
 }

@@ -50,7 +50,6 @@ module.exports = {
             var commands = [];
             Object.keys(mongoose.connection.collections).forEach(function (collectionName) {
                 commands.push(function (callback) {
-                    console.log(collectionName);
                     mongoose.connection.collections[collectionName].drop();
                     callback();
                 });

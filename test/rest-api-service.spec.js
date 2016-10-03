@@ -141,7 +141,7 @@ describe('Rest Api service', function () {
             .put('/api/todo/' + newIds[0])
             .set('authorization', util.accessToken)
             .send({
-                'title': 'Sample story1'
+                'title': 'Sample story 1'
             })
             .end(function (err, res) {
                 res.should.have.status(200);
@@ -149,9 +149,6 @@ describe('Rest Api service', function () {
                 res.body.should.be.a('object');
                 res.body.should.have.property('status');
                 res.body.status.should.be.equal('updated');
-                res.body.should.have.property('item');
-                res.body.item.should.have.property('title');
-                res.body.item.title.should.be.equal('Sample story1');
                 done();
             });
     });
@@ -343,28 +340,22 @@ describe('Rest Api service', function () {
             });
     });
 
-    it('should override _user when an item with _user set, is sent for update when using PUT /api/todo/{id}', function (done) {
-        chai.request(util.instance.app)
-            .put('/api/todo/' + newIds[0] + '?fields=_user')
-            .set('authorization', util.accessToken)
-            .send({
-                'title': 'Sample story',
-                '_user': 'test'
-            })
-            .end(function (err, res) {
-                res.should.have.status(200);
-                res.should.be.json;
-                res.body.should.be.a('object');
-                res.body.should.have.property('status');
-                res.body.status.should.be.equal('updated');
-                res.body.should.have.property('item');
-                res.body.item.should.not.have.property('__v');
-                res.body.item.should.not.have.property('_id');
-                res.body.item.should.have.property('_user');
-                res.body.item._user.should.be.equal('superuser@system.com');
-                done();
-            });
-    });
+    // it('should override _user when an item with _user set, is sent for update when using PUT /api/todo/{id}', function (done) {
+    //     chai.request(util.instance.app)
+    //         .put('/api/todo/' + newIds[0] + '?fields=_user')
+    //         .set('authorization', util.accessToken)
+    //         .send({
+    //             '_user': 'test1'
+    //         })
+    //         .end(function (err, res) {
+    //             res.should.have.status(200);
+    //             res.should.be.json;
+    //             res.body.should.be.a('object');
+    //             res.body.should.have.property('status');
+    //             res.body.status.should.be.equal('updated');
+    //             done();
+    //         });
+    // });
 
     it('should list ALL todos when using GET /api/todo', function (done) {
         chai.request(util.instance.app)

@@ -166,10 +166,10 @@ module.exports = function ServiceEndpoint(model, options) {
         });
 
         if (target === undefined) {
-            return false;
+            return true;
         }
-        return Object.keys(item).every(function (property) {
-            return JSON.stringify(target[property]) === JSON.stringify(item[property]);
+        return Object.keys(item).some(function (property) {
+            return JSON.stringify(target[property]) !== JSON.stringify(item[property]);
         });
     }
 
@@ -218,7 +218,7 @@ module.exports = function ServiceEndpoint(model, options) {
                     var target = "newItems";
                     if (segregatedItems.existingIds.indexOf(item[id]) >= 0) {
                         target = "changedItems";
-                        if (hasChanged(result, item)) {
+                        if (!hasChanged(result, item)) {
                             target = "unchangedItems";
                         }
                     }
@@ -553,15 +553,9 @@ module.exports = function ServiceEndpoint(model, options) {
      * @param next Next hook as function
      */
     this.updateById = function updateById(request, response, next) {
-        if (options.userField) {
-            request.body[options.userField] = request.user.userId;
-        }
-        model.findByIdAndUpdate(request.params.id, request.body, {
-            runValidators: true
-        }, function (error, item) {
-            if (error) return next(error);
-            send(response, select(projection(request), item), "updated", request.params.id);
-        });
+        var id = idField();
+        request.body[id] = options.idField.type === Number ? parseInt(request.params.id) : request.params.id;
+        this.save(request, response, next);
     };
 
     /**
@@ -615,9 +609,9 @@ module.exports = function ServiceEndpoint(model, options) {
      * @param response Http response as object
      * @param next Next hook as function
      */
-    this.findLatestVersion = function findLatestVersion(request, response, next) {
-        historyService.findLatest(request.params.id).then(function (items) {
-            send(response, items);
+    this.deleteVersion = function deleteVersion(request, response, next) {
+        historyService.deleteVersion(request.params.id, request.params.version).then(function (item) {
+            send(response, item);
         }, function (error) {
             next(error);
         });
@@ -626,35 +620,35 @@ module.exports = function ServiceEndpoint(model, options) {
     this.bind = function bind() {
 
         /* PUT / */
-        this.router.put('/', this.save);
+        this.router.put('/', this.save.bind(this));
 
         /* GET / */
-        this.router.get('/', this.list);
+        this.router.get('/', this.list.bind(this));
 
         /* POST / */
-        this.router.post('/', this.query);
+        this.router.post('/', this.query.bind(this));
 
         /* DELETE / */
-        this.router.delete('/', this.deleteAll);
+        this.router.delete('/', this.deleteAll.bind(this));
 
         /* GET /:id */
-        this.router.get('/:id', this.getById);
+        this.router.get('/:id', this.getById.bind(this));
 
         /* PUT /:id */
-        this.router.put('/:id', this.updateById);
+        this.router.put('/:id', this.updateById.bind(this));
 
         /* DELETE /:id */
-        this.router.delete('/:id', this.deleteById);
+        this.router.delete('/:id', this.deleteById.bind(this));
 
         if (options.historyModel) {
             /* GET /:id/version */
-            this.router.get('/:id/version', this.listVersions);
-
-            /* GET /:id/version/latest */
-            this.router.get('/:id/version/latest', this.findLatestVersion);
+            this.router.get('/:id/version', this.listVersions.bind(this));
 
             /* GET /:id/version/:version */
-            this.router.get('/:id/version/:version', this.findVersion);
+            this.router.get('/:id/version/:version', this.findVersion.bind(this));
+
+            /* DELETE /:id/version/:version */
+            this.router.delete('/:id/version/:version', this.deleteVersion.bind(this));
         }
 
         // enable method chaining

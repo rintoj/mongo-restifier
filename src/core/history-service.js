@@ -11,7 +11,7 @@ module.exports = function (model, historyModel, options) {
         throw 'The history model cannot be undefined';
     }
 
-    this.mapItem = function (item) {
+    this.mapItem = function mapItem(item) {
         if (item == undefined) return;
         let history = {};
         item = Object.assign({}, item._doc);
@@ -55,6 +55,33 @@ module.exports = function (model, historyModel, options) {
         });
     };
 
+    this.deleteVersion = function deleteVersion(id, version) {
+        var self = this;
+        return new Promise(function (resolve, reject) {
+            historyModel.remove({
+                _originalId: id,
+                __v: version
+            }).exec(function (error, item) {
+                if (error) return reject(error);
+                if (item.result.n == 0) {
+                    model.remove({
+                        _id: id,
+                        __v: version
+                    }).exec(function (error, item) {
+                        if (error) return reject(error);
+                        resolve({
+                            deleted: true
+                        });
+                    });
+                } else {
+                    resolve({
+                        deleted: true
+                    });
+                }
+            });
+        });
+    };
+
     this.list = function list(id) {
         var self = this;
         let history = new Promise(function (resolve, reject) {
@@ -79,7 +106,7 @@ module.exports = function (model, historyModel, options) {
         });
     };
 
-    this.createHistory = function (ids) {
+    this.createHistory = function createHistory(ids) {
         return new Promise(function (resolve, reject) {
             if (ids === undefined) {
                 resolve();
@@ -110,6 +137,6 @@ module.exports = function (model, historyModel, options) {
             });
         });
 
-    }
+    };
 
 }
