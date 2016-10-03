@@ -1,6 +1,6 @@
 {
    "database": {
-       "url": "mongodb://localhost/demo-app"
+       "url": "mongodb://localhost/test"
    },
    "api": {
        "oauth2": {

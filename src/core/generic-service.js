@@ -595,6 +595,12 @@ module.exports = function ServiceEndpoint(model, options) {
      * @param next Next hook as function
      */
     this.findVersion = function findVersion(request, response, next) {
+        if (parseInt(request.params.version) < 0) {
+            return respond(response, 422, {
+                status: 422,
+                message: 'version must be greater than or equal to zero'
+            });
+        }
         historyService.findVersion(request.params.id, request.params.version).then(function (item) {
             send(response, item);
         }, function (error) {
@@ -603,14 +609,41 @@ module.exports = function ServiceEndpoint(model, options) {
     };
 
     /**
-     * List versions if history is enabled
+     * Delete a version of the entry
      * 
      * @param request  Http request as object
      * @param response Http response as object
      * @param next Next hook as function
      */
     this.deleteVersion = function deleteVersion(request, response, next) {
+        if (parseInt(request.params.version) < 0) {
+            return respond(response, 422, {
+                status: 422,
+                message: 'version must be greater than or equal to zero'
+            });
+        }
         historyService.deleteVersion(request.params.id, request.params.version).then(function (item) {
+            send(response, item);
+        }, function (error) {
+            next(error);
+        });
+    };
+
+    /**
+     * Rollback to a version of the entry
+     * 
+     * @param request  Http request as object
+     * @param response Http response as object
+     * @param next Next hook as function
+     */
+    this.rollbackVersion = function rollbackVersion(request, response, next) {
+        if (parseInt(request.params.version) < 0) {
+            return respond(response, 422, {
+                status: 422,
+                message: 'version must be greater than or equal to zero'
+            });
+        }
+        historyService.rollback(request.params.id, request.params.version).then(function (item) {
             send(response, item);
         }, function (error) {
             next(error);
@@ -649,6 +682,9 @@ module.exports = function ServiceEndpoint(model, options) {
 
             /* DELETE /:id/version/:version */
             this.router.delete('/:id/version/:version', this.deleteVersion.bind(this));
+
+            /* DELETE /:id/version/:version */
+            this.router.post('/:id/rollback/:version', this.rollbackVersion.bind(this));
         }
 
         // enable method chaining

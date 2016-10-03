@@ -55,6 +55,116 @@ module.exports = function (model, historyModel, options) {
         });
     };
 
+    this.findByIdAndVersion = function findByIdAndVersion(id, version) {
+        return new Promise(function (resolve, reject) {
+            historyModel.findOne({
+                _originalId: id,
+                __v: version
+            }).exec(function (error, item) {
+                if (error) return reject(error);
+                resolve(item);
+            });
+        });
+    }
+
+    this.resolveVersion = function resolveVersion(id, version) {
+        var self = this;
+        return new Promise(function (resolve, reject) {
+            version != undefined ? resolve(version) : self.findLatest(id).then(function (item) {
+                resolve(item != undefined ? item.history.version : 0);
+            }, reject);
+        });
+    }
+
+    this.copyEntryToMain = function copyEntryToMain(entry) {
+        return new Promise(function (resolve, reject) {
+            model.create(entry, function (error, item) {
+                if (error) return reject(error);
+                var bulk = model.collection.initializeUnorderedBulkOp();
+                bulk.find({
+                    _id: entry._id
+                }).updateOne({
+                    $set: {
+                        __v: entry.__v
+                    }
+                });
+                bulk.execute(function (error, item) {
+                    if (error) return reject(error);
+                    resolve({
+                        done: true
+                    });
+                })
+            });
+        });
+    };
+
+    this.deleteHistoryEntry = function deleteHistoryEntry(originalId, version) {
+        return new Promise(function (resolve, reject) {
+            historyModel.remove({
+                _originalId: originalId,
+                __v: {
+                    $gte: version
+                }
+            }, function (error, item) {
+                if (error) return reject(error || 'Invalid id');
+                resolve({
+                    done: true
+                });
+            });
+        });
+    };
+
+    this.deleteMainEntry = function deleteMainEntry(id, version) {
+        return new Promise(function (resolve, reject) {
+            model.remove({
+                _id: id,
+                __v: {
+                    $gte: version
+                }
+            }).exec(function (error, item) {
+                if (error) return reject(error);
+                resolve(item);
+            });
+        });
+    };
+
+    this.rollback = function rollback(id, version) {
+        var self = this;
+        return new Promise(function (resolve, reject) {
+            self.resolveVersion(id, version)
+                .then(function (version) {
+                    return self.findByIdAndVersion(id, version);
+                })
+                .then(function (item) {
+                    if (item == undefined) return;
+                    return self.deleteHistoryEntry(item._originalId, item.__v).then(function () {
+                        return item;
+                    });
+                })
+                .then(function (item) {
+                    if (item == undefined) return;
+                    return self.deleteMainEntry(item._originalId, item.__v).then(function () {
+                        return item;
+                    });
+                })
+                .then(function (item) {
+                    if (item == undefined) return;
+                    item = item._doc;
+                    item._id = item._originalId;
+                    if (options.idField != undefined) {
+                        item[options.idField] = item._id;
+                    }
+                    delete item._originalId;
+                    return item;
+                })
+                .then(function (entry) {
+                    if (entry == undefined) return;
+                    return self.copyEntryToMain(entry);
+                })
+                .then(resolve, reject);
+        });
+    };
+
     this.deleteVersion = function deleteVersion(id, version) {
         var self = this;
         return new Promise(function (resolve, reject) {
@@ -63,21 +173,23 @@ module.exports = function (model, historyModel, options) {
                 __v: version
             }).exec(function (error, item) {
                 if (error) return reject(error);
-                if (item.result.n == 0) {
-                    model.remove({
-                        _id: id,
-                        __v: version
-                    }).exec(function (error, item) {
-                        if (error) return reject(error);
-                        resolve({
-                            deleted: true
-                        });
-                    });
-                } else {
-                    resolve({
+                if (item.result.n !== 0) {
+                    return resolve({
                         deleted: true
                     });
                 }
+                model.remove({
+                    _id: id,
+                    __v: version
+                }).exec(function (error, item) {
+                    if (error) return reject(error);
+                    if (item.result.n === 0) return resolve();
+                    self.rollback(id).then(function () {
+                        resolve({
+                            deleted: true
+                        });
+                    }, reject);
+                });
             });
         });
     };
@@ -101,7 +213,9 @@ module.exports = function (model, historyModel, options) {
             });
         });
         return Promise.all([history, current]).then(function (result) {
-            result[0].push(result[1]);
+            if (result[1] != undefined) {
+                result[0].push(result[1]);
+            }
             return result[0].map(self.mapItem);
         });
     };
