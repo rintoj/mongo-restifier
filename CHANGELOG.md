@@ -6,6 +6,7 @@
 * Changed **default port** to `5858`
 * `userSpace` can not be enabled on schema if `api.oauth2.enabled` is not set to `true`
 * Need not specify `model.url` explicitly. Value will be derived from `model.name`.
+* Added **history** feature. A schema can store history if `history` flag is set to `true`. New apis are added to manage versions.
 
 ### BREAKING CHANGES:
 * Renamed configuration `api.cors.enabled` to `api.cors.enable`

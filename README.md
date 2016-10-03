@@ -5,12 +5,13 @@ Easy to use [RESTful API](http://www.restapitutorial.com/lessons/whatisrest.html
 
 ## Features
 
-* Easy to use apification using json based models
+* Easy to use **apification using json based models**
 * Strict implementation of **[RESTful API](http://www.restapitutorial.com/lessons/whatisrest.html#)**
-* **[Bulk upload and updates](#bulk-create-or-update)** supported
-* **[Cross domain resource sharing (CORS)](https://developer.mozilla.org/en-US/docs/Web/HTTP/Access_control_CORS)** is enabled by default
 * Schema based collections and **[advanced querying](#advanced-query)** options
-* Build-in **[OAuth2](http://oauth.net/2/)** API implementation
+* **[Bulk create and updates](#bulk-create-or-update)** supported
+* **[History](#manage-history)** can be enabled through a simple flag
+* **[Cross domain resource sharing (CORS)](https://developer.mozilla.org/en-US/docs/Web/HTTP/Access_control_CORS)** is enabled by default
+* Build-in **[OAuth2](#oauth2-api)** API implementation
 * Build on **[Mongoose](http://mongoosejs.com/)** and **[Express](https://www.npmjs.com/package/express)**
 
 ## Installation
@@ -102,7 +103,7 @@ The following example serves the `Todo` model on a RESTful API.
 # REST API
 
 
-### Query
+## Query
 ```
 GET /todo HTTP/1.1
 ```
@@ -136,7 +137,7 @@ Querying takes in the following parameters:
 | `skip`    | Skips a number of results. Useful for pagination when combined with `limit`.
 | `count`   | Set count = true to get the count of matching items instead of items themselves. 
 
-### Advanced Query
+## Advanced Query
 ```
 POST /todo HTTP/1.1
 
@@ -198,7 +199,7 @@ Use `POST` to perform advanced queries. Query parameters remain same as of `GET`
 | `$and`    | Logical AND          | `{ "$and": [{ "index": 100 }, { "status": "new" }] }`
 | `$or`     | Logical OR           | `{ "$or": [{ "index": 100 }, { "index": 101 }] }`
 
-### Create or Update
+## Create or Update
 ```
 PUT /todo HTTP/1.1
 
@@ -230,7 +231,7 @@ PUT /todo?updateOnly=true HTTP/1.1
 | `createOnly`    | Create an item if it doesn't exist, ignore updates
 | `updateOnly`    | Update an item if it exists, ignore creates
 
-### Bulk Create or Update
+## Bulk Create or Update
 ```
 PUT /todo HTTP/1.1
 
@@ -254,7 +255,7 @@ PUT /todo?updateOnly=true HTTP/1.1
 
 *NOTE: `createOnly` and `updateOnly` are applicable for bulk updates as well. For all create and update operations, existance of an item is determinded through it's `id`*
 
-### Delete
+## Delete
 ```
 DELETE /todo/{id} HTTP/1.1
 ```
@@ -268,6 +269,31 @@ DELETE /todo HTTP/1.1
 ```
 *NOTE: `DELETE /todo` deletes everything. `USE WITH CATION`*
 
+## Manage History
+
+If you set `history: true` for a schema each change will be logged into `_history` table. The following apis can be used to manage versions. Please note version starts with `0`. The highest version will always be the current version.
+
+List all versions:
+```
+GET /todo/{id}/version HTTP/1.1
+```
+
+Get a specific version:
+```
+GET /todo/{id}/version/{version_number} HTTP/1.1
+```
+
+Delete a specific version:
+```
+DELETE /todo/{id}/version/{version_number} HTTP/1.1
+```
+
+Rollback to a specific version:
+```
+POST /todo/{id}/rollback/{version} HTTP/1.1
+```
+Rollback will delete all greater versions. Eg: if you give rollback to version `1`, api will delete all entries with version greater than `1`.
+
 # Model Configuration
 
 ## Configuration
@@ -276,10 +302,11 @@ DELETE /todo HTTP/1.1
 
 | Option           | Type       | Purpose           
 | ---------------- | :--------- | :------------------------------------------------
-| name         `*` | Definition | Name of the model. Collection's name will be derived from this. Therefor no special characters (including space) other than `_` is allowed. Eg: name `Todo` will result in collection name `todos`. 
+| name         `*` | Definition | Name of the model which will also be used as collection's name. Therefor no special characters (including space) other than `_` is allowed. 
 | schema       `*` | Definition | Define the schema as defined by mongoose. See [Schema Definition](#schema-definition)   for details.
 | url              | Definition | Serving endpoint. If not defined, this will be derived from name. Eg: name `Todo` will result in url `/todo`. The final url will be `http://{app}:{port}/{baseUrl}/{url}` 
 | projection       | Behaviour  | Coma separated list of fields that needs to be projected. Use `-` at the beginning of the fieldname to hide it. Usage: `projection: 'userId,name,roles,-password'`
+| history          | Behaviour  | If set to `true` history of records will be kept in a separate collection with name `<name>_history`. `/version` apis can be used to manage versions.
 | userSpace        | Behaviour  | Keep track of the user for each record and restrict access to the corresponding users. `api.oauth2.enable` must be `true` to use this option, otherwise the startup will fail with an error message. Usage: `userSpace: true` or `userSpace: {field: "_user"}`
 | configure        | Function   | Use this function to register [middleware](http://mongoosejs.com/docs/middleware.html) or [plugins](http://mongoosejs.com/docs/plugins.html). Context of this function will contain the second parameter of 'defineModel' (this object itself) *this.schema* - Schema defined by `schema, *this.model* - reference to [mongoose.Model](http://mongoosejs.com/docs/models.html), *this.modelSchema* - reference to [mongoose.Schema](http://mongoosejs.com/docs/guide.html)
 
