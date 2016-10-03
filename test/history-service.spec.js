@@ -28,7 +28,7 @@ var chain = require('chain-async');
 var should = chai.should();
 var mongoose = require('mongoose');
 
-describe('Rest Api history service', function () {
+describe('History service', function () {
 
     before(function (done) {
         util.setup(function () {
