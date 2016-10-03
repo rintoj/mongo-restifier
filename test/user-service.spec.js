@@ -80,7 +80,7 @@ describe('User service', function () {
     });
 
 
-    it('should NOT RETURN user without BASIC authorizatoin when using GET /api/oauth2/user/sample@user.com', function (done) {
+    it('should NOT RETURN user without BASIC authorization when using GET /api/oauth2/user/sample@user.com', function (done) {
         chai.request(util.instance.app)
             .get('/api/oauth2/user/sample@user.com')
             .end(function (err, res) {
@@ -91,7 +91,7 @@ describe('User service', function () {
             });
     });
 
-    it('should RETURN user with BASIC authorizatoin when using GET /api/oauth2/user/sample@user.com', function (done) {
+    it('should RETURN user with BASIC authorization when using GET /api/oauth2/user/sample@user.com', function (done) {
         chai.request(util.instance.app)
             .get('/api/oauth2/user/sample@user.com')
             .auth(util.clientId, util.clientSecret)
@@ -220,7 +220,7 @@ describe('User service', function () {
     });
 
 
-    it('should NOT DELETE MULTIPLE USERES when using DELETE /api/oauth2/user when array is sent instead of query object in body', function (done) {
+    it('should NOT DELETE MULTIPLE USERS when using DELETE /api/oauth2/user when array is sent instead of query object in body', function (done) {
         chai.request(util.instance.app)
             .delete('/api/oauth2/client')
             .set('authorization', util.accessToken)

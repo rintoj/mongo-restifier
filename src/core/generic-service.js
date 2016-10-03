@@ -333,6 +333,8 @@ module.exports = function ServiceEndpoint(model, options) {
         var fields;
         var pickFields = [];
 
+        if (item == undefined) return;
+
         if (item instanceof Array) {
             if (item.length === 0) return item;
             fields = Object.keys(item[0].toJSON ? item[0].toJSON() : item[0]);

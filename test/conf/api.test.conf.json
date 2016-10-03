@@ -5,7 +5,18 @@
     "api": {
         "port": 3001,
         "oauth2": {
-            "enable": true
+            "enable": true,
+            "rules": [
+                "None        *               OPTIONS             /api/oauth2/register",
+                "None        *               OPTIONS             /api/oauth2/client",
+                "None        *               OPTIONS             /api/oauth2/user",
+                "Basic       *               GET                 /api/oauth2/user/*",
+                "Bearer      ADMIN           *                   /api/oauth2/user",
+                "Bearer      ADMIN           *                   /api/oauth2/client",
+                "None        *               OPTIONS             /api/**",
+                "None        *               *                   /api/task",
+                "None        *               *                   /api/task/**"
+            ]
         }
     },
     "logger": {

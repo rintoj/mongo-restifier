@@ -1,6 +1,9 @@
 var chai = require('chai');
 var chain = require('chain-async');
 var mongoose = require('mongoose');
+var noteModel = require('./note.model');
+var todoModel = require('./todo.model');
+var taskModel = require('./task.model');
 var mongoRestifier = require('../../src/index')
 
 var should = chai.should();
@@ -47,6 +50,7 @@ module.exports = {
             var commands = [];
             Object.keys(mongoose.connection.collections).forEach(function (collectionName) {
                 commands.push(function (callback) {
+                    console.log(collectionName);
                     mongoose.connection.collections[collectionName].drop();
                     callback();
                 });
@@ -55,55 +59,10 @@ module.exports = {
             commands.push(function createModel(callback) {
 
                 self.instance = mongoRestifier('./test/conf/api.test.conf.json')
-                    .registerModel({
-                        name: 'Todo',
-                        url: '/todo',
-                        schema: {
-                            index: {
-                                type: Number,
-                                required: true,
-                                min: 1,
-                                autoIncrement: true,
-                                idField: true
-                            },
-                            title: {
-                                type: String,
-                                required: true
-                            },
-                            description: String,
-                            status: {
-                                type: String,
-                                required: true,
-                                default: 'new',
-                                enum: ['new', 'progress', 'done', 'hold']
-                            }
-                        },
-
-                        userSpace: {
-                            field: "_user"
-                        },
-                        timestamps: true
-                    })
-
-                .registerModel({
-                    name: 'Task',
-                    url: '/task',
-                    schema: {
-                        id: {
-                            type: String,
-                            idField: true
-                        },
-                        title: {
-                            type: String,
-                            required: true
-                        },
-                        description: String
-                    },
-
-                    history: true
-                })
-
-                .startup();
+                    .registerModel(noteModel)
+                    .registerModel(todoModel)
+                    .registerModel(taskModel)
+                    .startup();
 
                 callback();
             });

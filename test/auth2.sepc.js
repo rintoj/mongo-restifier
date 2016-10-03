@@ -31,9 +31,9 @@ describe('oAuth2 service', function () {
         util.setup(done);
     });
 
-    it('should ALLOW ACCESS to OPTIONS /api/todo without token', function (done) {
+    it('should ALLOW ACCESS to OPTIONS /api/note without token', function (done) {
         chai.request(util.instance.app)
-            .options('/api/todo')
+            .options('/api/note')
             .end(function (err, res) {
                 res.should.have.status(200);
                 res.should.be.html;
@@ -42,36 +42,36 @@ describe('oAuth2 service', function () {
             });
     });
 
-    it('should DENY ACCESS to GET /api/todo without token', function (done) {
+    it('should DENY ACCESS to GET /api/note without token', function (done) {
         chai.request(util.instance.app)
-            .get('/api/todo')
+            .get('/api/note')
             .end(function (err, res) {
                 res.should.have.status(401);
                 done();
             });
     });
 
-    it('should DENY ACCESS to POST /api/todo without token', function (done) {
+    it('should DENY ACCESS to POST /api/note without token', function (done) {
         chai.request(util.instance.app)
-            .post('/api/todo')
+            .post('/api/note')
             .end(function (err, res) {
                 res.should.have.status(401);
                 done();
             });
     });
 
-    it('should DENY ACCESS to PUT /api/todo without token', function (done) {
+    it('should DENY ACCESS to PUT /api/note without token', function (done) {
         chai.request(util.instance.app)
-            .put('/api/todo')
+            .put('/api/note')
             .end(function (err, res) {
                 res.should.have.status(401);
                 done();
             });
     });
 
-    it('should DENY ACCESS to DELETE /api/todo without token', function (done) {
+    it('should DENY ACCESS to DELETE /api/note without token', function (done) {
         chai.request(util.instance.app)
-            .delete('/api/todo')
+            .delete('/api/note')
             .end(function (err, res) {
                 res.should.have.status(401);
                 done();
@@ -91,9 +91,9 @@ describe('oAuth2 service', function () {
         });
     });
 
-    it('should ALLOW ACCESS to OPTIONS /api/todo with token', function (done) {
+    it('should ALLOW ACCESS to OPTIONS /api/note with token', function (done) {
         chai.request(util.instance.app)
-            .options('/api/todo')
+            .options('/api/note')
             .set('authorization', util.accessToken)
             .end(function (err, res) {
                 res.should.have.status(200);
@@ -103,9 +103,9 @@ describe('oAuth2 service', function () {
             });
     });
 
-    it('should ALLOW ACCESS to GET /api/todo with token', function (done) {
+    it('should ALLOW ACCESS to GET /api/note with token', function (done) {
         chai.request(util.instance.app)
-            .get('/api/todo')
+            .get('/api/note')
             .set('authorization', util.accessToken)
             .end(function (err, res) {
                 res.should.have.status(200);
@@ -113,9 +113,9 @@ describe('oAuth2 service', function () {
             });
     });
 
-    it('should ALLOW ACCESS to POST /api/todo with token', function (done) {
+    it('should ALLOW ACCESS to POST /api/note with token', function (done) {
         chai.request(util.instance.app)
-            .post('/api/todo')
+            .post('/api/note')
             .set('authorization', util.accessToken)
             .end(function (err, res) {
                 res.should.have.status(200);
@@ -123,9 +123,9 @@ describe('oAuth2 service', function () {
             });
     });
 
-    it('should ALLOW ACCESS to PUT /api/todo with token', function (done) {
+    it('should ALLOW ACCESS to PUT /api/note with token', function (done) {
         chai.request(util.instance.app)
-            .put('/api/todo')
+            .put('/api/note')
             .set('authorization', util.accessToken)
             .send({
                 "title": "Sample note"
@@ -136,9 +136,9 @@ describe('oAuth2 service', function () {
             });
     });
 
-    it('should ALLOW ACCESS to DELETE /api/todo with token', function (done) {
+    it('should ALLOW ACCESS to DELETE /api/note with token', function (done) {
         chai.request(util.instance.app)
-            .delete('/api/todo')
+            .delete('/api/note')
             .set('authorization', util.accessToken)
             .send({
                 "title": "Sample note"
@@ -173,9 +173,9 @@ describe('oAuth2 service', function () {
             });
     });
 
-    it('should DENY ACCESS when a revoked token is used with GET /api/todo', function (done) {
+    it('should DENY ACCESS when a revoked token is used with GET /api/note', function (done) {
         chai.request(util.instance.app)
-            .get('/api/todo')
+            .get('/api/note')
             .set('content-type', 'application/json')
             .set('authorization', util.accessToken)
             .end(function (err, res) {

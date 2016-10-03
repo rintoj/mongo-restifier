@@ -1,5 +1,10 @@
 {
    "database": {
        "url": "mongodb://localhost/demo-app"
+   },
+   "api": {
+       "oauth2": {
+           "enable": true
+       }
    }
 }
