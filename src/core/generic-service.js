@@ -581,7 +581,7 @@ module.exports = function ServiceEndpoint(model, options) {
      */
     this.listVersions = function listVersions(request, response, next) {
         historyService.list(request.params.id).then(function (items) {
-            send(response, items);
+            send(response, select(projection(request), items));
         }, function (error) {
             next(error);
         });
@@ -602,7 +602,7 @@ module.exports = function ServiceEndpoint(model, options) {
             });
         }
         historyService.findVersion(request.params.id, request.params.version).then(function (item) {
-            send(response, item);
+            send(response, select(projection(request), item));
         }, function (error) {
             next(error);
         });

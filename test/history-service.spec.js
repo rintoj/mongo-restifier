@@ -281,6 +281,39 @@ describe('History service', function () {
             });
     });
 
+     it('should return a specific version with only history attribute when GET /api/task/version/{number}?fields=history is used', function (done) {
+        chai.request(util.instance.app)
+            .get('/api/task/item1/version/1?fields=history')
+            .end(function (err, res) {
+                res.should.have.status(200);
+                res.should.be.json;
+                res.body.should.be.a('object');
+                res.body.should.not.have.property('title');
+                res.body.should.not.have.property('id');
+                res.body.should.have.property('history');
+                res.body.history.should.be.a('object');
+                res.body.history.should.have.property('id');
+                res.body.history.id.should.be.equal('item1');
+                res.body.history.should.have.property('version');
+                res.body.history.version.should.be.equal(1);
+                done();
+            });
+    });
+
+     it('should return all versions with only history attribute when GET /api/task/version?fields=history is used', function (done) {
+         chai.request(util.instance.app)
+             .get('/api/task/item1/version?fields=history')
+             .end(function (err, res) {
+                 res.should.have.status(200);
+                 res.should.be.json;
+                 res.body.should.be.a('array');
+                 res.body.should.all.not.have.property('title');
+                 res.body.should.all.not.have.property('id');
+                 res.body.should.all.have.property('history');
+                 done();
+             });
+     });
+
     it('should delete a specific version when DELETE /api/task/version/{number} is used', function (done) {
         var tests = [];
 
