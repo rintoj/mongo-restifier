@@ -356,8 +356,8 @@ describe('History service', function () {
                     res.body.should.be.a('array');
                     res.body.should.be.length(2);
                     res.body.should.all.have.property('history');
-                    res.body[0].history.version.should.be.equal(0);
-                    res.body[1].history.version.should.be.equal(2);
+                    res.body[0].history.version.should.be.equal(2);
+                    res.body[1].history.version.should.be.equal(0);
                     taskDone();
                 });
         });
@@ -407,7 +407,7 @@ describe('History service', function () {
                     res.body.should.be.a('array');
                     res.body.should.be.length(2);
                     res.body.should.all.have.property('history');
-                    var latestVersion = res.body.slice(-1)[0];
+                    var latestVersion = res.body[0];
                     latestVersion.should.be.a('object');
                     latestVersion.should.have.property('id');
                     latestVersion.id.should.be.equal('item1');

@@ -28,7 +28,7 @@ module.exports = function (model, historyModel, options) {
 
     this.findLatest = function findLatest(id) {
         return this.list(id).then(function (items) {
-            return items.slice(-1)[0];
+            return items[0];
         });
     };
 
@@ -199,7 +199,7 @@ module.exports = function (model, historyModel, options) {
         let history = new Promise(function (resolve, reject) {
             historyModel.find({
                 _originalId: id
-            }).sort('version').exec(function (error, items) {
+            }).sort('-__v').exec(function (error, items) {
                 if (error) return reject(error);
                 resolve(items);
             });
@@ -214,7 +214,7 @@ module.exports = function (model, historyModel, options) {
         });
         return Promise.all([history, current]).then(function (result) {
             if (result[1] != undefined) {
-                result[0].push(result[1]);
+                result[0] = [result[1]].concat(result[0]);
             }
             return result[0].map(self.mapItem);
         });
