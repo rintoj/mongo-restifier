@@ -3,6 +3,7 @@
 ## 2.0.1
 
 * `fields` filter is applied to history results
+* Bug fix: Sorting logic in history service
 
 ## 2.0.0
 
