@@ -1,0 +1,10 @@
+.vscode
+assets
+coverage
+demo
+documentation
+test
+.gitignore
+CHANGELOG.md
+gulpfile.js
+TODO.txt
