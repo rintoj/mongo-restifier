@@ -30,15 +30,20 @@ var autoIncrement = require('mongoose-auto-increment');
 var autoIncrementRegistered = false;
 var preConfigured = false;
 
-var createContext = function (model) {
+var createContext = function(model) {
 
     var context = {};
     var fields = Object.keys(model || {});
 
+    if (model.timestamps === true) {
+        model.schema.createdAt = String;
+        model.schema.updatedAt = String;
+    }
+
     // create readonly context
-    fields.forEach(function (name) {
+    fields.forEach(function(name) {
         Object.defineProperty(context, name, {
-            get: function () {
+            get: function() {
                 return model[name] && (typeof model[name] === 'function' ? model[name].call(context) : model[name]);
             }
         });
@@ -49,7 +54,7 @@ var createContext = function (model) {
 
 /**
  * Service model creates a service that can serve a collection from mongo db
- * 
+ *
  * @param context The context of the service
  */
 var ServiceModel = function ServiceModel(context, properties) {
@@ -82,15 +87,15 @@ var ServiceModel = function ServiceModel(context, properties) {
     }
 
     // create projection
-    context.projection = Object.keys(context.schema).filter(function (item) {
+    context.projection = Object.keys(context.schema).filter(function(item) {
         return item.indexOf("_") === 0;
-    }).concat(["__v"]).map(function (item) {
+    }).concat(["__v"]).map(function(item) {
         return "-" + item;
     }).join(",");
 
     // Get and validate id field
     var idField;
-    Object.keys(context.schema).forEach(function (item) {
+    Object.keys(context.schema).forEach(function(item) {
         if (typeof context.schema[item] === 'object' && context.schema[item].idField) {
             if (idField) {
                 throw `Schema Error: more than one id field found in '${context.name}': ` + idField.join(",");
@@ -109,8 +114,7 @@ var ServiceModel = function ServiceModel(context, properties) {
 
     // create schema
     context.modelSchema = new mongoose.Schema(context.schema, {
-        strict: true,
-        timestamps: context.timestamps
+        strict: true
     });
 
     // create model
@@ -121,8 +125,7 @@ var ServiceModel = function ServiceModel(context, properties) {
         context.historyModelSchema = new mongoose.Schema(Object.assign({
             _originalId: idField.type
         }, context.schema), {
-            strict: true,
-            timestamps: context.timestamps
+            strict: true
         });
         context.historyModel = mongoose.model(context.name.toLowerCase() + '_history', context.historyModelSchema, context.name.toLowerCase() + '_history');
     }
@@ -134,7 +137,7 @@ var ServiceModel = function ServiceModel(context, properties) {
     }
 
     // validate auto increment fields
-    var autoIncrementFields = _.filter(_.keys(context.schema), function (field) {
+    var autoIncrementFields = _.filter(_.keys(context.schema), function(field) {
         if (context.schema[field].type !== Number && context.schema[field].autoIncrement) {
             throw `Schema Error: ${context.name}.${field} is not a number field. autoIncrement = true is an invalid configuration!`
         }
@@ -150,7 +153,7 @@ var ServiceModel = function ServiceModel(context, properties) {
 
     // map custom id field
     if (idField) {
-        var mapIdField = function (next) {
+        var mapIdField = function(next) {
             if (this[idField.name] !== undefined) {
                 this._id = this[idField.name];
             }
@@ -161,7 +164,7 @@ var ServiceModel = function ServiceModel(context, properties) {
         context.modelSchema.pre("save", mapIdField);
 
         context.modelSchema.set("toJSON", {
-            transform: function (doc, ret, options) {
+            transform: function(doc, ret, options) {
                 // remove the _id of every document before returning the result
                 ret[idField.name] = ret._id;
                 delete ret._id;
@@ -189,7 +192,7 @@ var ServiceModel = function ServiceModel(context, properties) {
 
     /**
      * Register this model as a service
-     * 
+     *
      * @param app Express application instance
      * @param baseUrl The base url for the api
      */
@@ -201,11 +204,11 @@ var ServiceModel = function ServiceModel(context, properties) {
         if (!preConfigured && noErrorHandler !== true) {
 
             // register an error handler for generic-model if not registered already for this app
-            app.use(function (error, request, response, next) {
+            app.use(function(error, request, response, next) {
 
                 if (error && error.errors) {
                     // normalize errors to readable format
-                    _.keys(error.errors).map(function (key) {
+                    _.keys(error.errors).map(function(key) {
                         error.errors[key] = error.errors[key].message.replace('`', '\'')
                     });
 
@@ -231,14 +234,14 @@ var ServiceModel = function ServiceModel(context, properties) {
 
 /**
  * Creates a service
- * 
+ *
  * @param name Name of the service (mandatory)
  * @param options Options as object in the format:
  * {
  *    schema: {  // mandatory
  *      field1: {
  *        type: String | Number | Date
- * 
+ *
  *        // validations
  *        required: true,
  *        required: [true, 'User phone number required']  // custom message
@@ -247,7 +250,7 @@ var ServiceModel = function ServiceModel(context, properties) {
  *        maxlength: number,          // only if type = String
  *        min: number,                // only if type = Number
  *        max: number,                // only if type = Number
- * 
+ *
  *        // custom validation
  *        validate: {
  *           validator: function(v) {
@@ -255,12 +258,12 @@ var ServiceModel = function ServiceModel(context, properties) {
  *           },
  *           message: '{VALUE} is not a valid phone number!'
  *        },
- *         
- *        // options 
+ *
+ *        // options
  *        idField: boolean,           // one and only one field can be id
  *        autoIncrement: boolean,     // only if type = Number
  *        startAt: number,            // only if type = Number
- *        incrementBy: number,        // only if type = Number  
+ *        incrementBy: number,        // only if type = Number
  *      }
  *    },
  *    permissions: Object,
@@ -268,9 +271,9 @@ var ServiceModel = function ServiceModel(context, properties) {
  *    url: String,
  *    userSpace: Boolean
  * }
- * 
+ *
  * All of these can be a value with the specified type or a function that return the same type.
- * 
+ *
  * @returns (description)
  */
 module.exports = function defineModel(model, properties) {

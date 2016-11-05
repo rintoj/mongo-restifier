@@ -1,7 +1,7 @@
 var uuid = require('uuid');
 var Promise = require('es6-promise').Promise;
 
-module.exports = function (model, historyModel, options) {
+module.exports = function(model, historyModel, options) {
 
     options = options || {};
     if (model === undefined) {
@@ -27,24 +27,24 @@ module.exports = function (model, historyModel, options) {
     };
 
     this.findLatest = function findLatest(id) {
-        return this.list(id).then(function (items) {
+        return this.list(id).then(function(items) {
             return items[0];
         });
     };
 
     this.findVersion = function findVersion(id, version) {
         var self = this;
-        return new Promise(function (resolve, reject) {
+        return new Promise(function(resolve, reject) {
             historyModel.findOne({
                 _originalId: id,
                 __v: version
-            }).exec(function (error, item) {
+            }).exec(function(error, item) {
                 if (error) return reject(error);
                 if (item == undefined) {
                     model.findOne({
                         _id: id,
                         __v: version
-                    }).exec(function (error, item) {
+                    }).exec(function(error, item) {
                         if (error) return reject(error);
                         resolve(self.mapItem(item));
                     });
@@ -56,11 +56,11 @@ module.exports = function (model, historyModel, options) {
     };
 
     this.findByIdAndVersion = function findByIdAndVersion(id, version) {
-        return new Promise(function (resolve, reject) {
+        return new Promise(function(resolve, reject) {
             historyModel.findOne({
                 _originalId: id,
                 __v: version
-            }).exec(function (error, item) {
+            }).exec(function(error, item) {
                 if (error) return reject(error);
                 resolve(item);
             });
@@ -69,16 +69,16 @@ module.exports = function (model, historyModel, options) {
 
     this.resolveVersion = function resolveVersion(id, version) {
         var self = this;
-        return new Promise(function (resolve, reject) {
-            version != undefined ? resolve(version) : self.findLatest(id).then(function (item) {
+        return new Promise(function(resolve, reject) {
+            version != undefined ? resolve(version) : self.findLatest(id).then(function(item) {
                 resolve(item != undefined ? item.history.version : 0);
             }, reject);
         });
     }
 
     this.copyEntryToMain = function copyEntryToMain(entry) {
-        return new Promise(function (resolve, reject) {
-            model.create(entry, function (error, item) {
+        return new Promise(function(resolve, reject) {
+            model.create(entry, function(error, item) {
                 if (error) return reject(error);
                 var bulk = model.collection.initializeUnorderedBulkOp();
                 bulk.find({
@@ -88,7 +88,7 @@ module.exports = function (model, historyModel, options) {
                         __v: entry.__v
                     }
                 });
-                bulk.execute(function (error, item) {
+                bulk.execute(function(error, item) {
                     if (error) return reject(error);
                     resolve({
                         done: true
@@ -99,13 +99,13 @@ module.exports = function (model, historyModel, options) {
     };
 
     this.deleteHistoryEntry = function deleteHistoryEntry(originalId, version) {
-        return new Promise(function (resolve, reject) {
+        return new Promise(function(resolve, reject) {
             historyModel.remove({
                 _originalId: originalId,
                 __v: {
                     $gte: version
                 }
-            }, function (error, item) {
+            }, function(error, item) {
                 if (error) return reject(error || 'Invalid id');
                 resolve({
                     done: true
@@ -115,13 +115,13 @@ module.exports = function (model, historyModel, options) {
     };
 
     this.deleteMainEntry = function deleteMainEntry(id, version) {
-        return new Promise(function (resolve, reject) {
+        return new Promise(function(resolve, reject) {
             model.remove({
                 _id: id,
                 __v: {
                     $gte: version
                 }
-            }).exec(function (error, item) {
+            }).exec(function(error, item) {
                 if (error) return reject(error);
                 resolve(item);
             });
@@ -130,24 +130,24 @@ module.exports = function (model, historyModel, options) {
 
     this.rollback = function rollback(id, version) {
         var self = this;
-        return new Promise(function (resolve, reject) {
+        return new Promise(function(resolve, reject) {
             self.resolveVersion(id, version)
-                .then(function (version) {
+                .then(function(version) {
                     return self.findByIdAndVersion(id, version);
                 })
-                .then(function (item) {
+                .then(function(item) {
                     if (item == undefined) return;
-                    return self.deleteHistoryEntry(item._originalId, item.__v).then(function () {
+                    return self.deleteHistoryEntry(item._originalId, item.__v).then(function() {
                         return item;
                     });
                 })
-                .then(function (item) {
+                .then(function(item) {
                     if (item == undefined) return;
-                    return self.deleteMainEntry(item._originalId, item.__v).then(function () {
+                    return self.deleteMainEntry(item._originalId, item.__v).then(function() {
                         return item;
                     });
                 })
-                .then(function (item) {
+                .then(function(item) {
                     if (item == undefined) return;
                     item = item._doc;
                     item._id = item._originalId;
@@ -157,7 +157,7 @@ module.exports = function (model, historyModel, options) {
                     delete item._originalId;
                     return item;
                 })
-                .then(function (entry) {
+                .then(function(entry) {
                     if (entry == undefined) return;
                     return self.copyEntryToMain(entry);
                 })
@@ -167,11 +167,11 @@ module.exports = function (model, historyModel, options) {
 
     this.deleteVersion = function deleteVersion(id, version) {
         var self = this;
-        return new Promise(function (resolve, reject) {
+        return new Promise(function(resolve, reject) {
             historyModel.remove({
                 _originalId: id,
                 __v: version
-            }).exec(function (error, item) {
+            }).exec(function(error, item) {
                 if (error) return reject(error);
                 if (item.result.n !== 0) {
                     return resolve({
@@ -181,10 +181,10 @@ module.exports = function (model, historyModel, options) {
                 model.remove({
                     _id: id,
                     __v: version
-                }).exec(function (error, item) {
+                }).exec(function(error, item) {
                     if (error) return reject(error);
                     if (item.result.n === 0) return resolve();
-                    self.rollback(id).then(function () {
+                    self.rollback(id).then(function() {
                         resolve({
                             deleted: true
                         });
@@ -196,23 +196,23 @@ module.exports = function (model, historyModel, options) {
 
     this.list = function list(id) {
         var self = this;
-        let history = new Promise(function (resolve, reject) {
+        let history = new Promise(function(resolve, reject) {
             historyModel.find({
                 _originalId: id
-            }).sort('-__v').exec(function (error, items) {
+            }).sort('-__v').exec(function(error, items) {
                 if (error) return reject(error);
                 resolve(items);
             });
         });
-        let current = new Promise(function (resolve, reject) {
+        let current = new Promise(function(resolve, reject) {
             model.findById({
                 _id: id
-            }).exec(function (error, item) {
+            }).exec(function(error, item) {
                 if (error) return reject(error);
                 resolve(item);
             });
         });
-        return Promise.all([history, current]).then(function (result) {
+        return Promise.all([history, current]).then(function(result) {
             if (result[1] != undefined) {
                 result[0] = [result[1]].concat(result[0]);
             }
@@ -221,29 +221,29 @@ module.exports = function (model, historyModel, options) {
     };
 
     this.createHistory = function createHistory(ids) {
-        return new Promise(function (resolve, reject) {
+        return new Promise(function(resolve, reject) {
             if (ids === undefined) {
                 resolve();
             }
-            model.find().where("_id").in(ids).exec(function (error, results) {
+            model.find().where("_id").in(ids).exec(function(error, results) {
                 if (error) return reject(error);
                 if (results.length === 0) {
                     return resolve([]);
                 }
 
                 var bulk = historyModel.collection.initializeUnorderedBulkOp();
-                var items = results.map(function (item) {
+                var items = results.map(function(item) {
                     return item._doc;
-                }).map(function (item) {
+                }).map(function(item) {
                     item._originalId = item._id;
                     item._id = uuid();
                     item[options.idField] = item._id;
-
+                    item.createdAt = new Date();
                     bulk.insert(item);
                 });
 
                 // execute the query
-                bulk.execute(function (error, result) {
+                bulk.execute(function(error, result) {
                     if (error) return reject(error);
                     resolve(result);
                 });

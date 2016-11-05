@@ -1,5 +1,9 @@
 # mongo-restifier - CHANGE LOG
 
+## 2.0.2
+
+* Bug fix: timestamps were not properly being generated
+
 ## 2.0.1
 
 * `fields` filter is applied to history results
@@ -35,7 +39,7 @@ mongoRestifier('./src/api.conf.json')
     ...
 }))
 
-.startup(); 
+.startup();
 ```
 
 To:
@@ -58,7 +62,7 @@ mongoRestifier('./src/api.conf.json')
     ...
 })
 
-.startup(); 
+.startup();
 ```
 
 ## 1.0.0

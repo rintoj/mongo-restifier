@@ -31,12 +31,12 @@ var HistoryService = require('./history-service');
 
 /**
  * Creates service end point with GET, POST, PUT and DELETE methods
- * 
+ *
  * @param model Mongoose model to be used by the service
  */
 /**
- * 
- * 
+ *
+ *
  * @param {any} model
  * @param {any} options
  */
@@ -58,8 +58,8 @@ module.exports = function ServiceEndpoint(model, options) {
 
     /**
      * Send response back to client. If item is not found return 404
-     * 
-     * @private 
+     *
+     * @private
      * @param response Http response
      * @param item Item to be send. If not defined 404 error code will be returned
      * @param status Any status message to be returned other than the result (item) itself
@@ -82,8 +82,8 @@ module.exports = function ServiceEndpoint(model, options) {
     /**
      /**
      * Send response back to client after a bulk update request
-     * 
-     * @private 
+     *
+     * @private
      * @param request Http request
      * @param response Http response
      * @param result As array with first element as the result from create operation and the second
@@ -94,7 +94,7 @@ module.exports = function ServiceEndpoint(model, options) {
 
         // if multi request do this
         if (multi) {
-            var newIds = result[0].map(function (item) {
+            var newIds = result[0].map(function(item) {
                 return item._id;
             });
             return response.json({
@@ -128,7 +128,7 @@ module.exports = function ServiceEndpoint(model, options) {
 
     /**
      * Respond to the client with given status code and reply
-     * 
+     *
      * @private
      * @param response Http response object
      * @param statusCode Http status code
@@ -141,7 +141,7 @@ module.exports = function ServiceEndpoint(model, options) {
 
     /**
      * Identify and return id field
-     * 
+     *
      * @private
      * @returns Returns name of the id field as string
      */
@@ -150,8 +150,8 @@ module.exports = function ServiceEndpoint(model, options) {
     }
 
     /**
-     * Check if the item has changed from the item exists in collection 
-     * 
+     * Check if the item has changed from the item exists in collection
+     *
      * @param {any} collection
      * @param {any} item
      * @returns
@@ -161,28 +161,28 @@ module.exports = function ServiceEndpoint(model, options) {
             return false;
         }
         var id = idField();
-        var target = collection.find(function (i) {
+        var target = collection.find(function(i) {
             return i[id] === item[id];
         });
 
         if (target === undefined) {
             return true;
         }
-        return Object.keys(item).some(function (property) {
+        return Object.keys(item).some(function(property) {
             return JSON.stringify(target[property]) !== JSON.stringify(item[property]);
         });
     }
 
     /**
      * Identify existing items from the given set of items
-     * 
+     *
      * @private
      * @param items Array of items (objects)
      * @returns Returns an object with 'newItems', 'changedItems' and 'existingIds' attributes as arrays
      */
     var categorize = function categorize(items) {
 
-        return new Promise(function (resolve, reject) {
+        return new Promise(function(resolve, reject) {
 
             if (!(items instanceof Array)) {
                 items = [items];
@@ -200,21 +200,21 @@ module.exports = function ServiceEndpoint(model, options) {
             }
 
             var id = idField();
-            var ids = _.map(items, function (item) {
+            var ids = _.map(items, function(item) {
                 return item[id]
-            }).filter(function (item) {
+            }).filter(function(item) {
                 return item !== undefined;
             });
 
-            model.find().where("_id").in(ids).exec(function (error, result) {
+            model.find().where("_id").in(ids).exec(function(error, result) {
                 if (error) return reject(error);
 
                 // find existing ids
-                segregatedItems.existingIds = _.map(result, function (item) {
+                segregatedItems.existingIds = _.map(result, function(item) {
                     return item._id;
                 });
 
-                items.forEach(function (item, index) {
+                items.forEach(function(item, index) {
                     var target = "newItems";
                     if (segregatedItems.existingIds.indexOf(item[id]) >= 0) {
                         target = "changedItems";
@@ -233,20 +233,24 @@ module.exports = function ServiceEndpoint(model, options) {
 
     /**
      * Perform a bulk create operation.
-     * 
+     *
      * TODO: Improve the performance by calling model.collection.insert
-     * 
+     *
      * @private
      * @param items Items to be bulk inserted. The items must be pre-validated for its non-existence
      * @returns Returns a Promise
      */
     var bulkCreate = function bulkCreate(items) {
-        return new Promise(function (resolve, reject) {
+        return new Promise(function(resolve, reject) {
 
             if (items.length === 0) {
                 return resolve([]);
             }
-            model.create(items, function (error, bulkResponse) {
+            model.create(items.map(function(item) {
+                item.createdAt = new Date();
+                item.updatedAt = new Date();
+                return item;
+            }), function(error, bulkResponse) {
                 if (error) return reject(error);
                 resolve(bulkResponse);
             });
@@ -256,13 +260,13 @@ module.exports = function ServiceEndpoint(model, options) {
 
     /**
      * Perform a bulk update operation.
-     * 
+     *
      * @private
      * @param items Items to be bulk inserted. The items must be pre-validated for its existence
      * @returns Returns a Promise
      */
     var bulkUpdate = function bulkUpdate(items) {
-        return new Promise(function (resolve, reject) {
+        return new Promise(function(resolve, reject) {
 
             if (items.length === 0) {
                 return resolve({});
@@ -270,16 +274,17 @@ module.exports = function ServiceEndpoint(model, options) {
 
             var id = idField();
             var promise = historyService != undefined ?
-                historyService.createHistory(items.map(function (i) {
+                historyService.createHistory(items.map(function(i) {
                     return i[id];
                 })) : Promise.resolve();
 
-            promise.then(function () {
+            promise.then(function() {
 
                 var bulk = model.collection.initializeUnorderedBulkOp();
 
                 // prepare the bulk upload request
-                _.each(items, function (item) {
+                _.each(items, function(item) {
+                    item.updatedAt = new Date();
                     bulk.find({
                         _id: item[id]
                     }).updateOne({
@@ -292,7 +297,7 @@ module.exports = function ServiceEndpoint(model, options) {
 
 
                 // execute the query
-                bulk.execute(function (error, result) {
+                bulk.execute(function(error, result) {
                     if (error) return reject(error);
                     resolve(result);
                 });
@@ -303,7 +308,7 @@ module.exports = function ServiceEndpoint(model, options) {
 
     /**
      * Return any projection from request or from options
-     * 
+     *
      * @private
      * @param request Http request. Looks for request.query.fields
      * @returns Returns projection as string
@@ -323,7 +328,7 @@ module.exports = function ServiceEndpoint(model, options) {
 
     /**
      * Select attributes of the object item based on projection
-     * 
+     *
      * @param projection Projection as string. Eg: 'id,-status' - include 'id' and exclude 'status'
      * @param item The item or array of items to be processed
      * @returns Returns processed item
@@ -344,10 +349,10 @@ module.exports = function ServiceEndpoint(model, options) {
         }
 
         // split and get include and exclude fields
-        var selection = _((projection || '').split(' ')).partition(function (item) {
+        var selection = _((projection || '').split(' ')).partition(function(item) {
             return item.indexOf("-") !== 0;
-        }).map(function (item) {
-            return _.map(item, function (i) {
+        }).map(function(item) {
+            return _.map(item, function(i) {
                 return i.replace(/^-/, '');
             });
         }).value();
@@ -361,14 +366,14 @@ module.exports = function ServiceEndpoint(model, options) {
             pickFields = fields;
         }
 
-        return (item instanceof Array) ? item.map(function (i) {
+        return (item instanceof Array) ? item.map(function(i) {
             return _(i.toJSON ? i.toJSON() : i).pick(pickFields).value();
         }) : _(item).pick(pickFields).value();
     };
 
     /**
      * Create query from http request
-     * 
+     *
      * @private
      * @param request Http request
      * @param multi True for multi-select query
@@ -418,14 +423,14 @@ module.exports = function ServiceEndpoint(model, options) {
 
     /**
      * List all items from the model as defined by http request
-     * 
+     *
      * @param request  Http request as object
      * @param response Http response as object
      * @param next Next hook as function
      */
     this.list = function list(request, response, next) {
-        request.body = {}; // ignore any body content because this is GET 
-        createQuery(request, true).exec(function (error, items) {
+        request.body = {}; // ignore any body content because this is GET
+        createQuery(request, true).exec(function(error, items) {
             if (error) return next(error);
             response.json(request.query.count ? {
                 count: items
@@ -435,13 +440,13 @@ module.exports = function ServiceEndpoint(model, options) {
 
     /**
      * Query and return items from the model as defined by http request
-     * 
+     *
      * @param request  Http request as object
      * @param response Http response as object
      * @param next Next hook as function
      */
     this.query = function query(request, response, next) {
-        createQuery(request, true).exec(function (error, items) {
+        createQuery(request, true).exec(function(error, items) {
             if (error) return next(error);
             response.json(request.query.count ? {
                 count: items
@@ -452,7 +457,7 @@ module.exports = function ServiceEndpoint(model, options) {
     /**
      * Save one or more items. The existing items will be updated and the new
      * items will be created.
-     * 
+     *
      * @param request  Http request as object
      * @param response Http response as object
      * @param next Next hook as function
@@ -470,7 +475,7 @@ module.exports = function ServiceEndpoint(model, options) {
 
         // auto generate id
         if (options.idField.type === String) {
-            items = items.map(function (item) {
+            items = items.map(function(item) {
                 if (item[options.idField.name] === undefined) {
                     item[options.idField.name] = uuid();
                 }
@@ -480,25 +485,25 @@ module.exports = function ServiceEndpoint(model, options) {
 
         // attach user
         if (options.userField) {
-            items = items.map(function (item) {
+            items = items.map(function(item) {
                 item[options.userField] = request.user && request.user.userId;
                 return item;
             });
         }
 
-        categorize(items).then(function (categories) {
+        categorize(items).then(function(categories) {
             var promises = [];
 
             promises.push(bulkCreate(request.query.updateOnly ? [] : categories.newItems));
             promises.push(bulkUpdate(request.query.createOnly ? [] : categories.changedItems));
 
-            Promise.all(promises).then(function (result) {
+            Promise.all(promises).then(function(result) {
                 sendBulkResult(request, response, result, categories.unchangedItems.length, multi);
-            }, function (error) {
+            }, function(error) {
                 next(error);
             });
 
-        }, function (error) {
+        }, function(error) {
             next(error);
         });
 
@@ -506,7 +511,7 @@ module.exports = function ServiceEndpoint(model, options) {
 
     /**
      * Select and delete items from the model as defined by http request
-     * 
+     *
      * @param request  Http request as object
      * @param response Http response as object
      * @param next Next hook as function
@@ -519,7 +524,7 @@ module.exports = function ServiceEndpoint(model, options) {
             });
         }
         var query = merge.recursive(true, request.query, request.body);
-        model.remove(query, function (error, result) {
+        model.remove(query, function(error, result) {
             if (error) return next(error);
             send(response, {
                 status: "deleted",
@@ -530,7 +535,7 @@ module.exports = function ServiceEndpoint(model, options) {
 
     /**
      * Return an item from the model as defined by http request
-     * 
+     *
      * @param request  Http request as object
      * @param response Http response as object
      * @param next Next hook as function
@@ -539,7 +544,7 @@ module.exports = function ServiceEndpoint(model, options) {
         request.body = {
             _id: request.params.id
         };
-        createQuery(request, true).exec(function (error, item) {
+        createQuery(request, true).exec(function(error, item) {
             if (error) return next(error);
             send(response, select(projection(request), item[0]), undefined, request.params.id);
         });
@@ -547,7 +552,7 @@ module.exports = function ServiceEndpoint(model, options) {
 
     /**
      * Select and update an item as defined by http request
-     * 
+     *
      * @param request  Http request as object
      * @param response Http response as object
      * @param next Next hook as function
@@ -560,13 +565,13 @@ module.exports = function ServiceEndpoint(model, options) {
 
     /**
      * Delete an item identified by the given id
-     * 
+     *
      * @param request  Http request as object
      * @param response Http response as object
      * @param next Next hook as function
      */
     this.deleteById = function deleteById(request, response, next) {
-        model.findByIdAndRemove(request.params.id, function (error, item) {
+        model.findByIdAndRemove(request.params.id, function(error, item) {
             if (error) return next(error);
             send(response, select(projection(request), item), "deleted", request.params.id);
         });
@@ -574,22 +579,22 @@ module.exports = function ServiceEndpoint(model, options) {
 
     /**
      * List versions if history is enabled
-     * 
+     *
      * @param request  Http request as object
      * @param response Http response as object
      * @param next Next hook as function
      */
     this.listVersions = function listVersions(request, response, next) {
-        historyService.list(request.params.id).then(function (items) {
+        historyService.list(request.params.id).then(function(items) {
             send(response, select(projection(request), items));
-        }, function (error) {
+        }, function(error) {
             next(error);
         });
     };
 
     /**
      * List versions if history is enabled
-     * 
+     *
      * @param request  Http request as object
      * @param response Http response as object
      * @param next Next hook as function
@@ -601,16 +606,16 @@ module.exports = function ServiceEndpoint(model, options) {
                 message: 'version must be greater than or equal to zero'
             });
         }
-        historyService.findVersion(request.params.id, request.params.version).then(function (item) {
+        historyService.findVersion(request.params.id, request.params.version).then(function(item) {
             send(response, select(projection(request), item));
-        }, function (error) {
+        }, function(error) {
             next(error);
         });
     };
 
     /**
      * Delete a version of the entry
-     * 
+     *
      * @param request  Http request as object
      * @param response Http response as object
      * @param next Next hook as function
@@ -622,16 +627,16 @@ module.exports = function ServiceEndpoint(model, options) {
                 message: 'version must be greater than or equal to zero'
             });
         }
-        historyService.deleteVersion(request.params.id, request.params.version).then(function (item) {
+        historyService.deleteVersion(request.params.id, request.params.version).then(function(item) {
             send(response, item);
-        }, function (error) {
+        }, function(error) {
             next(error);
         });
     };
 
     /**
      * Rollback to a version of the entry
-     * 
+     *
      * @param request  Http request as object
      * @param response Http response as object
      * @param next Next hook as function
@@ -643,9 +648,9 @@ module.exports = function ServiceEndpoint(model, options) {
                 message: 'version must be greater than or equal to zero'
             });
         }
-        historyService.rollback(request.params.id, request.params.version).then(function (item) {
+        historyService.rollback(request.params.id, request.params.version).then(function(item) {
             send(response, item);
-        }, function (error) {
+        }, function(error) {
             next(error);
         });
     };
