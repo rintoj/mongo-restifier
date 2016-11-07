@@ -1,6 +1,6 @@
 # mongo-restifier - CHANGE LOG
 
-## 2.0.3
+## 2.0.4
 
 * Exposing history service through generic service end point.
 
