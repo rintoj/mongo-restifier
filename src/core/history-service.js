@@ -194,6 +194,27 @@ module.exports = function(model, historyModel, options) {
         });
     };
 
+    this.deleteAllVersions = function deleteAllVersions(id) {
+        var self = this;
+        return new Promise(function(resolve, reject) {
+            historyModel.remove({
+                _originalId: id
+            }).exec(function(error, item) {
+                if (error) return reject(error);
+                model.remove({
+                    _id: id
+                }).exec(function(error, mainItem) {
+                    if (error) return reject(error);
+                    self.rollback(id).then(function() {
+                        resolve({
+                            deleted: mainItem.result.n + (item.result.n || 0)
+                        });
+                    }, reject);
+                });
+            });
+        });
+    };
+
     this.list = function list(id) {
         var self = this;
         let history = new Promise(function(resolve, reject) {

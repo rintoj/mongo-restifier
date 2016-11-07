@@ -635,6 +635,21 @@ module.exports = function ServiceEndpoint(model, options) {
     };
 
     /**
+     * Delete an item identified by the given id
+     *
+     * @param request  Http request as object
+     * @param response Http response as object
+     * @param next Next hook as function
+     */
+    this.deleteVersionedItemById = function deleteVersionedItemById(request, response, next) {
+        historyService.deleteAllVersions(request.params.id).then(function(items) {
+            send(response, items);
+        }, function(error) {
+            next(error);
+        });
+    };
+
+    /**
      * Rollback to a version of the entry
      *
      * @param request  Http request as object
@@ -675,10 +690,8 @@ module.exports = function ServiceEndpoint(model, options) {
         /* PUT /:id */
         this.router.put('/:id', this.updateById.bind(this));
 
-        /* DELETE /:id */
-        this.router.delete('/:id', this.deleteById.bind(this));
-
         if (options.historyModel) {
+
             /* GET /:id/version */
             this.router.get('/:id/version', this.listVersions.bind(this));
 
@@ -690,6 +703,13 @@ module.exports = function ServiceEndpoint(model, options) {
 
             /* DELETE /:id/version/:version */
             this.router.post('/:id/rollback/:version', this.rollbackVersion.bind(this));
+
+            /* DELETE /:id */
+            this.router.delete('/:id', this.deleteVersionedItemById.bind(this));
+
+        } else {
+            /* DELETE /:id */
+            this.router.delete('/:id', this.deleteById.bind(this));
         }
 
         // enable method chaining

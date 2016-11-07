@@ -1,5 +1,9 @@
 # mongo-restifier - CHANGE LOG
 
+## 2.0.3
+
+* Bug fix: DELETE /<name>/<id> wasn't deleting the history for collections with history set to true
+
 ## 2.0.2
 
 * Bug fix: timestamps were not properly being generated
