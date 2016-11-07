@@ -718,4 +718,5 @@ module.exports = function ServiceEndpoint(model, options) {
 
     this.send = send;
     this.respond = respond;
+    this.historyService = historyService;
 }

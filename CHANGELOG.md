@@ -2,6 +2,17 @@
 
 ## 2.0.3
 
+* Exposing history service through generic service end point.
+
+```
+    var mongoRestifier = require('mongo-restifier');
+    var instance = mongoRestifier('./config.json');
+    var todoService = instance.models.todo.service;
+    var todoHistoryService = todoService.historyService;
+```
+
+## 2.0.3
+
 * Bug fix: DELETE /<name>/<id> wasn't deleting the history for collections with history set to true
 
 ## 2.0.2
@@ -31,7 +42,7 @@ So change your code from:
 var mongoRestifier = require('./index');
 mongoRestifier('./src/api.conf.json')
 
-.registerModel(mongoRestifier.defineModel('Todo', {
+.register(mongoRestifier.defineModel('Todo', {
 
     // api end point
     url: '/todo',
