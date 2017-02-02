@@ -70,7 +70,7 @@ var mongoRestifier = function mongoRestifier(propertyFile) {
 
     // enable Cross-Orgin-Resource-Sharing - CORS
     if (properties.api.cors.enable === true) {
-        app.use(function (req, res, next) {
+        app.use(function(req, res, next) {
             res.header('Access-Control-Allow-Origin', properties.api.cors.allowed.origin);
             res.header('Access-Control-Allow-Methods', properties.api.cors.allowed.methods);
             res.header('Access-Control-Allow-Headers', properties.api.cors.allowed.headers);
@@ -87,7 +87,7 @@ var mongoRestifier = function mongoRestifier(propertyFile) {
         app.oauth2 = new OAuth2Server(app, properties.api.baseUrl + '/oauth2', properties.api.oauth2);
     }
 
-    var registerModel = function (modelConfig) {
+    var registerModel = function(modelConfig) {
         var model = serviceModel(modelConfig, properties);
         model.register(app, properties.api.baseUrl, this);
         this.models[model.context.name] = model.context;
@@ -96,8 +96,22 @@ var mongoRestifier = function mongoRestifier(propertyFile) {
 
     var startup = function startup() {
 
+        var options = {
+            server: {
+                socketOptions: {
+                    keepAlive: 300000,
+                    connectTimeoutMS: 30000
+                }
+            },
+            replset: {
+                socketOptions: {
+                    keepAlive: 300000,
+                    connectTimeoutMS: 30000
+                }
+            }
+        };
         // connect to the database, throw error and come out if db is not available
-        mongoose.connect(properties.database.url, function (error) {
+        mongoose.connect(properties.database.url, options, function(error) {
             if (error) {
                 logger.error('Connect to mongodb: ' + error);
                 throw 'Connect to mongodb: ' + error;
@@ -105,7 +119,7 @@ var mongoRestifier = function mongoRestifier(propertyFile) {
             logger.info('Connect to mongodb: successful [' + properties.database.url + ']');
         });
 
-        app.use(function (req, res, next) {
+        app.use(function(req, res, next) {
             // return '404' error if a requested url is not found
             res.status(404);
             res.json({
@@ -117,7 +131,7 @@ var mongoRestifier = function mongoRestifier(propertyFile) {
         // return '500' error any other error that couldn't be sloved to this point
         // development error handler and this will print stacktrace
         if (properties.api.environment === 'development') {
-            app.use(function (error, req, res, next) {
+            app.use(function(error, req, res, next) {
                 res.status(error.status || 500);
                 res.json({
                     message: error.message,
@@ -128,7 +142,7 @@ var mongoRestifier = function mongoRestifier(propertyFile) {
 
         // production error handler and this will not leak stack-traces to user
         if (properties.api.environment === 'production') {
-            app.use(function (error, req, res, next) {
+            app.use(function(error, req, res, next) {
                 res.status(error.status || 500);
                 res.json({
                     message: error.message
@@ -140,7 +154,7 @@ var mongoRestifier = function mongoRestifier(propertyFile) {
         app.set('port', parseInt(properties.api.port));
 
         // start the application
-        server = app.listen(app.get('port'), function () {
+        server = app.listen(app.get('port'), function() {
             logger.info('Express server listening on port ' + server.address().port);
         });
 

@@ -4,6 +4,7 @@ coverage
 demo
 documentation
 test
+node_modules
 .gitignore
 CHANGELOG.md
 gulpfile.js

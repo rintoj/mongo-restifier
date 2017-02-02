@@ -1,5 +1,9 @@
 # mongo-restifier - CHANGE LOG
 
+## 2.1.0
+
+* Locked down versions of all dependencies
+
 ## 2.0.4
 
 * Exposing history service through generic service end point.
