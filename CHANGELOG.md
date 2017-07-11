@@ -1,5 +1,16 @@
 # mongo-restifier - CHANGE LOG
 
+## 2.2.0
+
+* Feature: Add property transformation function
+
+```js
+mongoRestifier('./api.conf.json', function (properties) {
+  properties.api.port = process.env.port || 3000
+  return properties
+})
+```
+
 ## 2.1.2
 
 * Bug Fix: Replace `let` with `var` to support older versions of node

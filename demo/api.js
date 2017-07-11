@@ -28,10 +28,13 @@
 var mongoRestifier = require('../src/index');
 
 // configure your api
-mongoRestifier('./demo/api.conf.json')
+mongoRestifier('./demo/api.conf.json', function(properties) {
+    properties.api.port = 3000
+    return properties
+  })
 
-// define "Todo" model
-.registerModel({
+  // define "Todo" model
+  .registerModel({
 
     // name (mandatory)
     name: 'Todo',
@@ -42,22 +45,22 @@ mongoRestifier('./demo/api.conf.json')
     // schema definition - supports everything that mongoose schema supports
     schema: {
 
-        index: {
-            type: String,
-            required: true,
-            idField: true
-        },
-        title: {
-            type: String,
-            required: true
-        },
-        description: String,
-        status: {
-            type: String,
-            required: true,
-            default: 'new',
-            enum: ['new', 'progress', 'done', 'hold']
-        }
+      index: {
+        type: String,
+        required: true,
+        idField: true
+      },
+      title: {
+        type: String,
+        required: true
+      },
+      description: String,
+      status: {
+        type: String,
+        required: true,
+        default: 'new',
+        enum: ['new', 'progress', 'done', 'hold']
+      }
     },
 
     // userSpace: {
@@ -66,8 +69,7 @@ mongoRestifier('./demo/api.conf.json')
     timestamps: true,
     history: true
 
-})
+  })
 
-
-// and finally startup your server
-.startup();
+  // and finally startup your server
+  .startup();

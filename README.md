@@ -102,7 +102,6 @@ The following example serves the `Todo` model on a RESTful API.
 
 # REST API
 
-
 ## Query
 ```
 GET /todo HTTP/1.1
@@ -173,7 +172,6 @@ POST /todo HTTP/1.1
 
 { "index": { "$exists": true }}
 ```
-
 
 Use `POST` to perform advanced queries. Query parameters remain same as of `GET`. Additionally the `BODY` of the request we can contain:
 
@@ -389,7 +387,6 @@ Rollback will delete all greater versions. Eg: if you give rollback to version `
 
 Any other additional option supported by [mongoose schema](http://mongoosejs.com/docs/guide.html)
 
-
 # OAuth2 API
 
 This module contains **[OAuth2](http://oauth.net/2/)** services configured out-of-box for `password` and `refresh_token` grant types. In this section we will discuss how to use them.
@@ -539,6 +536,17 @@ All values except `database.url` are predefined. Specify any value in `app.conf.
 | api.environment           | `development` or `production`
 | logger.level              | Valid values are `OFF`, `FATAL`, `ERROR`, `WARN`, `LOG`, `INFO`, `DEBUG`, `TRACE` and `ALL`
 | logger.log4js             | [Log4j configuration](https://www.npmjs.com/package/log4js#configuration)
+
+## Update properties at startup
+
+You can optionally pass a function as second argument to `mongoRestifier` function inorder to modify the properties at run time.
+
+```js
+mongoRestifier('./api.conf.json', function (properties) {
+  properties.api.port = process.env.port || 3000
+  return properties
+})
+```
 
 ## Configuration File
 
