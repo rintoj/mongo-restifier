@@ -32,24 +32,24 @@ var preConfigured = false;
 
 var createContext = function(model) {
 
-    var context = {};
-    var fields = Object.keys(model || {});
+  var context = {};
+  var fields = Object.keys(model || {});
 
-    if (model.timestamps === true) {
-        model.schema.createdAt = String;
-        model.schema.updatedAt = String;
-    }
+  if (model.timestamps === true) {
+    model.schema.createdAt = String;
+    model.schema.updatedAt = String;
+  }
 
-    // create readonly context
-    fields.forEach(function(name) {
-        Object.defineProperty(context, name, {
-            get: function() {
-                return model[name] && (typeof model[name] === 'function' ? model[name].call(context) : model[name]);
-            }
-        });
+  // create readonly context
+  fields.forEach(function(name) {
+    Object.defineProperty(context, name, {
+      get: function() {
+        return model[name] && (typeof model[name] === 'function' ? model[name].call(context) : model[name]);
+      }
     });
+  });
 
-    return context;
+  return context;
 };
 
 /**
@@ -59,177 +59,177 @@ var createContext = function(model) {
  */
 var ServiceModel = function ServiceModel(context, properties) {
 
-    // basic validation
-    if (!context.name || context.name === '') {
-        throw '"name" is mandatory!';
-    }
-    if (!(/^[a-zA-Z_]+$/.test(context.name))) {
-        throw '"' + context.name + '" must contain only alphabets and "_"';
-    }
-    if (!context.schema || context.schema === '') {
-        throw '"schema" is mandatory!';
-    }
+  // basic validation
+  if (!context.name || context.name === '') {
+    throw '"name" is mandatory!';
+  }
+  if (!(/^[a-zA-Z_]+$/.test(context.name))) {
+    throw '"' + context.name + '" must contain only alphabets and "_"';
+  }
+  if (!context.schema || context.schema === '') {
+    throw '"schema" is mandatory!';
+  }
 
-    // setting up user specific collection
-    var userField;
-    if (context.userSpace === true || typeof context.userSpace === 'object') {
-        if (properties && !(properties.api && properties.api.oauth2 && properties.api.oauth2.enable === true)) {
-            throw '"userSpace" cannot be set for "' + context.name + '" because oauth is disabled';
-        }
-        userField = "_user";
-        if (typeof context.userSpace === 'object' && context.userSpace.field) {
-            userField = context.userSpace.field;
-        }
-        context.schema[userField] = {
-            type: String,
-            required: true
-        };
+  // setting up user specific collection
+  var userField;
+  if (context.userSpace === true || typeof context.userSpace === 'object') {
+    if (properties && !(properties.api && properties.api.oauth2 && properties.api.oauth2.enable === true)) {
+      throw '"userSpace" cannot be set for "' + context.name + '" because oauth is disabled';
     }
-
-    // create projection
-    context.projection = Object.keys(context.schema).filter(function(item) {
-        return item.indexOf("_") === 0;
-    }).concat(["__v"]).map(function(item) {
-        return "-" + item;
-    }).join(",");
-
-    // Get and validate id field
-    var idField;
-    Object.keys(context.schema).forEach(function(item) {
-        if (typeof context.schema[item] === 'object' && context.schema[item].idField) {
-            if (idField) {
-                throw `Schema Error: more than one id field found in '${context.name}': ` + idField.join(",");
-            }
-            idField = context.schema[item]; // clone
-            idField.name = item;
-        }
-    });
-
-    // create _id as the same type of idField
-    if (idField) {
-        context.schema._id = {
-            type: idField.type
-        }
+    userField = "_user";
+    if (typeof context.userSpace === 'object' && context.userSpace.field) {
+      userField = context.userSpace.field;
     }
+    context.schema[userField] = {
+      type: String,
+      required: true
+    };
+  }
+
+  // create projection
+  context.projection = Object.keys(context.schema).filter(function(item) {
+    return item.indexOf("_") === 0;
+  }).concat(["__v"]).map(function(item) {
+    return "-" + item;
+  }).join(",");
+
+  // Get and validate id field
+  var idField;
+  Object.keys(context.schema).forEach(function(item) {
+    if (typeof context.schema[item] === 'object' && context.schema[item].idField) {
+      if (idField) {
+        throw 'Schema Error: more than one id field found in "' + context.name + '": ' + idField.join(",");
+      }
+      idField = context.schema[item]; // clone
+      idField.name = item;
+    }
+  });
+
+  // create _id as the same type of idField
+  if (idField) {
+    context.schema._id = {
+      type: idField.type
+    }
+  }
+
+  // create schema
+  context.modelSchema = new mongoose.Schema(context.schema, {
+    strict: true
+  });
+
+  // create model
+  context.model = mongoose.model(context.name, context.modelSchema, context.name.toLowerCase());
+  if (context.history === true) {
 
     // create schema
-    context.modelSchema = new mongoose.Schema(context.schema, {
-        strict: true
+    context.historyModelSchema = new mongoose.Schema(Object.assign({
+      _originalId: idField.type
+    }, context.schema), {
+      strict: true
     });
+    context.historyModel = mongoose.model(context.name.toLowerCase() + '_history', context.historyModelSchema, context.name.toLowerCase() + '_history');
+  }
 
-    // create model
-    context.model = mongoose.model(context.name, context.modelSchema, context.name.toLowerCase());
-    if (context.history === true) {
+  // setup auto-increment feature
+  if (!autoIncrementRegistered) {
+    autoIncrement.initialize(mongoose.connection);
+    autoIncrementRegistered = true;
+  }
 
-        // create schema
-        context.historyModelSchema = new mongoose.Schema(Object.assign({
-            _originalId: idField.type
-        }, context.schema), {
-            strict: true
+  // validate auto increment fields
+  var autoIncrementFields = _.filter(_.keys(context.schema), function(field) {
+    if (context.schema[field].type !== Number && context.schema[field].autoIncrement) {
+      throw 'Schema Error: ' + context.name + '.' + field + ' is not a number field. autoIncrement = true is an invalid configuration!'
+    }
+    if (context.schema[field].autoIncrement) {
+      context.model.schema.plugin(autoIncrement.plugin, {
+        model: context.name,
+        field: field,
+        startAt: Math.max(context.schema[field].startAt || 0, context.schema[field].min || 1),
+        incrementBy: context.schema[field].incrementBy || 1
+      });
+    }
+  });
+
+  // map custom id field
+  if (idField) {
+    var mapIdField = function(next) {
+      if (this[idField.name] !== undefined) {
+        this._id = this[idField.name];
+      }
+      next();
+    };
+
+    context.modelSchema.pre("update", mapIdField);
+    context.modelSchema.pre("save", mapIdField);
+
+    context.modelSchema.set("toJSON", {
+      transform: function(doc, ret, options) {
+        // remove the _id of every document before returning the result
+        ret[idField.name] = ret._id;
+        delete ret._id;
+      }
+    });
+  }
+
+  // create generic service for the given schema and model
+  context.service = new ServiceEndpoint(context.model, {
+    userField: userField,
+    idField: idField,
+    projection: context.projection,
+    historyModel: context.historyModel
+  });
+
+  // if setup required do so here
+  if (typeof context.configure === 'function') {
+    // setup done!
+  }
+  // bind all the routes
+  context.service.bind();
+
+  // defined current context;
+  this.context = context;
+
+  /**
+   * Register this model as a service
+   *
+   * @param app Express application instance
+   * @param baseUrl The base url for the api
+   */
+  this.register = function register(app, baseUrl, noErrorHandler) {
+
+    // register the router
+    app.use((baseUrl ? baseUrl : "") + (context.url ? context.url : '/' + context.name.toLowerCase()), context.service.router);
+
+    if (!preConfigured && noErrorHandler !== true) {
+
+      // register an error handler for generic-model if not registered already for this app
+      app.use(function(error, request, response, next) {
+
+        if (error && error.errors) {
+          // normalize errors to readable format
+          _.keys(error.errors).map(function(key) {
+            error.errors[key] = error.errors[key].message.replace('`', '\'')
+          });
+
+          // send status 422 - Unprocessable Entity (validation error)
+          response.status(error.status || 422);
+          return response.json({
+            message: error.message,
+            error: error.errors
+          });
+        }
+
+        // send status 500 - internal server error
+        response.status(error.status || 500);
+        response.json({
+          message: error.message,
+          error: error
         });
-        context.historyModel = mongoose.model(context.name.toLowerCase() + '_history', context.historyModelSchema, context.name.toLowerCase() + '_history');
+      });
+      preConfigured = true;
     }
-
-    // setup auto-increment feature
-    if (!autoIncrementRegistered) {
-        autoIncrement.initialize(mongoose.connection);
-        autoIncrementRegistered = true;
-    }
-
-    // validate auto increment fields
-    var autoIncrementFields = _.filter(_.keys(context.schema), function(field) {
-        if (context.schema[field].type !== Number && context.schema[field].autoIncrement) {
-            throw `Schema Error: ${context.name}.${field} is not a number field. autoIncrement = true is an invalid configuration!`
-        }
-        if (context.schema[field].autoIncrement) {
-            context.model.schema.plugin(autoIncrement.plugin, {
-                model: context.name,
-                field: field,
-                startAt: Math.max(context.schema[field].startAt || 0, context.schema[field].min || 1),
-                incrementBy: context.schema[field].incrementBy || 1
-            });
-        }
-    });
-
-    // map custom id field
-    if (idField) {
-        var mapIdField = function(next) {
-            if (this[idField.name] !== undefined) {
-                this._id = this[idField.name];
-            }
-            next();
-        };
-
-        context.modelSchema.pre("update", mapIdField);
-        context.modelSchema.pre("save", mapIdField);
-
-        context.modelSchema.set("toJSON", {
-            transform: function(doc, ret, options) {
-                // remove the _id of every document before returning the result
-                ret[idField.name] = ret._id;
-                delete ret._id;
-            }
-        });
-    }
-
-    // create generic service for the given schema and model
-    context.service = new ServiceEndpoint(context.model, {
-        userField: userField,
-        idField: idField,
-        projection: context.projection,
-        historyModel: context.historyModel
-    });
-
-    // if setup required do so here
-    if (typeof context.configure === 'function') {
-        // setup done!
-    }
-    // bind all the routes
-    context.service.bind();
-
-    // defined current context;
-    this.context = context;
-
-    /**
-     * Register this model as a service
-     *
-     * @param app Express application instance
-     * @param baseUrl The base url for the api
-     */
-    this.register = function register(app, baseUrl, noErrorHandler) {
-
-        // register the router
-        app.use((baseUrl ? baseUrl : "") + (context.url ? context.url : '/' + context.name.toLowerCase()), context.service.router);
-
-        if (!preConfigured && noErrorHandler !== true) {
-
-            // register an error handler for generic-model if not registered already for this app
-            app.use(function(error, request, response, next) {
-
-                if (error && error.errors) {
-                    // normalize errors to readable format
-                    _.keys(error.errors).map(function(key) {
-                        error.errors[key] = error.errors[key].message.replace('`', '\'')
-                    });
-
-                    // send status 422 - Unprocessable Entity (validation error)
-                    response.status(error.status || 422);
-                    return response.json({
-                        message: error.message,
-                        error: error.errors
-                    });
-                }
-
-                // send status 500 - internal server error
-                response.status(error.status || 500);
-                response.json({
-                    message: error.message,
-                    error: error
-                });
-            });
-            preConfigured = true;
-        }
-    }
+  }
 };
 
 /**
@@ -277,5 +277,5 @@ var ServiceModel = function ServiceModel(context, properties) {
  * @returns (description)
  */
 module.exports = function defineModel(model, properties) {
-    return new ServiceModel(createContext(model), properties);
+  return new ServiceModel(createContext(model), properties);
 };
