@@ -1,5 +1,9 @@
 # mongo-restifier - CHANGE LOG
 
+## 2.1.2
+
+* Bug Fix: Replace `let` with `var` to support older versions of node
+
 ## 2.1.1
 
 * Bug Fix: Replace back quote with single quote to support older versions of node
