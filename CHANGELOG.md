@@ -1,5 +1,9 @@
 # mongo-restifier - CHANGE LOG
 
+## 2.3.1
+
+* Upgrade: Express package
+
 ## 2.3.0
 * Feature: Add callback function to startup
 
