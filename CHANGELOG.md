@@ -1,5 +1,9 @@
 # mongo-restifier - CHANGE LOG
 
+## 2.3.2
+
+* Fix: Can't use string pipes as parseInt is used on port.
+
 ## 2.3.1
 
 * Upgrade: Express package

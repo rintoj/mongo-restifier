@@ -155,7 +155,7 @@ var mongoRestifier = function mongoRestifier(propertyFile, transformer) {
     }
 
     // set application port
-    app.set('port', parseInt(properties.api.port));
+    app.set('port', properties.api.port);
 
     // start the application
     server = app.listen(app.get('port'), function() {
