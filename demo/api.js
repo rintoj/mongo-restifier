@@ -72,4 +72,13 @@ mongoRestifier('./demo/api.conf.json', function(properties) {
   })
 
   // and finally startup your server
-  .startup();
+  .startup(function(app) {
+    // app.use(function(req, res, next) {
+    //   // return '404' error if a requested url is not found
+    //   res.status(500);
+    //   res.json({
+    //     status: 111122,
+    //     message: 'Requested URL is invalid!'
+    //   });
+    // })
+  });

@@ -548,6 +548,21 @@ mongoRestifier('./api.conf.json', function (properties) {
 })
 ```
 
+## Do more with `app`
+
+Optionally you can pass on a callback function to `startup` function in order to use `app` and `properties` do things on your own.
+
+```js
+mongoRestifier(...)
+
+  .registerModel(...)
+  ...
+
+  .startup(function (app, properties, mongoose) {
+    // your code
+  })
+```
+
 ## Configuration File
 
 You may setup configuration in either of the two formats:

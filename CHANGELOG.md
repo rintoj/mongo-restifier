@@ -1,7 +1,20 @@
 # mongo-restifier - CHANGE LOG
 
-## 2.2.0
+## 2.3.0
+* Feature: Add callback function to startup
 
+```js
+mongoRestifier(...)
+
+  .registerModel(...)
+  ...
+
+  .startup(function (app, properties, mongoose) {
+    // your code
+  })
+```
+
+## 2.2.0
 * Feature: Add property transformation function
 
 ```js

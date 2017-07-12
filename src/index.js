@@ -95,7 +95,7 @@ var mongoRestifier = function mongoRestifier(propertyFile, transformer) {
     return this;
   };
 
-  var startup = function startup() {
+  var startup = function startup(configure) {
 
     var options = {
       server: {
@@ -111,6 +111,7 @@ var mongoRestifier = function mongoRestifier(propertyFile, transformer) {
         }
       }
     };
+
     // connect to the database, throw error and come out if db is not available
     mongoose.connect(properties.database.url, options, function(error) {
       if (error) {
@@ -119,6 +120,8 @@ var mongoRestifier = function mongoRestifier(propertyFile, transformer) {
       }
       logger.info('Connect to mongodb: successful [' + properties.database.url + ']');
     });
+
+    if (typeof configure === 'function') configure(app, properties, mongoose)
 
     app.use(function(req, res, next) {
       // return '404' error if a requested url is not found
