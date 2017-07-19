@@ -1,8 +1,10 @@
 # mongo-restifier - CHANGE LOG
 
-## 2.3.9
+## 2.4.0
 
-* Fix: bypass auth for OPTIONS /api/**
+* Feature: Enable configuration based static content serve
+* Fix: Bypass auth for `OPTIONS /api/**`
+* Breaking Change: `.properties` (ini format) configuration is no longer supported.
 
 ## 2.3.8
 * Bug Fix: user is not getting attached to records
