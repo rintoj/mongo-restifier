@@ -1,5 +1,9 @@
 # mongo-restifier - CHANGE LOG
 
+## 2.4.1
+
+* Bug fix: static serve conflicting with API authentication
+
 ## 2.4.0
 
 * Feature: Enable configuration based static content serve
