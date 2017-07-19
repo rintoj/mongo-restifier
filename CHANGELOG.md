@@ -1,5 +1,14 @@
 # mongo-restifier - CHANGE LOG
 
+## 2.3.3
+
+* Feature: Add `picture` field to user model
+* Feature: Add `ignore` field to user space
+
+```js
+{ userSpace: {field: "_user", ignore: ["role1"]} }
+```
+
 ## 2.3.2
 
 * Fix: Can't use string pipes as parseInt is used on port.

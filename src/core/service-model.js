@@ -72,6 +72,7 @@ var ServiceModel = function ServiceModel(context, properties) {
 
   // setting up user specific collection
   var userField;
+  var userIgnore;
   if (context.userSpace === true || typeof context.userSpace === 'object') {
     if (properties && !(properties.api && properties.api.oauth2 && properties.api.oauth2.enable === true)) {
       throw '"userSpace" cannot be set for "' + context.name + '" because oauth is disabled';
@@ -79,6 +80,7 @@ var ServiceModel = function ServiceModel(context, properties) {
     userField = "_user";
     if (typeof context.userSpace === 'object' && context.userSpace.field) {
       userField = context.userSpace.field;
+      userIgnore = context.userSpace.ignore;
     }
     context.schema[userField] = {
       type: String,
@@ -175,6 +177,7 @@ var ServiceModel = function ServiceModel(context, properties) {
   // create generic service for the given schema and model
   context.service = new ServiceEndpoint(context.model, {
     userField: userField,
+    userIgnore: userIgnore,
     idField: idField,
     projection: context.projection,
     historyModel: context.historyModel
