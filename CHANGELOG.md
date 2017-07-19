@@ -1,5 +1,9 @@
 # mongo-restifier - CHANGE LOG
 
+## 2.3.4
+
+* Feature: Implement `userField.ignore` to `save` function as well
+
 ## 2.3.3
 
 * Feature: Add `picture` field to user model
