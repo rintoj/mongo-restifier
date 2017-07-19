@@ -536,6 +536,8 @@ All values except `database.url` are predefined. Specify any value in `app.conf.
 | api.oauth2.default.client | To create a default client at startup, provide client attributes: *name*, *description*, *id*, *secret*, *grantTypes* - valid values are `password` and `refresh_token`
 | api.oauth2.rules          | Array of tab separated values in the order:  *AuthType* - valid values are `None`, `Basic` and `Bearer`, *Roles* - coma separated values without space. eg: `ADMIN,USER`, *Methods* - coma separated values without space. eg: `GET,POST,PUT`,  *Url* - eg: `/api/user/**/*`
 | api.environment           | `development` or `production`
+| static.root               | Provide a folder from the root of the project to be served as static content. By default this is set to `public`
+| static.fallback           | The given file will be served if a static content is not found. Default value is `index.html`. Set to `false` to disable this feature.
 | logger.level              | Valid values are `OFF`, `FATAL`, `ERROR`, `WARN`, `LOG`, `INFO`, `DEBUG`, `TRACE` and `ALL`
 | logger.log4js             | [Log4j configuration](https://www.npmjs.com/package/log4js#configuration)
 
@@ -567,129 +569,68 @@ mongoRestifier(...)
 
 ## Configuration File
 
-You may setup configuration in either of the two formats:
-
-* `json` - The file must have an extension `.json`
-* `ini` - The file must have an extension `.properties`
-
-### JSON Format:
-
 ```json
 {
-    "database": {
-        "url": "mongodb://localhost/{dbname}"
+  "database": {
+    "url": "mongodb://localhost/{{DBNAME}}"
+  },
+  "api": {
+    "port": 5858,
+    "baseUrl": "/api",
+    "environment": "production",
+    "cors": {
+      "enable": true,
+      "allowed": {
+        "origin": "*",
+        "methods": "GET,PUT,POST,DELETE,OPTIONS",
+        "headers": "Origin, X-Requested-With, Content-Type, Accept, Authorization, Cache-Control"
+      }
     },
-    "api": {
-        "port": 5858,
-        "baseUrl": "/api",
-        "environment": "development",
-        "cors": {
-            "enable": true,
-            "allowed": {
-                "origin": "*",
-                "methods": "GET,PUT,POST,DELETE,OPTIONS",
-                "headers": "Origin, X-Requested-With, Content-Type, Accept, Authorization, Cache-Control"
-            }
+    "oauth2": {
+      "enable": true,
+      "default": {
+        "user": {
+          "name": "System Admin",
+          "userId": "admin",
+          "password": "admin",
+          "roles": [
+            "admin"
+          ]
         },
-        "oauth2": {
-            "enable": true,
-            "default": {
-                "user": {
-                    "name": "Superuser",
-                    "userId": "superuser@system.com",
-                    "password": "c3lzYWRtaW4=",
-                    "roles": [
-                        "admin"
-                    ]
-                },
-                "client": {
-                    "name": "Master",
-                    "description": "This is a default client setup by the system",
-                    "id": "7d65d9b6-5cae-4db7-b19d-56cbdd25eaab",
-                    "secret": "a0c7b741-b18b-47eb-b6df-48a0bd3cde2e",
-                    "grantTypes": [
-                        "password",
-                        "refresh_token"
-                    ]
-                }
-            },
-            "rules": [
-                "None        *               OPTIONS             /api/oauth2/register",
-                "None        *               OPTIONS             /api/oauth2/client",
-                "None        *               OPTIONS             /api/oauth2/user",
-                "Basic       *               GET                 /api/oauth2/user",
-                "Bearer      ADMIN           *                   /api/oauth2/user",
-                "Bearer      ADMIN           *                   /api/oauth2/client"
-            ]
+        "client": {
+          "name": "Master",
+          "description": "Master Client",
+          "id": "7d65d9b6-5cae-4db7-b19d-56cbdd25eaab",
+          "secret": "a0c7b741-b18b-47eb-b6df-48a0bd3cde2e",
+          "grantTypes": [
+            "password",
+            "refresh_token"
+          ]
         }
-    },
-    "logger": {
-        "level": "DEBUG",
-        "log4j": {
-            "appenders": [
-                {
-                    "type": "console",
-                    "makers": {}
-                }
-            ]
-        }
+      },
+      "rules": [
+        "None        *               OPTIONS             /api/oauth2/register",
+        "None        *               OPTIONS             /api/oauth2/client",
+        "None        *               OPTIONS             /api/oauth2/user",
+        "Basic       *               GET                 /api/oauth2/user",
+        "Bearer      ADMIN           *                   /api/oauth2/user",
+        "Bearer      ADMIN           *                   /api/oauth2/client"
+      ]
     }
+  },
+  "static": {
+    "root": "public",
+    "fallback": "index.html"
+  },
+  "logger": {
+    "level": "INFO",
+    "log4j": {
+      "appenders": [{
+        "type": "console"
+      }]
+    }
+  }
 }
-```
-
-### INI Format:
-
-```ini
-
-[database]
-url = mongodb://localhost/{dbname}
-
-[api]
-port = 5858
-baseUrl = /api
-environment = development
-
-[api.cors]
-enable = true
-allowed.origin = *
-allowed.methods = GET,PUT,POST,DELETE,OPTIONS
-allowed.headers = Origin, X-Requested-With, Content-Type, Accept, Authorization, Cache-Control
-
-[api.oauth2]
-enable = true
-
-[api.oauth2.default.user]
-name = Superuser
-userId = superuser@system.com
-password = c3lzYWRtaW4=
-roles.0 = admin
-
-[api.oauth2.default.client]
-name = Master
-id = 7d65d9b6-5cae-4db7-b19d-56cbdd25eaab
-secret = a0c7b741-b18b-47eb-b6df-48a0bd3cde2e
-grantTypes.0 = password
-grantTypes.1 = refresh_token
-
-[api.oauth2.rules]
-# ----- - ----------- --------------- ------------------- ------------------------
-# index - AuthType    Roles           Methods             Url Pattern
-# ----- - ----------- --------------- ------------------- ------------------------
-      0 = None        *               OPTIONS             /api/oauth2/register
-      1 = None        *               OPTIONS             /api/oauth2/client
-      2 = None        *               OPTIONS             /api/oauth2/user
-      3 = Basic       *               GET                 /api/oauth2/user
-      4 = Bearer      ADMIN           *                   /api/oauth2/user
-      5 = Bearer      ADMIN           *                   /api/oauth2/client
-# ----- - ----------- --------------- ------------------- ------------------------
-
-[logger]
-level = DEBUG
-log4j.appenders.0.type = console
-
-# For logging into a file comment the line above and uncomment two lines after this line
-# log4j.appenders.0.type = file
-# log4j.appenders.0.filename = logs/api.log
 ```
 
 ABOUT

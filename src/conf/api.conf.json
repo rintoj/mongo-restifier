@@ -1,8 +1,8 @@
 {
   "api": {
-    "port": 3000,
+    "port": 5858,
     "baseUrl": "/api",
-    "environment": "development",
+    "environment": "production",
     "cors": {
       "enable": true,
       "allowed": {
@@ -15,16 +15,16 @@
       "enable": true,
       "default": {
         "user": {
-          "name": "Superuser",
-          "userId": "superuser@system.com",
-          "password": "c3lzYWRtaW4=",
+          "name": "Admin",
+          "userId": "admin",
+          "password": "admin",
           "roles": [
             "admin"
           ]
         },
         "client": {
           "name": "Master",
-          "description": "This is a default client setup by the system",
+          "description": "Master client",
           "id": "7d65d9b6-5cae-4db7-b19d-56cbdd25eaab",
           "secret": "a0c7b741-b18b-47eb-b6df-48a0bd3cde2e",
           "grantTypes": [
@@ -35,18 +35,21 @@
       },
       "rules": [
         "None        *               OPTIONS             /api/**",
-        "Basic       *               GET                 /api/oauth2/user",
+        "Basic       *               GET                 /api/oauth2/user/*",
         "Bearer      ADMIN           *                   /api/oauth2/user",
         "Bearer      ADMIN           *                   /api/oauth2/client"
       ]
     }
   },
+  "static": {
+    "root": "public",
+    "fallback": "index.html"
+  },
   "logger": {
-    "level": "DEBUG",
+    "level": "INFO",
     "log4j": {
       "appenders": [{
-        "type": "console",
-        "makers": {}
+        "type": "console"
       }]
     }
   }

@@ -1,25 +1,28 @@
 {
-    "database": {
-        "url": "mongodb://localhost/test"
-    },
-    "api": {
-        "port": 3001,
-        "oauth2": {
-            "enable": true,
-            "rules": [
-                "None        *               OPTIONS             /api/oauth2/register",
-                "None        *               OPTIONS             /api/oauth2/client",
-                "None        *               OPTIONS             /api/oauth2/user",
-                "Basic       *               GET                 /api/oauth2/user/*",
-                "Bearer      ADMIN           *                   /api/oauth2/user",
-                "Bearer      ADMIN           *                   /api/oauth2/client",
-                "None        *               OPTIONS             /api/**",
-                "None        *               *                   /api/task",
-                "None        *               *                   /api/task/**"
-            ]
-        }
-    },
-    "logger": {
-        "level": "OFF"
+  "database": {
+    "url": "mongodb://localhost/test"
+  },
+  "api": {
+    "port": 3001,
+    "oauth2": {
+      "enable": true,
+      "rules": [
+        "None        *               OPTIONS             /api/**",
+        "None        *               OPTIONS             /api/oauth2/register",
+        "None        *               OPTIONS             /api/oauth2/client",
+        "None        *               OPTIONS             /api/oauth2/user",
+        "Basic       *               GET                 /api/oauth2/user/*",
+        "Bearer      ADMIN           *                   /api/oauth2/user",
+        "Bearer      ADMIN           *                   /api/oauth2/client",
+        "None        *               *                   /api/task",
+        "None        *               *                   /api/task/**"
+      ]
     }
+  },
+  "static": {
+    "fallback": false
+  },
+  "logger": {
+    "level": "OFF"
+  }
 }

@@ -1,29 +1,29 @@
 module.exports = {
-    name: 'Todo',
-    url: '/todo',
-    schema: {
-        index: {
-            type: Number,
-            required: true,
-            min: 1,
-            autoIncrement: true,
-            idField: true
-        },
-        title: {
-            type: String,
-            required: true
-        },
-        description: String,
-        status: {
-            type: String,
-            required: true,
-            default: 'new',
-            enum: ['new', 'progress', 'done', 'hold']
-        }
+  name: 'Todo',
+  url: '/todo',
+  schema: {
+    index: {
+      type: Number,
+      required: true,
+      min: 1,
+      autoIncrement: true,
+      idField: true
     },
+    title: {
+      type: String,
+      required: true
+    },
+    description: String,
+    status: {
+      type: String,
+      required: true,
+      default: 'new',
+      enum: ['new', 'progress', 'done', 'hold']
+    }
+  },
 
-    userSpace: {
-        field: "_user"
-    },
-    timestamps: true
+  userSpace: {
+    field: "_user"
+  },
+  timestamps: true
 };

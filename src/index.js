@@ -31,6 +31,7 @@ var log4js = require('log4js');
 var logger = require('./util/logger');
 var express = require('express');
 var mongoose = require('mongoose');
+var fallback = require('express-history-api-fallback')
 var bodyParser = require('body-parser');
 var serviceModel = require('./core/service-model');
 var cookieParser = require('cookie-parser');
@@ -41,7 +42,7 @@ var propertiesReader = require('./util/propertiesReader');
 
 var mongoRestifier = function mongoRestifier(propertyFile, transformer) {
 
-  var properties = propertiesReader(__dirname + '/conf/api.conf.properties');
+  var properties = propertiesReader(__dirname + '/conf/api.conf.json');
   if (propertyFile) properties.load(propertyFile);
   if (typeof transformer === 'function') properties = transformer(properties)
 
@@ -80,6 +81,19 @@ var mongoRestifier = function mongoRestifier(propertyFile, transformer) {
     logger.info('CORS is enabled for', [properties.api.cors.allowed.origin,
       properties.api.cors.allowed.methods, properties.api.cors.allowed.headers
     ].join(' / '));
+  }
+
+  // enable static content
+  if (properties.static != undefined && properties.static.root != undefined) {
+    const root = process.cwd() + '/' + properties.static.root
+    app.use(require('serve-static')(root));
+
+    // fallback to index.html to support react router
+    if (properties.static.fallback != false) {
+      app.use(fallback(properties.static.fallback, {
+        root
+      }))
+    }
   }
 
   // enable authentication module
