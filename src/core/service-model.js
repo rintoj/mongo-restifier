@@ -116,7 +116,7 @@ var ServiceModel = function ServiceModel(context, properties) {
 
   // create schema
   context.modelSchema = new mongoose.Schema(context.schema, {
-    strict: true
+    strict: context.strict == undefined ? true : context.strict
   });
 
   // create model
@@ -127,7 +127,7 @@ var ServiceModel = function ServiceModel(context, properties) {
     context.historyModelSchema = new mongoose.Schema(Object.assign({
       _originalId: idField.type
     }, context.schema), {
-      strict: true
+      strict: context.strict == undefined ? true : context.strict
     });
     context.historyModel = mongoose.model(context.name.toLowerCase() + '_history', context.historyModelSchema, context.name.toLowerCase() + '_history');
   }
@@ -270,9 +270,10 @@ var ServiceModel = function ServiceModel(context, properties) {
  *      }
  *    },
  *    permissions: Object,
- *    configure: Function,
- *    url: String,
- *    userSpace: Boolean
+ *    configure: Function,            // a function to configure the model further
+ *    url: String,                    // override url. By default it is '/${name}'
+ *    userSpace: Boolean,             // every record much be attached to logged in user
+ *    strict: Boolean                 // allow to create undefined properties
  * }
  *
  * All of these can be a value with the specified type or a function that return the same type.

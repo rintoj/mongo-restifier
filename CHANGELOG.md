@@ -1,5 +1,10 @@
 # mongo-restifier - CHANGE LOG
 
+## 2.3.5
+
+* Feature: Add option to make a schema not strict.
+* Feature: Set `strict: false` on user schema
+
 ## 2.3.4
 
 * Feature: Implement `userField.ignore` to `save` function as well

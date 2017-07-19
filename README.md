@@ -307,6 +307,7 @@ Rollback will delete all greater versions. Eg: if you give rollback to version `
 | history          | Behavior   | If set to `true` history of records will be kept in a separate collection with name `<name>_history`. `/version` apis can be used to manage versions.
 | userSpace        | Behavior   | Keep track of the user for each record and restrict access to the corresponding users. `api.oauth2.enable` must be `true` to use this option, otherwise the startup will fail with an error message. Usage: `userSpace: true` or `userSpace: {field: "_user", ignore: ["role1"]}`
 | timestamps       | Behavior   | If set to `true`, two fields `createdAt` and `updatedAt` are added to the schema and maintained by the api.
+| strict           | Behavior   | Set `false` to add any arbitral field. By default this is set to `true`.
 | configure        | Function   | Use this function to register [middleware](http://mongoosejs.com/docs/middleware.html) or [plugins](http://mongoosejs.com/docs/plugins.html). Context of this function will contain the second parameter of 'defineModel' (this object itself) *this.schema* - Schema defined by `schema, *this.model* - reference to [mongoose.Model](http://mongoosejs.com/docs/models.html), *this.modelSchema* - reference to [mongoose.Schema](http://mongoosejs.com/docs/guide.html)
 
 ```js
@@ -352,7 +353,8 @@ Rollback will delete all greater versions. Eg: if you give rollback to version `
     },
 
     url: String,                   // service endpoint eg: /todo
-    userSpace: Boolean,            // true | { field: "{your field name}" } only if api.oauth2.enable = true
+    userSpace: Boolean,            // true | { field: "{your field name}", ignore: ["role1"] } only if api.oauth2.enable = true
+    strict: Boolean,               // true (default value). Set false to add any arbitral field
 
     configure: function() {
         // write your code here to customize this model further
