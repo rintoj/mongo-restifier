@@ -1,5 +1,9 @@
 # mongo-restifier - CHANGE LOG
 
+## 2.3.6
+
+* Fix: Make `password` non mandator field for creating a user
+
 ## 2.3.5
 
 * Feature: Add option to make a schema not strict.

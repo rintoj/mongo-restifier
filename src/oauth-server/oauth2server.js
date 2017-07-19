@@ -509,11 +509,11 @@ var OAuth2Server = function OAuth2Server(app, baseUrl, properties) {
         });
       }
 
-      if (!request.body.userId || !request.body.password || !request.body.name) {
+      if (!request.body.userId || !request.body.name) {
         response.status(422);
         return response.json({
           status: 422,
-          message: 'Missing one of the attributes: userId, password or name!'
+          message: 'Missing one of the attributes: userId or name!'
         });
       }
 
