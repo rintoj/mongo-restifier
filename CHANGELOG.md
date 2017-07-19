@@ -1,5 +1,9 @@
 # mongo-restifier - CHANGE LOG
 
+## 2.3.9
+
+* Fix: bypass auth for OPTIONS /api/**
+
 ## 2.3.8
 * Bug Fix: user is not getting attached to records
 
