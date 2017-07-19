@@ -62,7 +62,8 @@ var userSm = serviceModel({
   },
 
   projection: '-password,-__v,-_id',
-  timestamps: true
+  timestamps: true,
+  strict: false
 
 });
 var User = userSm.context.model;
