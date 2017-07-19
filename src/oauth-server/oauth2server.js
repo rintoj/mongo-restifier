@@ -51,10 +51,7 @@ var userSm = serviceModel({
       required: true,
       idField: true
     },
-    password: {
-      type: String,
-      required: true
-    },
+    password: String,
     picture: String,
     roles: [],
     active: {
