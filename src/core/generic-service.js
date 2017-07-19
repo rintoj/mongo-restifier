@@ -483,7 +483,7 @@ module.exports = function ServiceEndpoint(model, options) {
     }
 
     // attach user
-    if (options.userField && _.intersection(options.userIgnore || [], request.user.roles || []).length === 0) {
+    if (options.userField) {
       items = items.map(function(item) {
         item[options.userField] = request.user && request.user.userId;
         return item;

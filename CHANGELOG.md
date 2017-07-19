@@ -1,5 +1,8 @@
 # mongo-restifier - CHANGE LOG
 
+## 2.3.8
+* Bug Fix: user is not getting attached to records
+
 ## 2.3.7
 
 * Bug fix: Make user model not strict
