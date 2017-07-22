@@ -1,5 +1,9 @@
 # mongo-restifier - CHANGE LOG
 
+## 2.4.4
+
+* Update: change PUT /oauth2/user to accept existing users
+
 ## 2.4.3
 
 * Feature: Add `request` as second parameter to `beforeSave` function
