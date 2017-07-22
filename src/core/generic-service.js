@@ -490,6 +490,10 @@ module.exports = function ServiceEndpoint(model, options) {
       });
     }
 
+    if (typeof options.beforeSave === 'function') {
+      items = options.beforeSave(items)
+    }
+
     categorize(items).then(function(categories) {
       var promises = [];
 

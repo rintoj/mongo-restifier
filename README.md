@@ -309,6 +309,7 @@ Rollback will delete all greater versions. Eg: if you give rollback to version `
 | timestamps       | Behavior   | If set to `true`, two fields `createdAt` and `updatedAt` are added to the schema and maintained by the api.
 | strict           | Behavior   | Set `false` to add any arbitral field. By default this is set to `true`.
 | configure        | Function   | Use this function to register [middleware](http://mongoosejs.com/docs/middleware.html) or [plugins](http://mongoosejs.com/docs/plugins.html). Context of this function will contain the second parameter of 'defineModel' (this object itself) *this.schema* - Schema defined by `schema, *this.model* - reference to [mongoose.Model](http://mongoosejs.com/docs/models.html), *this.modelSchema* - reference to [mongoose.Schema](http://mongoosejs.com/docs/guide.html)
+| beforeSave       | Function   | If defined, this function will be called before saving an item. This can be used to perform any calculation on the records. The signature of the function is `function (item) { return item }` - 'item' will be an array if there are multiple items.
 
 ```js
 ...
@@ -362,6 +363,12 @@ Rollback will delete all greater versions. Eg: if you give rollback to version `
         // this.schema         - The second parameter of 'defineModel' (this object itself)
         // this.model          - reference to mongoose.Model
         // this.modelSchema    - reference to mongoose.Schema
+    },
+
+    beforeSave: function(item) {
+      // write your logic here to derive, filter out, add items
+      // 'item' will be array if there are multiple items
+      return item
     }
 
 })

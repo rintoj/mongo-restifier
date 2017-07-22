@@ -44,7 +44,7 @@ var createContext = function(model) {
   fields.forEach(function(name) {
     Object.defineProperty(context, name, {
       get: function() {
-        return model[name] && (typeof model[name] === 'function' ? model[name].call(context) : model[name]);
+        return model[name];
       }
     });
   });
@@ -180,12 +180,13 @@ var ServiceModel = function ServiceModel(context, properties) {
     userIgnore: userIgnore,
     idField: idField,
     projection: context.projection,
-    historyModel: context.historyModel
+    historyModel: context.historyModel,
+    beforeSave: context.beforeSave
   });
 
   // if setup required do so here
   if (typeof context.configure === 'function') {
-    // setup done!
+    context.configure()
   }
   // bind all the routes
   context.service.bind();
