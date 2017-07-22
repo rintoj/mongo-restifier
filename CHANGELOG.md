@@ -1,5 +1,10 @@
 # mongo-restifier - CHANGE LOG
 
+## 2.4.3
+
+* Feature: Add `request` as second parameter to `beforeSave` function
+* Bug fix: If user role is part of `ignore` list, an user can be attached to the document
+
 ## 2.4.2
 
 * Feature: Add `beforeSave` configuration

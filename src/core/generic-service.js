@@ -484,14 +484,19 @@ module.exports = function ServiceEndpoint(model, options) {
 
     // attach user
     if (options.userField) {
+      var userId = request.user && request.user.userId
+      if (_.intersection(options.userIgnore || [], request.user.roles || []).length !== 0 &&
+        request.body[options.userField] != undefined) {
+        userId = request.body[options.userField]
+      }
       items = items.map(function(item) {
-        item[options.userField] = request.user && request.user.userId;
+        item[options.userField] = userId;
         return item;
       });
     }
 
     if (typeof options.beforeSave === 'function') {
-      items = options.beforeSave(items)
+      items = options.beforeSave(items, request)
     }
 
     categorize(items).then(function(categories) {
