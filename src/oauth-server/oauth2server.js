@@ -515,22 +515,7 @@ var OAuth2Server = function OAuth2Server(app, baseUrl, properties, apiUrl) {
         });
       }
 
-      // check if user exists
-      User.findOne({
-        userId: request.body.userId
-      }, function(error, item) {
-        if (error || item) {
-          response.status(409);
-          return response.json({
-            status: 409,
-            message: 'User is already registered!'
-          });
-        }
-
-        request.query.createOnly = true;
-        userSm.context.service.save(request, response, next);
-      });
-
+      userSm.context.service.save(request, response, next);
     });
 
   });
