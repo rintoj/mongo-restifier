@@ -1,5 +1,9 @@
 # mongo-restifier - CHANGE LOG
 
+## 2.4.2
+
+* Feature: Add `beforeSave` configuration
+
 ## 2.4.1
 
 * Bug fix: static serve conflicting with API authentication
