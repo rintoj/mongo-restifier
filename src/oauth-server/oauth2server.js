@@ -479,7 +479,7 @@ var OAuth2Server = function OAuth2Server(app, baseUrl, properties, apiUrl) {
 
   // register user
   var userRegRouter = express.Router();
-  userRegRouter.put('/', function(request, response, next) {
+  userRegRouter.post('/', function(request, response, next) {
 
     if (request.body instanceof Array) {
       return next();
@@ -508,6 +508,7 @@ var OAuth2Server = function OAuth2Server(app, baseUrl, properties, apiUrl) {
       }
 
       if (!request.body.userId || !request.body.name) {
+        5
         response.status(422);
         return response.json({
           status: 422,
@@ -515,27 +516,23 @@ var OAuth2Server = function OAuth2Server(app, baseUrl, properties, apiUrl) {
         });
       }
 
-      if (request.query.createOnly == "true") {
-        User.findOne({
-          userId: request.body.userId
-        }, function(error, item) {
-          if (error || item) {
-            response.status(409);
-            return response.json({
-              status: 409,
-              message: 'User is already registered!'
-            });
-          }
+      User.findOne({
+        userId: request.body.userId
+      }, function(error, item) {
+        if (error || item) {
+          response.status(409);
+          return response.json({
+            status: 409,
+            message: 'User is already registered!'
+          });
+        }
 
-          userSm.context.service.save(request, response, next);
-        });
-      } else {
         userSm.context.service.save(request, response, next);
-      }
+      });
     });
 
   });
-  app.use(baseUrl + '/user', userRegRouter);
+  app.use(baseUrl + '/register', userRegRouter);
 
   // apply auth rules and authorization
   app.use(function(request, response, next) {

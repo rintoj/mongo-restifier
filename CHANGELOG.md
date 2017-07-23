@@ -1,5 +1,9 @@
 # mongo-restifier - CHANGE LOG
 
+## 2.5.0
+
+* Breaking change: Change register url from `PUT /oauth2/user` to `POST /oauth2/register`
+
 ## 2.4.5
 
 * Fix: respect createOnly flag for PUT /oauth2/user

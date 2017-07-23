@@ -459,10 +459,18 @@ GET /oauth2/user/{userId} HTTP/1.1
 Authorization: Basic base64{clientId:clientSecret}
 ```
 
+### Register User
+```
+POST /oauth2/register HTTP/1.1
+Authorization: Basic base64{clientId:clientSecret}
+
+{ "userId": "emailid", "password": "base64(plaintext)", "name": "Full name" }
+```
+
 ### Create User
 ```
 PUT /oauth2/user HTTP/1.1
-Authorization: Basic base64{clientId:clientSecret}
+Authorization: Bearer {access_token}
 
 { "userId": "emailid", "password": "base64(plaintext)", "name": "Full name" }
 ```
