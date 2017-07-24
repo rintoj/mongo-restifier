@@ -1,5 +1,9 @@
 # mongo-restifier - CHANGE LOG
 
+## 2.5.1
+
+* Bug Fix: Deny user manipulation if user role is not under ignore list
+
 ## 2.5.0
 
 * Breaking change: Change register url from `PUT /oauth2/user` to `POST /oauth2/register`

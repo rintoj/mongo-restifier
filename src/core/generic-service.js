@@ -485,14 +485,22 @@ module.exports = function ServiceEndpoint(model, options) {
     // attach user
     if (options.userField) {
       var userId = request.user && request.user.userId
-      if (_.intersection(options.userIgnore || [], request.user.roles || []).length !== 0 &&
-        request.body[options.userField] != undefined) {
-        userId = request.body[options.userField]
-      }
+      var ignoreRole = _.intersection(options.userIgnore || [], request.user.roles || []).length !== 0
+      var userManipulationDetected = false
       items = items.map(function(item) {
-        item[options.userField] = userId;
+        if (!ignoreRole && item[options.userField] != undefined) {
+          userManipulationDetected = userManipulationDetected || item[options.userField] !== userId
+        }
+        item[options.userField] = ignoreRole ? item[options.userField] || userId : userId;
         return item;
       });
+      if (userManipulationDetected) {
+        response.status(401)
+        return response.json({
+          status: 401,
+          error: 'You are not authorized to manipulate the user'
+        })
+      }
     }
 
     if (typeof options.beforeSave === 'function') {
