@@ -1,6 +1,6 @@
 {
   "name": "mongo-restifier",
-  "version": "2.5.0",
+  "version": "2.5.1",
   "description": "A restful apification library for MongoDB with build-in oAuth2 based authentication and authorization",
   "main": "src/index.js",
   "scripts": {
